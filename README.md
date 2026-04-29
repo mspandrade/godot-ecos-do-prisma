@@ -60,6 +60,7 @@ Classes:
 - Mago: ataca em area e aplica queimadura.
 - Arqueiro: atira em inimigos a distancia.
 - Bardo: aplica buff temporario de dano e velocidade no player.
+- Clerigo: cura em area os companheiros recrutados que estao junto ao player, usando status de area, quantidade de cura e cooldown.
 
 Companheiros:
 
