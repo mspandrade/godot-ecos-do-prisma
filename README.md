@@ -1,5 +1,7 @@
 # Iso Survival Prototype
 
+
+
 Prototipo de jogo mobile em Godot Engine 4.x com visao isometrica, progressao durante a run e combate automatico. O jogador controla apenas o movimento por toque, enquanto armas, aliados e efeitos de combate funcionam de forma automatica.
 
 ## Conceito
