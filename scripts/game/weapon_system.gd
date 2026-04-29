@@ -3,17 +3,13 @@ class_name WeaponSystem
 
 signal projectile_requested(pos: Vector2, dir: Vector2, damage: float, speed: float, pierce: int)
 
+const GameBalanceScript := preload("res://scripts/game/game_balance.gd")
+
 var player: Player
 var run_state: RunState
 var cooldowns := {}
 var orbit_angle := 0.0
-
-var weapon_defs := {
-	"bolt": {"name": "Dardo Solar", "type": "projectile", "cooldown": 1.1, "damage": 7.0},
-	"aura": {"name": "Campo Cinza", "type": "aura", "cooldown": 0.78, "damage": 2.8},
-	"orbit": {"name": "Lamina Orbital", "type": "orbit", "cooldown": 0.28, "damage": 3.5},
-	"burst": {"name": "Selo de Impacto", "type": "area", "cooldown": 3.25, "damage": 12.0}
-}
+var weapon_defs := GameBalanceScript.get_weapon_defs()
 
 func setup(p_player: Player, state: RunState) -> void:
 	player = p_player

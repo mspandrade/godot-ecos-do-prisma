@@ -102,6 +102,7 @@ Principais cenas:
 Principais scripts:
 
 - `scripts/game/game_manager.gd`
+- `scripts/game/game_balance.gd`
 - `scripts/game/player.gd`
 - `scripts/game/companion.gd`
 - `scripts/game/companion_manager.gd`
@@ -109,8 +110,16 @@ Principais scripts:
 - `scripts/game/enemy_spawner.gd`
 - `scripts/game/weapon_system.gd`
 - `scripts/game/upgrade_manager.gd`
+- `scripts/core/scene_pool.gd`
 - `scripts/core/game_data.gd`
 - `scripts/core/run_state.gd`
+
+### Padroes de Projeto
+
+- Dados de balanceamento ficam centralizados em `GameBalance`, separados da logica dos sistemas.
+- Pools de objetos reutilizam `ScenePool`, evitando criacao/destruicao frequente durante a run.
+- Managers orquestram sistemas por sinais e referencias de cena, mantendo UI, combate e progressao separados.
+- Entidades de gameplay usam grupos (`heroes`, `companions`, `enemies`) para consultas simples e desacopladas.
 
 ## Como Rodar
 

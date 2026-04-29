@@ -4,28 +4,12 @@ class_name UpgradeManager
 signal choices_ready(choices: Array)
 signal upgrade_applied(upgrade: Dictionary)
 
+const GameBalanceScript := preload("res://scripts/game/game_balance.gd")
+
 var run_state: RunState
 var weapon_system: Node
-
-var upgrades := [
-	{"id": "bolt", "kind": "weapon", "name": "Dardo Solar", "desc": "Mais projeteis e dano direcionado."},
-	{"id": "aura", "kind": "weapon", "name": "Campo Cinza", "desc": "Pulsa dano ao redor do heroi."},
-	{"id": "orbit", "kind": "weapon", "name": "Lamina Orbital", "desc": "Laminas circulam e cortam inimigos."},
-	{"id": "burst", "kind": "weapon", "name": "Selo de Impacto", "desc": "Explode uma area perto do alvo."},
-	{"id": "might", "kind": "passive", "name": "Foco Marcial", "desc": "Aumenta todo o dano."},
-	{"id": "haste", "kind": "passive", "name": "Solado Rapido", "desc": "Aumenta velocidade de movimento."},
-	{"id": "magnet", "kind": "passive", "name": "Eco Coletor", "desc": "Aumenta o alcance de coleta."},
-	{"id": "vitality", "kind": "passive", "name": "Coração Prismático", "desc": "Aumenta a vida máxima durante a run."},
-	{"id": "guard", "kind": "passive", "name": "Pele de Pedra", "desc": "Reduz o dano recebido de inimigos."},
-	{"id": "renewal", "kind": "passive", "name": "Pulso Vivo", "desc": "Regenera vida aos poucos."}
-]
-
-var evolutions := {
-	"bolt": {"passive": "might", "level": 8, "result_name": "Dardo Ascendente"},
-	"aura": {"passive": "magnet", "level": 8, "result_name": "Campo Gravitico"},
-	"orbit": {"passive": "haste", "level": 8, "result_name": "Danca Cortante"},
-	"burst": {"passive": "guard", "level": 8, "result_name": "Selo Cataclismo"}
-}
+var upgrades := GameBalanceScript.get_upgrade_defs()
+var evolutions := GameBalanceScript.get_weapon_evolutions()
 
 func setup(state: RunState, weapons: Node) -> void:
 	run_state = state

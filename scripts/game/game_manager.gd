@@ -4,9 +4,11 @@ class_name GameManager
 @export var projectile_scene: PackedScene
 @export var xp_orb_scene: PackedScene
 
+const ScenePoolScript := preload("res://scripts/core/scene_pool.gd")
+
 var run_state := RunState.new()
-var projectile_pool: Array[Projectile] = []
-var orb_pool: Array[XPOrb] = []
+var projectile_pool := ScenePoolScript.new()
+var orb_pool := ScenePoolScript.new()
 var elapsed := 0.0
 var run_finished := false
 
@@ -52,17 +54,10 @@ func _process(delta: float) -> void:
 		_finish_run()
 
 func _build_pools() -> void:
-	for i in range(70):
-		var projectile: Projectile = projectile_scene.instantiate()
-		add_child(projectile)
-		projectile.recycled.connect(_recycle_projectile)
-		projectile_pool.append(projectile)
-	for i in range(160):
-		var orb: XPOrb = xp_orb_scene.instantiate()
-		add_child(orb)
+	projectile_pool.build(self, projectile_scene, 70, _recycle_projectile)
+	orb_pool.build(self, xp_orb_scene, 160, _recycle_orb)
+	for orb: XPOrb in orb_pool.items:
 		orb.collected.connect(_on_orb_collected)
-		orb.recycled.connect(_recycle_orb)
-		orb_pool.append(orb)
 
 func _connect_signals() -> void:
 	player.died.connect(_finish_run)
@@ -78,19 +73,17 @@ func _connect_signals() -> void:
 	companion_choices.call("bind", companion_manager)
 
 func _fire_projectile(pos: Vector2, dir: Vector2, damage: float, speed: float, pierce: int) -> void:
-	for projectile in projectile_pool:
-		if not projectile.active:
-			projectile.fire(pos, dir, damage, speed, pierce)
-			return
+	var projectile: Projectile = projectile_pool.acquire()
+	if projectile:
+		projectile.fire(pos, dir, damage, speed, pierce)
 
 func _recycle_projectile(projectile: Projectile) -> void:
 	projectile.deactivate()
 
 func _drop_orb(pos: Vector2, xp_value: int, coin_value: int) -> void:
-	for orb in orb_pool:
-		if not orb.active:
-			orb.drop(pos, xp_value, coin_value)
-			return
+	var orb: XPOrb = orb_pool.acquire()
+	if orb:
+		orb.drop(pos, xp_value, coin_value)
 
 func _recycle_orb(orb: XPOrb) -> void:
 	orb.deactivate()

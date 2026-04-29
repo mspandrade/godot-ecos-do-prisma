@@ -3,6 +3,8 @@ extends Node2D
 signal companion_leveled(companion: Node, choices: Array)
 signal companion_recruited(companion: Node)
 
+const GameBalanceScript := preload("res://scripts/game/game_balance.gd")
+
 @export var companion_scene: PackedScene
 @export var recruit_distance := 92.0
 
@@ -10,21 +12,8 @@ var player: Node2D
 var companions: Array[Node] = []
 var recruited_companions: Array[Node] = []
 
-var companion_defs := [
-	{"id": "shield_warrior", "name": "Guerreiro do Escudo", "class": "shield", "health": 30.0, "speed": 210.0, "damage": 4.5, "range": 145.0, "cooldown": 1.35, "ability_power": 0.8, "color": Color(0.35, 0.55, 1.0)},
-	{"id": "mage", "name": "Mago", "class": "mage", "health": 18.0, "speed": 200.0, "damage": 4.2, "range": 520.0, "cooldown": 2.1, "ability_power": 0.75, "color": Color(0.75, 0.35, 1.0)},
-	{"id": "archer", "name": "Arqueiro", "class": "archer", "health": 22.0, "speed": 215.0, "damage": 5.5, "range": 620.0, "cooldown": 1.25, "ability_power": 0.8, "color": Color(0.95, 0.78, 0.28)},
-	{"id": "bard", "name": "Bardo", "class": "bard", "health": 16.0, "speed": 210.0, "damage": 0.0, "range": 0.0, "cooldown": 10.0, "ability_power": 0.7, "color": Color(0.25, 0.95, 0.62)},
-	{"id": "cleric", "name": "Clerigo", "class": "cleric", "health": 20.0, "speed": 205.0, "damage": 5.0, "range": 210.0, "cooldown": 6.5, "ability_power": 1.0, "color": Color(0.95, 0.9, 0.55)}
-]
-
-var offsets := [
-	Vector2(-58, 52),
-	Vector2(58, 52),
-	Vector2(-86, -18),
-	Vector2(86, -18),
-	Vector2(0, 96)
-]
+var companion_defs := GameBalanceScript.get_companion_defs()
+var offsets := GameBalanceScript.get_companion_offsets()
 
 func setup(p_player: Node2D) -> void:
 	player = p_player
