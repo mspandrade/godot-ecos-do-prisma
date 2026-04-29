@@ -66,6 +66,8 @@ func _class_color() -> Color:
 			return Color(0.95, 0.78, 0.28)
 		"bard":
 			return Color(0.25, 0.95, 0.62)
+		"cleric":
+			return Color(0.95, 0.9, 0.55)
 	return Color.WHITE
 
 func _physics_process(delta: float) -> void:
@@ -113,15 +115,25 @@ func add_xp(amount: int) -> void:
 		leveled_up.emit(self, get_upgrade_choices())
 
 func get_upgrade_choices() -> Array:
-	var choices := [
-		{"id": "damage", "name": "Dano", "desc": "+20% dano da classe"},
-		{"id": "cooldown", "name": "Ritmo", "desc": "-12% cooldown de habilidade"},
-		{"id": "health", "name": "Vigor", "desc": "+12 vida maxima"},
-		{"id": "range", "name": "Alcance", "desc": "+18 alcance de ataque"}
-	]
+	var choices := []
+	if class_type == "cleric":
+		choices = [
+			{"id": "damage", "name": "Cura", "desc": "+12% quantidade de cura"},
+			{"id": "cooldown", "name": "Prece Rapida", "desc": "-7% cooldown de cura"},
+			{"id": "health", "name": "Vigor", "desc": "+8 vida maxima"},
+			{"id": "range", "name": "Area Sagrada", "desc": "+18 area de cura"},
+			{"id": "ability", "name": "Graca", "desc": "+15% eficiencia da cura"}
+		]
+	else:
+		choices = [
+			{"id": "damage", "name": "Dano", "desc": "+12% dano da classe"},
+			{"id": "cooldown", "name": "Ritmo", "desc": "-7% cooldown de habilidade"},
+			{"id": "health", "name": "Vigor", "desc": "+8 vida maxima"},
+			{"id": "range", "name": "Alcance", "desc": "+18 alcance de ataque"}
+		]
 	if class_type == "bard":
 		choices.append({"id": "ability", "name": "Inspiracao", "desc": "+15% forca do buff"})
-	else:
+	elif class_type != "cleric":
 		choices.append({"id": "ability", "name": "Tecnica", "desc": "+15% efeito especial"})
 	choices.shuffle()
 	return choices.slice(0, 3)
@@ -152,6 +164,8 @@ func _use_class_action() -> void:
 			_archer_attack()
 		"bard":
 			_bard_buff()
+		"cleric":
+			_cleric_heal()
 
 func take_damage(amount: float) -> void:
 	if is_down or not is_recruited or spawn_grace_time > 0.0 or is_invulnerable:
@@ -163,6 +177,16 @@ func take_damage(amount: float) -> void:
 		body.modulate = Color(1.0, 0.4, 0.4, 0.85)
 		var tween := create_tween()
 		tween.tween_property(body, "modulate", Color.WHITE, 0.16)
+	health_changed.emit(self, health, max_health)
+
+func heal(amount: float) -> void:
+	if is_down or not is_recruited or health >= max_health:
+		return
+	health = min(max_health, health + amount)
+	if body:
+		body.modulate = Color(0.95, 1.0, 0.55, 0.9)
+		var tween := create_tween()
+		tween.tween_property(body, "modulate", Color.WHITE, 0.18)
 	health_changed.emit(self, health, max_health)
 
 func is_damage_target() -> bool:
@@ -264,6 +288,25 @@ func _bard_buff() -> void:
 		player.apply_bard_buff(0.08 * ability_power, 18.0 * ability_power, 4.0)
 		_flash(player.global_position, Color(0.35, 1.0, 0.65, 0.28), 90.0)
 
+func _cleric_heal() -> void:
+	if not player:
+		return
+	if _heal_companion_targets(get_tree().get_nodes_in_group("companions")):
+		_flash(player.global_position, Color(0.95, 1.0, 0.55, 0.26), attack_range)
+
+func _heal_companion_targets(targets: Array) -> bool:
+	var healed_any := false
+	var heal_amount := attack_damage * ability_power
+	for companion in targets:
+		if companion == self or not companion.is_recruited or companion.is_down:
+			continue
+		if companion.global_position.distance_to(player.global_position) > attack_range:
+			continue
+		var before: float = companion.health
+		companion.heal(heal_amount)
+		healed_any = healed_any or companion.health > before
+	return healed_any
+
 func _nearest_enemy(max_distance: float) -> Node2D:
 	var best: Node2D
 	var best_dist := max_distance * max_distance
@@ -281,7 +324,7 @@ func _flash_line(from: Vector2, to: Vector2, color: Color, width: float) -> void
 	line.width = width
 	line.default_color = color
 	line.points = PackedVector2Array([from, to])
-	get_tree().current_scene.add_child(line)
+	_effect_parent().add_child(line)
 	var tween := line.create_tween()
 	tween.tween_property(line, "modulate:a", 0.0, 0.14)
 	tween.tween_callback(line.queue_free)
@@ -291,7 +334,12 @@ func _flash(pos: Vector2, color: Color, radius: float) -> void:
 	marker.polygon = PackedVector2Array([Vector2(0, -radius), Vector2(radius, 0), Vector2(0, radius), Vector2(-radius, 0)])
 	marker.color = color
 	marker.global_position = pos
-	get_tree().current_scene.add_child(marker)
+	_effect_parent().add_child(marker)
 	var tween := marker.create_tween()
 	tween.tween_property(marker, "modulate:a", 0.0, 0.18)
 	tween.tween_callback(marker.queue_free)
+
+func _effect_parent() -> Node:
+	if get_tree().current_scene:
+		return get_tree().current_scene
+	return get_tree().root

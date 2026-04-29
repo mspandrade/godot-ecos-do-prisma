@@ -14,6 +14,7 @@ func _init() -> void:
 	_test_weapon_and_passive_limits()
 	_test_survival_passives()
 	_test_companion_level_and_upgrades()
+	_test_cleric_heals_recruited_companions()
 	_test_upgrade_choices_respect_limits()
 	_test_weapon_evolution()
 	_test_permanent_upgrade_cost_formula()
@@ -100,6 +101,32 @@ func _test_companion_level_and_upgrades() -> void:
 	_assert_true(not companion.is_damage_target(), "Dead companion is no longer a damage target")
 	companion.free()
 
+func _test_cleric_heals_recruited_companions() -> void:
+	var player := Node2D.new()
+	player.global_position = Vector2.ZERO
+
+	var cleric: Node = CompanionScript.new()
+	cleric.player = player
+	cleric.class_type = "cleric"
+	cleric.is_recruited = true
+	cleric.attack_damage = 5.0
+	cleric.attack_range = 210.0
+	cleric.ability_power = 1.0
+	cleric.global_position = Vector2.ZERO
+
+	var wounded: Node = CompanionScript.new()
+	wounded.is_recruited = true
+	wounded.max_health = 22.0
+	wounded.health = 10.0
+	wounded.global_position = Vector2(40, 0)
+
+	var healed: bool = cleric._heal_companion_targets([wounded])
+	_assert_true(healed, "Cleric reports healing when companion is wounded in area")
+	_assert_float_eq(wounded.health, 15.0, "Cleric heals recruited companion in area")
+
+	wounded.free()
+	cleric.free()
+	player.free()
 
 func _test_upgrade_choices_respect_limits() -> void:
 	var state: RunState = RunStateScript.new()
