@@ -1,0 +1,78 @@
+[gd_scene load_steps=18 format=3 uid="uid://game_scene"]
+
+[ext_resource type="Script" path="res://scripts/game/game_manager.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/game/camera_controller.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/game/enemy_spawner.gd" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="5"]
+[ext_resource type="Script" path="res://scripts/game/weapon_system.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/game/upgrade_manager.gd" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/Projectile.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/XPOrb.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PauseMenu.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/ui/GameOver.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/ui/LevelChoices.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/ui/VirtualJoystick.tscn" id="14"]
+[ext_resource type="Script" path="res://scripts/game/companion_manager.gd" id="15"]
+[ext_resource type="PackedScene" path="res://scenes/Companion.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CompanionChoices.tscn" id="17"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1")
+projectile_scene = ExtResource("8")
+xp_orb_scene = ExtResource("9")
+
+[node name="WorldFloor" type="Node2D" parent="."]
+
+[node name="TileA" type="Polygon2D" parent="WorldFloor"]
+color = Color(0.12, 0.18, 0.17, 1)
+polygon = PackedVector2Array(0, -420, 780, 0, 0, 420, -780, 0)
+
+[node name="TileB" type="Polygon2D" parent="WorldFloor"]
+position = Vector2(780, 0)
+color = Color(0.10, 0.15, 0.16, 1)
+polygon = PackedVector2Array(0, -420, 780, 0, 0, 420, -780, 0)
+
+[node name="TileC" type="Polygon2D" parent="WorldFloor"]
+position = Vector2(-780, 0)
+color = Color(0.10, 0.15, 0.16, 1)
+polygon = PackedVector2Array(0, -420, 780, 0, 0, 420, -780, 0)
+
+[node name="Player" parent="." instance=ExtResource("2")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("3")
+zoom = Vector2(0.9, 0.9)
+
+[node name="EnemySpawner" type="Node2D" parent="."]
+script = ExtResource("4")
+enemy_scene = ExtResource("5")
+
+[node name="WeaponSystem" type="Node2D" parent="."]
+script = ExtResource("6")
+
+[node name="UpgradeManager" type="Node" parent="."]
+script = ExtResource("7")
+
+[node name="CompanionManager" type="Node2D" parent="."]
+script = ExtResource("15")
+companion_scene = ExtResource("16")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("10")]
+
+[node name="VirtualJoystick" parent="CanvasLayer" instance=ExtResource("14")]
+offset_left = 34.0
+offset_top = 500.0
+offset_right = 230.0
+offset_bottom = 696.0
+
+[node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("11")]
+
+[node name="GameOver" parent="CanvasLayer" instance=ExtResource("12")]
+
+[node name="LevelChoices" parent="CanvasLayer" instance=ExtResource("13")]
+
+[node name="CompanionChoices" parent="CanvasLayer" instance=ExtResource("17")]

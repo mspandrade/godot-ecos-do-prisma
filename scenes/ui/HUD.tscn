@@ -1,0 +1,84 @@
+[gd_scene load_steps=2 format=3 uid="uid://hud_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="TopPanel" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 18.0
+offset_top = 14.0
+offset_right = -18.0
+offset_bottom = 92.0
+theme_override_constants/separation = 4
+
+[node name="TopBar" type="HBoxContainer" parent="TopPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HealthColumn" type="VBoxContainer" parent="TopPanel/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="HealthBar" type="ProgressBar" parent="TopPanel/TopBar/HealthColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 22)
+show_percentage = false
+
+[node name="CompanionHealthList" type="VBoxContainer" parent="TopPanel/TopBar/HealthColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.72)
+theme_override_constants/separation = 1
+
+[node name="XPBar" type="ProgressBar" parent="TopPanel/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="LevelLabel" type="Label" parent="TopPanel/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Nv 1"
+
+[node name="TimerLabel" type="Label" parent="TopPanel/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "00:00"
+
+[node name="PauseButton" type="Button" parent="TopPanel/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pausar"
+
+[node name="BottomInfo" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 250.0
+offset_top = -92.0
+offset_right = 820.0
+offset_bottom = -18.0
+
+[node name="CoinsLabel" type="Label" parent="BottomInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Moedas: 0"
+
+[node name="WeaponsLabel" type="Label" parent="BottomInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Armas: -"

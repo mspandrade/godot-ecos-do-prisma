@@ -1,0 +1,42 @@
+# Godot generated files
+.godot/
+.import/
+*.import
+
+# Godot exports and builds
+build/
+builds/
+export/
+exports/
+dist/
+*.pck
+*.zip
+*.apk
+*.aab
+*.exe
+*.dmg
+*.app/
+*.x86_64
+*.arm64
+
+# Godot runtime/editor logs
+logs/
+*.log
+crash_logs/
+
+# User/local settings
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.autosave
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE folders
+.vscode/
+.idea/
