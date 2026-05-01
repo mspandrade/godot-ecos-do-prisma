@@ -77,6 +77,7 @@ func _physics_process(_delta: float) -> void:
 	velocity = dir * speed + knockback_velocity
 	if velocity.x != 0.0:
 		body.flip_h = velocity.x < 0.0
+	_update_sprite_facing(velocity)
 	_update_walk_animation(velocity.length() > 5.0)
 	knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 900.0 * _delta)
 	move_and_slide()
@@ -139,6 +140,13 @@ func _apply_spawn_sprite(wave: int, boss: bool) -> void:
 func _apply_walk_frame() -> void:
 	if body:
 		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+
+func _update_sprite_facing(move_velocity: Vector2) -> void:
+	var next_facing := "back" if move_velocity.x < -5.0 and move_velocity.y < -5.0 else "front"
+	if sprite_facing == next_facing:
+		return
+	sprite_facing = next_facing
+	_apply_walk_frame()
 
 func _update_walk_animation(is_moving: bool) -> void:
 	var target_animation := "walk" if is_moving else "idle"

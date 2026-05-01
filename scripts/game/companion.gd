@@ -118,11 +118,19 @@ func _follow_player(_delta: float) -> void:
 	move_and_slide()
 	if velocity.x != 0.0:
 		body.flip_h = velocity.x < 0.0
+	_update_sprite_facing(velocity)
 	_update_walk_animation(velocity.length() > 5.0)
 
 func _apply_walk_frame() -> void:
 	if body:
 		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+
+func _update_sprite_facing(move_velocity: Vector2) -> void:
+	var next_facing := "back" if move_velocity.x < -5.0 and move_velocity.y < -5.0 else "front"
+	if sprite_facing == next_facing:
+		return
+	sprite_facing = next_facing
+	_apply_walk_frame()
 
 func _update_walk_animation(is_moving: bool) -> void:
 	var target_animation := "walk" if is_moving else "idle"
