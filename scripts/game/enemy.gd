@@ -123,7 +123,7 @@ func _apply_spawn_sprite(wave: int, boss: bool) -> void:
 		sprite_type = ["orc_green_staff", "goblin_green_heavy", "bat_purple"].pick_random()
 	elif wave >= 3:
 		sprite_type = ["goblin_green_spear", "slime_orange", "goblin_green_sword"].pick_random()
-	var names: Array = EntitySpriteAtlas.names_for_type("%s_front" % sprite_type)
+	var names: Array = EntitySpriteAtlas.names_for_type("%s_front_walk" % sprite_type)
 	if names.is_empty():
 		return
 	EntitySpriteAtlas.apply(body, str(names.pick_random()))

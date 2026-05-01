@@ -1,7 +1,7 @@
 extends RefCounted
 class_name EntitySpriteAtlas
 
-const TEXTURE_PATH := "res://assets/sprites/entities/IsometricTRPGAssetPack_OutlinedEntities.png"
+const TEXTURE_PATH := "res://assets/sprites/entities/IsometricTRPGAssetPack_Entities.png"
 const ATLAS_PATH := "res://assets/sprites/entities/outlined_entities_atlas.json"
 
 static var _atlas: Dictionary = {}

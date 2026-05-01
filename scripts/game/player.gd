@@ -80,12 +80,12 @@ func _physics_process(_delta: float) -> void:
 		body.flip_h = velocity.x < 0.0
 
 func _apply_character_sprite() -> void:
-	var sprite_name := "rogue_blue_hood_front_frame_0"
+	var sprite_name := "rogue_blue_hood_front_walk_0"
 	match GameData.selected_character:
 		"warden":
-			sprite_name = "knight_blue_shield_front_frame_0"
+			sprite_name = "knight_blue_shield_front_walk_0"
 		"spark":
-			sprite_name = "mage_blue_front_frame_0"
+			sprite_name = "mage_blue_front_walk_0"
 	EntitySpriteAtlas.apply(body, sprite_name)
 
 func _read_input() -> Vector2:

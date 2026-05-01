@@ -60,16 +60,16 @@ func _ready() -> void:
 func _class_sprite_name() -> String:
 	match class_type:
 		"shield":
-			return "knight_blue_shield_front_frame_0"
+			return "knight_blue_shield_front_walk_0"
 		"mage":
-			return "mage_blue_front_frame_0"
+			return "mage_blue_front_walk_0"
 		"archer":
-			return "ranger_blue_bow_front_frame_0"
+			return "ranger_blue_bow_front_walk_0"
 		"bard":
-			return "necromancer_purple_front_frame_0"
+			return "necromancer_purple_front_walk_0"
 		"cleric":
-			return "mage_blue_front_frame_3"
-	return "knight_blue_shield_front_frame_0"
+			return "mage_blue_front_walk_1"
+	return "knight_blue_shield_front_walk_0"
 
 func _apply_class_sprite() -> void:
 	EntitySpriteAtlas.apply(body, _class_sprite_name())
