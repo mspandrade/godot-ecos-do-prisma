@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://player_scene"]
+[gd_scene load_steps=10 format=3 uid="uid://player_scene"]
 
 [ext_resource type="Script" path="res://scripts/game/player.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/entities/IsometricTRPGAssetPack_Entities.png" id="2"]
@@ -42,6 +42,22 @@ tracks/0/keys = {
 "values": [0, 1]
 }
 
+[sub_resource type="Animation" id="Animation_attack"]
+resource_name = "attack"
+length = 0.24
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:walk_frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.12),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [0, 1]
+}
+
 [sub_resource type="Animation" id="Animation_RESET"]
 length = 0.001
 tracks/0/type = "value"
@@ -60,6 +76,7 @@ tracks/0/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_entities"]
 _data = {
 "RESET": SubResource("Animation_RESET"),
+"attack": SubResource("Animation_attack"),
 "idle": SubResource("Animation_idle"),
 "walk": SubResource("Animation_walk")
 }

@@ -26,6 +26,8 @@ func _process(delta: float) -> void:
 			_fire_weapon(id)
 
 func _fire_weapon(id: String) -> void:
+	if player.has_method("play_attack_animation"):
+		player.play_attack_animation()
 	var level := int(run_state.weapon_levels.get(id, 1))
 	var def: Dictionary = weapon_defs[id]
 	var cd: float = float(def["cooldown"]) * max(0.45, 1.0 - level * 0.035)

@@ -33,10 +33,11 @@ var base_collision_mask := 0
 const MAX_LEASH_DISTANCE := 420.0
 var sprite_type := "knight_blue_shield"
 var sprite_facing := "front"
+var sprite_action := "walk"
 var walk_frame := 0:
 	set(value):
 		walk_frame = int(value)
-		_apply_walk_frame()
+		_apply_sprite_frame()
 
 @onready var body: Sprite2D = $Body
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
@@ -63,6 +64,7 @@ func _ready() -> void:
 	_apply_class_sprite()
 	add_to_group("companions")
 	body.modulate = Color(1.0, 1.0, 1.0, 0.62)
+	animation_player.animation_finished.connect(_on_animation_finished)
 	animation_player.play("idle")
 
 func _class_sprite_type() -> String:
@@ -81,7 +83,7 @@ func _class_sprite_type() -> String:
 
 func _apply_class_sprite() -> void:
 	sprite_type = _class_sprite_type()
-	_apply_walk_frame()
+	_apply_sprite_frame()
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player):
@@ -121,21 +123,38 @@ func _follow_player(_delta: float) -> void:
 	_update_sprite_facing(velocity)
 	_update_walk_animation(velocity.length() > 5.0)
 
-func _apply_walk_frame() -> void:
+func _apply_sprite_frame() -> void:
 	if body:
-		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, sprite_action, walk_frame)
 
 func _update_sprite_facing(move_velocity: Vector2) -> void:
 	var next_facing := "back" if move_velocity.x < -5.0 and move_velocity.y < -5.0 else "front"
 	if sprite_facing == next_facing:
 		return
 	sprite_facing = next_facing
-	_apply_walk_frame()
+	_apply_sprite_frame()
 
 func _update_walk_animation(is_moving: bool) -> void:
+	if sprite_action == "attack":
+		return
 	var target_animation := "walk" if is_moving else "idle"
 	if animation_player.current_animation != target_animation:
+		sprite_action = "walk"
 		animation_player.play(target_animation)
+
+func play_attack_animation() -> void:
+	if is_down:
+		return
+	sprite_action = "attack"
+	walk_frame = 0
+	animation_player.play("attack")
+
+func _on_animation_finished(animation_name: StringName) -> void:
+	if animation_name != &"attack":
+		return
+	sprite_action = "walk"
+	_apply_sprite_frame()
+	_update_walk_animation(velocity.length() > 5.0)
 
 func add_xp(amount: int) -> void:
 	if is_down or not is_recruited:
@@ -190,6 +209,7 @@ func apply_upgrade(upgrade_id: String) -> void:
 			ability_power *= 1.15
 
 func _use_class_action() -> void:
+	play_attack_animation()
 	match class_type:
 		"shield":
 			_shield_attack()
@@ -232,6 +252,8 @@ func _apply_contact_damage() -> void:
 		return
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if enemy.is_active and enemy.global_position.distance_to(global_position) < 46.0:
+			if enemy.has_method("play_attack_animation"):
+				enemy.play_attack_animation()
 			take_damage(enemy.get_contact_damage())
 			return
 

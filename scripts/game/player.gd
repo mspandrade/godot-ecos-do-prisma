@@ -28,10 +28,11 @@ var base_hit_area_mask := 0
 var is_intangible := false
 var sprite_type := "rogue_blue_hood"
 var sprite_facing := "front"
+var sprite_action := "walk"
 var walk_frame := 0:
 	set(value):
 		walk_frame = int(value)
-		_apply_walk_frame()
+		_apply_sprite_frame()
 
 @onready var body: Sprite2D = $Body
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
@@ -56,6 +57,7 @@ func _ready() -> void:
 	base_collision_mask = collision_mask
 	base_hit_area_mask = hit_area.collision_mask
 	_apply_character_sprite()
+	animation_player.animation_finished.connect(_on_animation_finished)
 	animation_player.play("idle")
 	hit_area.area_entered.connect(_on_hit_area_entered)
 	pickup_area.area_entered.connect(_on_pickup_area_entered)
@@ -96,23 +98,38 @@ func _apply_character_sprite() -> void:
 			sprite_type = "knight_blue_shield"
 		"spark":
 			sprite_type = "mage_blue"
-	_apply_walk_frame()
+	_apply_sprite_frame()
 
-func _apply_walk_frame() -> void:
+func _apply_sprite_frame() -> void:
 	if body:
-		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, sprite_action, walk_frame)
 
 func _update_sprite_facing(move_velocity: Vector2) -> void:
 	var next_facing := "back" if move_velocity.x < -5.0 and move_velocity.y < -5.0 else "front"
 	if sprite_facing == next_facing:
 		return
 	sprite_facing = next_facing
-	_apply_walk_frame()
+	_apply_sprite_frame()
 
 func _update_walk_animation(is_moving: bool) -> void:
+	if sprite_action == "attack":
+		return
 	var target_animation := "walk" if is_moving else "idle"
 	if animation_player.current_animation != target_animation:
+		sprite_action = "walk"
 		animation_player.play(target_animation)
+
+func play_attack_animation() -> void:
+	sprite_action = "attack"
+	walk_frame = 0
+	animation_player.play("attack")
+
+func _on_animation_finished(animation_name: StringName) -> void:
+	if animation_name != &"attack":
+		return
+	sprite_action = "walk"
+	_apply_sprite_frame()
+	_update_walk_animation(velocity.length() > 5.0)
 
 func _read_input() -> Vector2:
 	if joystick_path != NodePath():
@@ -221,6 +238,8 @@ func _restore_collision() -> void:
 
 func _on_hit_area_entered(area: Area2D) -> void:
 	if area.owner and area.owner.has_method("get_contact_damage"):
+		if area.owner.has_method("play_attack_animation"):
+			area.owner.play_attack_animation()
 		take_damage(area.owner.get_contact_damage())
 		contact_tick = 0.45
 
@@ -228,6 +247,8 @@ func _apply_contact_damage() -> void:
 	var highest_damage := 0.0
 	for area in hit_area.get_overlapping_areas():
 		if area.owner and area.owner.has_method("get_contact_damage"):
+			if area.owner.has_method("play_attack_animation"):
+				area.owner.play_attack_animation()
 			highest_damage = max(highest_damage, float(area.owner.get_contact_damage()))
 	if highest_damage > 0.0:
 		take_damage(highest_damage)

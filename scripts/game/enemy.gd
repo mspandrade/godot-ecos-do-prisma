@@ -20,10 +20,11 @@ var burn_damage_per_second := 0.0
 var burn_time := 0.0
 var sprite_type := "goblin_green_sword"
 var sprite_facing := "front"
+var sprite_action := "walk"
 var walk_frame := 0:
 	set(value):
 		walk_frame = int(value)
-		_apply_walk_frame()
+		_apply_sprite_frame()
 
 @onready var body: Sprite2D = $Body
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
@@ -31,6 +32,7 @@ var walk_frame := 0:
 
 func _ready() -> void:
 	add_to_group("enemies")
+	animation_player.animation_finished.connect(_on_animation_finished)
 	hurtbox.area_entered.connect(_on_hurtbox_area_entered)
 	deactivate()
 
@@ -50,6 +52,7 @@ func spawn(pos: Vector2, player: Node2D, wave: int, boss := false) -> void:
 	scale = Vector2.ONE * (1.75 if boss else 1.0)
 	visible = true
 	is_active = true
+	sprite_action = "walk"
 	animation_player.play("walk")
 	knockback_velocity = Vector2.ZERO
 	burn_damage_per_second = 0.0
@@ -135,23 +138,40 @@ func _apply_spawn_sprite(wave: int, boss: bool) -> void:
 	elif wave >= 3:
 		sprite_type = ["goblin_green_spear", "slime_orange", "goblin_green_sword"].pick_random()
 	walk_frame = 0
-	_apply_walk_frame()
+	_apply_sprite_frame()
 
-func _apply_walk_frame() -> void:
+func _apply_sprite_frame() -> void:
 	if body:
-		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, sprite_action, walk_frame)
 
 func _update_sprite_facing(move_velocity: Vector2) -> void:
 	var next_facing := "back" if move_velocity.x < -5.0 and move_velocity.y < -5.0 else "front"
 	if sprite_facing == next_facing:
 		return
 	sprite_facing = next_facing
-	_apply_walk_frame()
+	_apply_sprite_frame()
 
 func _update_walk_animation(is_moving: bool) -> void:
+	if sprite_action == "attack":
+		return
 	var target_animation := "walk" if is_moving else "idle"
 	if animation_player.current_animation != target_animation:
+		sprite_action = "walk"
 		animation_player.play(target_animation)
+
+func play_attack_animation() -> void:
+	if not is_active:
+		return
+	sprite_action = "attack"
+	walk_frame = 0
+	animation_player.play("attack")
+
+func _on_animation_finished(animation_name: StringName) -> void:
+	if animation_name != &"attack":
+		return
+	sprite_action = "walk"
+	_apply_sprite_frame()
+	_update_walk_animation(velocity.length() > 5.0)
 
 func _on_hurtbox_area_entered(area: Area2D) -> void:
 	if area.owner and area.owner.has_method("get_damage"):
