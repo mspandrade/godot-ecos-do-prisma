@@ -31,8 +31,15 @@ var spawn_grace_time := 0.0
 var base_collision_layer := 0
 var base_collision_mask := 0
 const MAX_LEASH_DISTANCE := 420.0
+var sprite_type := "knight_blue_shield"
+var sprite_facing := "front"
+var walk_frame := 0:
+	set(value):
+		walk_frame = int(value)
+		_apply_walk_frame()
 
 @onready var body: Sprite2D = $Body
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 func setup(data: Dictionary, p_player: Node2D, offset: Vector2) -> void:
 	companion_id = str(data["id"])
@@ -56,31 +63,35 @@ func _ready() -> void:
 	_apply_class_sprite()
 	add_to_group("companions")
 	body.modulate = Color(1.0, 1.0, 1.0, 0.62)
+	animation_player.play("idle")
 
-func _class_sprite_name() -> String:
+func _class_sprite_type() -> String:
 	match class_type:
 		"shield":
-			return "knight_blue_shield_front_walk_0"
+			return "knight_blue_shield"
 		"mage":
-			return "mage_blue_front_walk_0"
+			return "mage_blue"
 		"archer":
-			return "ranger_blue_bow_front_walk_0"
+			return "ranger_blue_bow"
 		"bard":
-			return "necromancer_purple_front_walk_0"
+			return "necromancer_purple"
 		"cleric":
-			return "mage_blue_front_walk_1"
-	return "knight_blue_shield_front_walk_0"
+			return "mage_blue"
+	return "knight_blue_shield"
 
 func _apply_class_sprite() -> void:
-	EntitySpriteAtlas.apply(body, _class_sprite_name())
+	sprite_type = _class_sprite_type()
+	_apply_walk_frame()
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	if not is_recruited:
 		velocity = Vector2.ZERO
+		_update_walk_animation(false)
 		return
 	if is_down:
+		_update_walk_animation(false)
 		return
 	spawn_grace_time = max(0.0, spawn_grace_time - delta)
 	_keep_in_formation()
@@ -107,6 +118,16 @@ func _follow_player(_delta: float) -> void:
 	move_and_slide()
 	if velocity.x != 0.0:
 		body.flip_h = velocity.x < 0.0
+	_update_walk_animation(velocity.length() > 5.0)
+
+func _apply_walk_frame() -> void:
+	if body:
+		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+
+func _update_walk_animation(is_moving: bool) -> void:
+	var target_animation := "walk" if is_moving else "idle"
+	if animation_player.current_animation != target_animation:
+		animation_player.play(target_animation)
 
 func add_xp(amount: int) -> void:
 	if is_down or not is_recruited:
@@ -223,6 +244,7 @@ func recruit(new_offset: Vector2) -> void:
 	health = max_health
 	_snap_to_formation()
 	body.modulate = Color.WHITE
+	animation_player.play("idle")
 	add_to_group("heroes")
 	spawn_grace_time = 1.2
 	attack_timer = randf_range(0.12, 0.45)

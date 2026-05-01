@@ -26,8 +26,15 @@ var base_collision_layer := 0
 var base_collision_mask := 0
 var base_hit_area_mask := 0
 var is_intangible := false
+var sprite_type := "rogue_blue_hood"
+var sprite_facing := "front"
+var walk_frame := 0:
+	set(value):
+		walk_frame = int(value)
+		_apply_walk_frame()
 
 @onready var body: Sprite2D = $Body
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var hit_area: Area2D = $HitArea
 @onready var pickup_area: Area2D = $PickupArea
 @onready var pickup_shape: CollisionShape2D = $PickupArea/CollisionShape2D
@@ -49,6 +56,7 @@ func _ready() -> void:
 	base_collision_mask = collision_mask
 	base_hit_area_mask = hit_area.collision_mask
 	_apply_character_sprite()
+	animation_player.play("idle")
 	hit_area.area_entered.connect(_on_hit_area_entered)
 	pickup_area.area_entered.connect(_on_pickup_area_entered)
 
@@ -78,15 +86,25 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 	if velocity.x != 0.0:
 		body.flip_h = velocity.x < 0.0
+	_update_walk_animation(velocity.length() > 5.0)
 
 func _apply_character_sprite() -> void:
-	var sprite_name := "rogue_blue_hood_front_walk_0"
+	sprite_type = "rogue_blue_hood"
 	match GameData.selected_character:
 		"warden":
-			sprite_name = "knight_blue_shield_front_walk_0"
+			sprite_type = "knight_blue_shield"
 		"spark":
-			sprite_name = "mage_blue_front_walk_0"
-	EntitySpriteAtlas.apply(body, sprite_name)
+			sprite_type = "mage_blue"
+	_apply_walk_frame()
+
+func _apply_walk_frame() -> void:
+	if body:
+		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+
+func _update_walk_animation(is_moving: bool) -> void:
+	var target_animation := "walk" if is_moving else "idle"
+	if animation_player.current_animation != target_animation:
+		animation_player.play(target_animation)
 
 func _read_input() -> Vector2:
 	if joystick_path != NodePath():

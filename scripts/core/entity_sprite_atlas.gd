@@ -24,6 +24,9 @@ static func apply(sprite: Sprite2D, sprite_name: String) -> void:
 	)
 	sprite.centered = true
 
+static func apply_entity_frame(sprite: Sprite2D, type_name: String, facing: String, action: String, frame: int) -> void:
+	apply(sprite, "%s_%s_%s_%d" % [type_name, facing, action, frame])
+
 static func get_sprite(sprite_name: String) -> Dictionary:
 	var sprites: Dictionary = _get_atlas().get("sprites", {})
 	return sprites.get(sprite_name, {})

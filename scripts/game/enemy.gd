@@ -18,8 +18,15 @@ var target: Node2D
 var knockback_velocity := Vector2.ZERO
 var burn_damage_per_second := 0.0
 var burn_time := 0.0
+var sprite_type := "goblin_green_sword"
+var sprite_facing := "front"
+var walk_frame := 0:
+	set(value):
+		walk_frame = int(value)
+		_apply_walk_frame()
 
 @onready var body: Sprite2D = $Body
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var hurtbox: Area2D = $Hurtbox
 
 func _ready() -> void:
@@ -43,6 +50,7 @@ func spawn(pos: Vector2, player: Node2D, wave: int, boss := false) -> void:
 	scale = Vector2.ONE * (1.75 if boss else 1.0)
 	visible = true
 	is_active = true
+	animation_player.play("walk")
 	knockback_velocity = Vector2.ZERO
 	burn_damage_per_second = 0.0
 	burn_time = 0.0
@@ -52,6 +60,7 @@ func deactivate() -> void:
 	visible = false
 	is_active = false
 	set_physics_process(false)
+	animation_player.play("idle")
 	velocity = Vector2.ZERO
 
 func _physics_process(_delta: float) -> void:
@@ -68,6 +77,7 @@ func _physics_process(_delta: float) -> void:
 	velocity = dir * speed + knockback_velocity
 	if velocity.x != 0.0:
 		body.flip_h = velocity.x < 0.0
+	_update_walk_animation(velocity.length() > 5.0)
 	knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 900.0 * _delta)
 	move_and_slide()
 
@@ -114,7 +124,7 @@ func apply_burn(damage_per_second: float, duration: float) -> void:
 	burn_time = max(burn_time, duration)
 
 func _apply_spawn_sprite(wave: int, boss: bool) -> void:
-	var sprite_type := "goblin_green_sword"
+	sprite_type = "goblin_green_sword"
 	if boss:
 		sprite_type = "demon_red_axe" if wave % 2 == 0 else "dark_knight_red"
 	elif wave >= 10:
@@ -123,10 +133,17 @@ func _apply_spawn_sprite(wave: int, boss: bool) -> void:
 		sprite_type = ["orc_green_staff", "goblin_green_heavy", "bat_purple"].pick_random()
 	elif wave >= 3:
 		sprite_type = ["goblin_green_spear", "slime_orange", "goblin_green_sword"].pick_random()
-	var names: Array = EntitySpriteAtlas.names_for_type("%s_front_walk" % sprite_type)
-	if names.is_empty():
-		return
-	EntitySpriteAtlas.apply(body, str(names.pick_random()))
+	walk_frame = 0
+	_apply_walk_frame()
+
+func _apply_walk_frame() -> void:
+	if body:
+		EntitySpriteAtlas.apply_entity_frame(body, sprite_type, sprite_facing, "walk", walk_frame)
+
+func _update_walk_animation(is_moving: bool) -> void:
+	var target_animation := "walk" if is_moving else "idle"
+	if animation_player.current_animation != target_animation:
+		animation_player.play(target_animation)
 
 func _on_hurtbox_area_entered(area: Area2D) -> void:
 	if area.owner and area.owner.has_method("get_damage"):
