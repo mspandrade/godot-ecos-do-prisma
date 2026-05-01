@@ -1,6 +1,8 @@
 extends CharacterBody2D
 class_name Player
 
+const EntitySpriteAtlas := preload("res://scripts/core/entity_sprite_atlas.gd")
+
 signal health_changed(current: float, maximum: float)
 signal died
 
@@ -25,7 +27,7 @@ var base_collision_mask := 0
 var base_hit_area_mask := 0
 var is_intangible := false
 
-@onready var body: Polygon2D = $Body
+@onready var body: Sprite2D = $Body
 @onready var hit_area: Area2D = $HitArea
 @onready var pickup_area: Area2D = $PickupArea
 @onready var pickup_shape: CollisionShape2D = $PickupArea/CollisionShape2D
@@ -46,8 +48,7 @@ func _ready() -> void:
 	base_collision_layer = collision_layer
 	base_collision_mask = collision_mask
 	base_hit_area_mask = hit_area.collision_mask
-	body.polygon = PackedVector2Array([Vector2(0, -30), Vector2(24, -10), Vector2(20, 18), Vector2(0, 30), Vector2(-20, 18), Vector2(-24, -10)])
-	body.color = Color(0.25, 0.8, 1.0)
+	_apply_character_sprite()
 	hit_area.area_entered.connect(_on_hit_area_entered)
 	pickup_area.area_entered.connect(_on_pickup_area_entered)
 
@@ -76,7 +77,16 @@ func _physics_process(_delta: float) -> void:
 	velocity = iso * (move_speed + bonus + get_bard_speed_bonus())
 	move_and_slide()
 	if velocity.x != 0.0:
-		body.scale.x = sign(velocity.x)
+		body.flip_h = velocity.x < 0.0
+
+func _apply_character_sprite() -> void:
+	var sprite_name := "rogue_blue_hood_front_frame_0"
+	match GameData.selected_character:
+		"warden":
+			sprite_name = "knight_blue_shield_front_frame_0"
+		"spark":
+			sprite_name = "mage_blue_front_frame_0"
+	EntitySpriteAtlas.apply(body, sprite_name)
 
 func _read_input() -> Vector2:
 	if joystick_path != NodePath():

@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const EntitySpriteAtlas := preload("res://scripts/core/entity_sprite_atlas.gd")
+
 signal leveled_up(companion: Node, choices: Array)
 signal health_changed(companion: Node, current: float, maximum: float)
 
@@ -30,7 +32,7 @@ var base_collision_layer := 0
 var base_collision_mask := 0
 const MAX_LEASH_DISTANCE := 420.0
 
-@onready var body: Polygon2D = $Body
+@onready var body: Sprite2D = $Body
 
 func setup(data: Dictionary, p_player: Node2D, offset: Vector2) -> void:
 	companion_id = str(data["id"])
@@ -51,24 +53,26 @@ func setup(data: Dictionary, p_player: Node2D, offset: Vector2) -> void:
 	base_collision_mask = collision_mask
 
 func _ready() -> void:
-	body.polygon = PackedVector2Array([Vector2(0, -28), Vector2(22, -8), Vector2(16, 18), Vector2(0, 28), Vector2(-16, 18), Vector2(-22, -8)])
-	body.color = _class_color()
+	_apply_class_sprite()
 	add_to_group("companions")
 	body.modulate = Color(1.0, 1.0, 1.0, 0.62)
 
-func _class_color() -> Color:
+func _class_sprite_name() -> String:
 	match class_type:
 		"shield":
-			return Color(0.35, 0.55, 1.0)
+			return "knight_blue_shield_front_frame_0"
 		"mage":
-			return Color(0.75, 0.35, 1.0)
+			return "mage_blue_front_frame_0"
 		"archer":
-			return Color(0.95, 0.78, 0.28)
+			return "ranger_blue_bow_front_frame_0"
 		"bard":
-			return Color(0.25, 0.95, 0.62)
+			return "necromancer_purple_front_frame_0"
 		"cleric":
-			return Color(0.95, 0.9, 0.55)
-	return Color.WHITE
+			return "mage_blue_front_frame_3"
+	return "knight_blue_shield_front_frame_0"
+
+func _apply_class_sprite() -> void:
+	EntitySpriteAtlas.apply(body, _class_sprite_name())
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player):
@@ -101,6 +105,8 @@ func _follow_player(_delta: float) -> void:
 	else:
 		velocity = Vector2.ZERO
 	move_and_slide()
+	if velocity.x != 0.0:
+		body.flip_h = velocity.x < 0.0
 
 func add_xp(amount: int) -> void:
 	if is_down or not is_recruited:

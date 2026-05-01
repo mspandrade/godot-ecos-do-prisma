@@ -1,0 +1,2714 @@
+{
+	"texture":  "res://assets/sprites/entities/IsometricTRPGAssetPack_OutlinedEntities.png",
+	"source_image":  "IsometricTRPGAssetPack_OutlinedEntities.png",
+	"grid":  {
+				 "cell_width":  16,
+				 "cell_height":  17,
+				 "columns":  4,
+				 "rows":  33
+			 },
+	"sprite_count":  130,
+	"note":  "Even rows are front-facing sprites. Each following odd row is the back-facing version of the preceding even row. Columns remain labeled frame_0..frame_3. Row 32 columns 2 and 3 are empty and intentionally omitted.",
+	"sprites":  {
+					"knight_blue_shield_front_frame_0":  {
+															 "name":  "knight_blue_shield_front_frame_0",
+															 "type":  "knight_blue_shield",
+															 "facing":  "front",
+															 "frame":  0,
+															 "row":  0,
+															 "column":  0,
+															 "x":  0,
+															 "y":  0,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			0,
+																			0,
+																			16,
+																			17
+																		]
+														 },
+					"knight_blue_shield_front_frame_1":  {
+															 "name":  "knight_blue_shield_front_frame_1",
+															 "type":  "knight_blue_shield",
+															 "facing":  "front",
+															 "frame":  1,
+															 "row":  0,
+															 "column":  1,
+															 "x":  16,
+															 "y":  0,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			16,
+																			0,
+																			16,
+																			17
+																		]
+														 },
+					"knight_blue_shield_front_frame_2":  {
+															 "name":  "knight_blue_shield_front_frame_2",
+															 "type":  "knight_blue_shield",
+															 "facing":  "front",
+															 "frame":  2,
+															 "row":  0,
+															 "column":  2,
+															 "x":  32,
+															 "y":  0,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			32,
+																			0,
+																			16,
+																			17
+																		]
+														 },
+					"knight_blue_shield_front_frame_3":  {
+															 "name":  "knight_blue_shield_front_frame_3",
+															 "type":  "knight_blue_shield",
+															 "facing":  "front",
+															 "frame":  3,
+															 "row":  0,
+															 "column":  3,
+															 "x":  48,
+															 "y":  0,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			48,
+																			0,
+																			16,
+																			17
+																		]
+														 },
+					"knight_blue_shield_back_frame_0":  {
+															"name":  "knight_blue_shield_back_frame_0",
+															"type":  "knight_blue_shield",
+															"facing":  "back",
+															"frame":  0,
+															"row":  1,
+															"column":  0,
+															"x":  0,
+															"y":  17,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   0,
+																		   17,
+																		   16,
+																		   17
+																	   ]
+														},
+					"knight_blue_shield_back_frame_1":  {
+															"name":  "knight_blue_shield_back_frame_1",
+															"type":  "knight_blue_shield",
+															"facing":  "back",
+															"frame":  1,
+															"row":  1,
+															"column":  1,
+															"x":  16,
+															"y":  17,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   16,
+																		   17,
+																		   16,
+																		   17
+																	   ]
+														},
+					"knight_blue_shield_back_frame_2":  {
+															"name":  "knight_blue_shield_back_frame_2",
+															"type":  "knight_blue_shield",
+															"facing":  "back",
+															"frame":  2,
+															"row":  1,
+															"column":  2,
+															"x":  32,
+															"y":  17,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   32,
+																		   17,
+																		   16,
+																		   17
+																	   ]
+														},
+					"knight_blue_shield_back_frame_3":  {
+															"name":  "knight_blue_shield_back_frame_3",
+															"type":  "knight_blue_shield",
+															"facing":  "back",
+															"frame":  3,
+															"row":  1,
+															"column":  3,
+															"x":  48,
+															"y":  17,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   48,
+																		   17,
+																		   16,
+																		   17
+																	   ]
+														},
+					"soldier_brown_spear_front_frame_0":  {
+															  "name":  "soldier_brown_spear_front_frame_0",
+															  "type":  "soldier_brown_spear",
+															  "facing":  "front",
+															  "frame":  0,
+															  "row":  2,
+															  "column":  0,
+															  "x":  0,
+															  "y":  34,
+															  "w":  16,
+															  "h":  17,
+															  "region":  [
+																			 0,
+																			 34,
+																			 16,
+																			 17
+																		 ]
+														  },
+					"soldier_brown_spear_front_frame_1":  {
+															  "name":  "soldier_brown_spear_front_frame_1",
+															  "type":  "soldier_brown_spear",
+															  "facing":  "front",
+															  "frame":  1,
+															  "row":  2,
+															  "column":  1,
+															  "x":  16,
+															  "y":  34,
+															  "w":  16,
+															  "h":  17,
+															  "region":  [
+																			 16,
+																			 34,
+																			 16,
+																			 17
+																		 ]
+														  },
+					"soldier_brown_spear_front_frame_2":  {
+															  "name":  "soldier_brown_spear_front_frame_2",
+															  "type":  "soldier_brown_spear",
+															  "facing":  "front",
+															  "frame":  2,
+															  "row":  2,
+															  "column":  2,
+															  "x":  32,
+															  "y":  34,
+															  "w":  16,
+															  "h":  17,
+															  "region":  [
+																			 32,
+																			 34,
+																			 16,
+																			 17
+																		 ]
+														  },
+					"soldier_brown_spear_front_frame_3":  {
+															  "name":  "soldier_brown_spear_front_frame_3",
+															  "type":  "soldier_brown_spear",
+															  "facing":  "front",
+															  "frame":  3,
+															  "row":  2,
+															  "column":  3,
+															  "x":  48,
+															  "y":  34,
+															  "w":  16,
+															  "h":  17,
+															  "region":  [
+																			 48,
+																			 34,
+																			 16,
+																			 17
+																		 ]
+														  },
+					"soldier_brown_spear_back_frame_0":  {
+															 "name":  "soldier_brown_spear_back_frame_0",
+															 "type":  "soldier_brown_spear",
+															 "facing":  "back",
+															 "frame":  0,
+															 "row":  3,
+															 "column":  0,
+															 "x":  0,
+															 "y":  51,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			0,
+																			51,
+																			16,
+																			17
+																		]
+														 },
+					"soldier_brown_spear_back_frame_1":  {
+															 "name":  "soldier_brown_spear_back_frame_1",
+															 "type":  "soldier_brown_spear",
+															 "facing":  "back",
+															 "frame":  1,
+															 "row":  3,
+															 "column":  1,
+															 "x":  16,
+															 "y":  51,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			16,
+																			51,
+																			16,
+																			17
+																		]
+														 },
+					"soldier_brown_spear_back_frame_2":  {
+															 "name":  "soldier_brown_spear_back_frame_2",
+															 "type":  "soldier_brown_spear",
+															 "facing":  "back",
+															 "frame":  2,
+															 "row":  3,
+															 "column":  2,
+															 "x":  32,
+															 "y":  51,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			32,
+																			51,
+																			16,
+																			17
+																		]
+														 },
+					"soldier_brown_spear_back_frame_3":  {
+															 "name":  "soldier_brown_spear_back_frame_3",
+															 "type":  "soldier_brown_spear",
+															 "facing":  "back",
+															 "frame":  3,
+															 "row":  3,
+															 "column":  3,
+															 "x":  48,
+															 "y":  51,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			48,
+																			51,
+																			16,
+																			17
+																		]
+														 },
+					"ranger_blue_bow_front_frame_0":  {
+														  "name":  "ranger_blue_bow_front_frame_0",
+														  "type":  "ranger_blue_bow",
+														  "facing":  "front",
+														  "frame":  0,
+														  "row":  4,
+														  "column":  0,
+														  "x":  0,
+														  "y":  68,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 0,
+																		 68,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"ranger_blue_bow_front_frame_1":  {
+														  "name":  "ranger_blue_bow_front_frame_1",
+														  "type":  "ranger_blue_bow",
+														  "facing":  "front",
+														  "frame":  1,
+														  "row":  4,
+														  "column":  1,
+														  "x":  16,
+														  "y":  68,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 16,
+																		 68,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"ranger_blue_bow_front_frame_2":  {
+														  "name":  "ranger_blue_bow_front_frame_2",
+														  "type":  "ranger_blue_bow",
+														  "facing":  "front",
+														  "frame":  2,
+														  "row":  4,
+														  "column":  2,
+														  "x":  32,
+														  "y":  68,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 32,
+																		 68,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"ranger_blue_bow_front_frame_3":  {
+														  "name":  "ranger_blue_bow_front_frame_3",
+														  "type":  "ranger_blue_bow",
+														  "facing":  "front",
+														  "frame":  3,
+														  "row":  4,
+														  "column":  3,
+														  "x":  48,
+														  "y":  68,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 48,
+																		 68,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"ranger_blue_bow_back_frame_0":  {
+														 "name":  "ranger_blue_bow_back_frame_0",
+														 "type":  "ranger_blue_bow",
+														 "facing":  "back",
+														 "frame":  0,
+														 "row":  5,
+														 "column":  0,
+														 "x":  0,
+														 "y":  85,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		0,
+																		85,
+																		16,
+																		17
+																	]
+													 },
+					"ranger_blue_bow_back_frame_1":  {
+														 "name":  "ranger_blue_bow_back_frame_1",
+														 "type":  "ranger_blue_bow",
+														 "facing":  "back",
+														 "frame":  1,
+														 "row":  5,
+														 "column":  1,
+														 "x":  16,
+														 "y":  85,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		16,
+																		85,
+																		16,
+																		17
+																	]
+													 },
+					"ranger_blue_bow_back_frame_2":  {
+														 "name":  "ranger_blue_bow_back_frame_2",
+														 "type":  "ranger_blue_bow",
+														 "facing":  "back",
+														 "frame":  2,
+														 "row":  5,
+														 "column":  2,
+														 "x":  32,
+														 "y":  85,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		32,
+																		85,
+																		16,
+																		17
+																	]
+													 },
+					"ranger_blue_bow_back_frame_3":  {
+														 "name":  "ranger_blue_bow_back_frame_3",
+														 "type":  "ranger_blue_bow",
+														 "facing":  "back",
+														 "frame":  3,
+														 "row":  5,
+														 "column":  3,
+														 "x":  48,
+														 "y":  85,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		48,
+																		85,
+																		16,
+																		17
+																	]
+													 },
+					"rogue_blue_hood_front_frame_0":  {
+														  "name":  "rogue_blue_hood_front_frame_0",
+														  "type":  "rogue_blue_hood",
+														  "facing":  "front",
+														  "frame":  0,
+														  "row":  6,
+														  "column":  0,
+														  "x":  0,
+														  "y":  102,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 0,
+																		 102,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"rogue_blue_hood_front_frame_1":  {
+														  "name":  "rogue_blue_hood_front_frame_1",
+														  "type":  "rogue_blue_hood",
+														  "facing":  "front",
+														  "frame":  1,
+														  "row":  6,
+														  "column":  1,
+														  "x":  16,
+														  "y":  102,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 16,
+																		 102,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"rogue_blue_hood_front_frame_2":  {
+														  "name":  "rogue_blue_hood_front_frame_2",
+														  "type":  "rogue_blue_hood",
+														  "facing":  "front",
+														  "frame":  2,
+														  "row":  6,
+														  "column":  2,
+														  "x":  32,
+														  "y":  102,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 32,
+																		 102,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"rogue_blue_hood_front_frame_3":  {
+														  "name":  "rogue_blue_hood_front_frame_3",
+														  "type":  "rogue_blue_hood",
+														  "facing":  "front",
+														  "frame":  3,
+														  "row":  6,
+														  "column":  3,
+														  "x":  48,
+														  "y":  102,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 48,
+																		 102,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"rogue_blue_hood_back_frame_0":  {
+														 "name":  "rogue_blue_hood_back_frame_0",
+														 "type":  "rogue_blue_hood",
+														 "facing":  "back",
+														 "frame":  0,
+														 "row":  7,
+														 "column":  0,
+														 "x":  0,
+														 "y":  119,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		0,
+																		119,
+																		16,
+																		17
+																	]
+													 },
+					"rogue_blue_hood_back_frame_1":  {
+														 "name":  "rogue_blue_hood_back_frame_1",
+														 "type":  "rogue_blue_hood",
+														 "facing":  "back",
+														 "frame":  1,
+														 "row":  7,
+														 "column":  1,
+														 "x":  16,
+														 "y":  119,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		16,
+																		119,
+																		16,
+																		17
+																	]
+													 },
+					"rogue_blue_hood_back_frame_2":  {
+														 "name":  "rogue_blue_hood_back_frame_2",
+														 "type":  "rogue_blue_hood",
+														 "facing":  "back",
+														 "frame":  2,
+														 "row":  7,
+														 "column":  2,
+														 "x":  32,
+														 "y":  119,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		32,
+																		119,
+																		16,
+																		17
+																	]
+													 },
+					"rogue_blue_hood_back_frame_3":  {
+														 "name":  "rogue_blue_hood_back_frame_3",
+														 "type":  "rogue_blue_hood",
+														 "facing":  "back",
+														 "frame":  3,
+														 "row":  7,
+														 "column":  3,
+														 "x":  48,
+														 "y":  119,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		48,
+																		119,
+																		16,
+																		17
+																	]
+													 },
+					"goblin_green_sword_front_frame_0":  {
+															 "name":  "goblin_green_sword_front_frame_0",
+															 "type":  "goblin_green_sword",
+															 "facing":  "front",
+															 "frame":  0,
+															 "row":  8,
+															 "column":  0,
+															 "x":  0,
+															 "y":  136,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			0,
+																			136,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_sword_front_frame_1":  {
+															 "name":  "goblin_green_sword_front_frame_1",
+															 "type":  "goblin_green_sword",
+															 "facing":  "front",
+															 "frame":  1,
+															 "row":  8,
+															 "column":  1,
+															 "x":  16,
+															 "y":  136,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			16,
+																			136,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_sword_front_frame_2":  {
+															 "name":  "goblin_green_sword_front_frame_2",
+															 "type":  "goblin_green_sword",
+															 "facing":  "front",
+															 "frame":  2,
+															 "row":  8,
+															 "column":  2,
+															 "x":  32,
+															 "y":  136,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			32,
+																			136,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_sword_front_frame_3":  {
+															 "name":  "goblin_green_sword_front_frame_3",
+															 "type":  "goblin_green_sword",
+															 "facing":  "front",
+															 "frame":  3,
+															 "row":  8,
+															 "column":  3,
+															 "x":  48,
+															 "y":  136,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			48,
+																			136,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_sword_back_frame_0":  {
+															"name":  "goblin_green_sword_back_frame_0",
+															"type":  "goblin_green_sword",
+															"facing":  "back",
+															"frame":  0,
+															"row":  9,
+															"column":  0,
+															"x":  0,
+															"y":  153,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   0,
+																		   153,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_sword_back_frame_1":  {
+															"name":  "goblin_green_sword_back_frame_1",
+															"type":  "goblin_green_sword",
+															"facing":  "back",
+															"frame":  1,
+															"row":  9,
+															"column":  1,
+															"x":  16,
+															"y":  153,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   16,
+																		   153,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_sword_back_frame_2":  {
+															"name":  "goblin_green_sword_back_frame_2",
+															"type":  "goblin_green_sword",
+															"facing":  "back",
+															"frame":  2,
+															"row":  9,
+															"column":  2,
+															"x":  32,
+															"y":  153,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   32,
+																		   153,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_sword_back_frame_3":  {
+															"name":  "goblin_green_sword_back_frame_3",
+															"type":  "goblin_green_sword",
+															"facing":  "back",
+															"frame":  3,
+															"row":  9,
+															"column":  3,
+															"x":  48,
+															"y":  153,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   48,
+																		   153,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_spear_front_frame_0":  {
+															 "name":  "goblin_green_spear_front_frame_0",
+															 "type":  "goblin_green_spear",
+															 "facing":  "front",
+															 "frame":  0,
+															 "row":  10,
+															 "column":  0,
+															 "x":  0,
+															 "y":  170,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			0,
+																			170,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_spear_front_frame_1":  {
+															 "name":  "goblin_green_spear_front_frame_1",
+															 "type":  "goblin_green_spear",
+															 "facing":  "front",
+															 "frame":  1,
+															 "row":  10,
+															 "column":  1,
+															 "x":  16,
+															 "y":  170,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			16,
+																			170,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_spear_front_frame_2":  {
+															 "name":  "goblin_green_spear_front_frame_2",
+															 "type":  "goblin_green_spear",
+															 "facing":  "front",
+															 "frame":  2,
+															 "row":  10,
+															 "column":  2,
+															 "x":  32,
+															 "y":  170,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			32,
+																			170,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_spear_front_frame_3":  {
+															 "name":  "goblin_green_spear_front_frame_3",
+															 "type":  "goblin_green_spear",
+															 "facing":  "front",
+															 "frame":  3,
+															 "row":  10,
+															 "column":  3,
+															 "x":  48,
+															 "y":  170,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			48,
+																			170,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_spear_back_frame_0":  {
+															"name":  "goblin_green_spear_back_frame_0",
+															"type":  "goblin_green_spear",
+															"facing":  "back",
+															"frame":  0,
+															"row":  11,
+															"column":  0,
+															"x":  0,
+															"y":  187,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   0,
+																		   187,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_spear_back_frame_1":  {
+															"name":  "goblin_green_spear_back_frame_1",
+															"type":  "goblin_green_spear",
+															"facing":  "back",
+															"frame":  1,
+															"row":  11,
+															"column":  1,
+															"x":  16,
+															"y":  187,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   16,
+																		   187,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_spear_back_frame_2":  {
+															"name":  "goblin_green_spear_back_frame_2",
+															"type":  "goblin_green_spear",
+															"facing":  "back",
+															"frame":  2,
+															"row":  11,
+															"column":  2,
+															"x":  32,
+															"y":  187,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   32,
+																		   187,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_spear_back_frame_3":  {
+															"name":  "goblin_green_spear_back_frame_3",
+															"type":  "goblin_green_spear",
+															"facing":  "back",
+															"frame":  3,
+															"row":  11,
+															"column":  3,
+															"x":  48,
+															"y":  187,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   48,
+																		   187,
+																		   16,
+																		   17
+																	   ]
+														},
+					"orc_green_staff_front_frame_0":  {
+														  "name":  "orc_green_staff_front_frame_0",
+														  "type":  "orc_green_staff",
+														  "facing":  "front",
+														  "frame":  0,
+														  "row":  12,
+														  "column":  0,
+														  "x":  0,
+														  "y":  204,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 0,
+																		 204,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"orc_green_staff_front_frame_1":  {
+														  "name":  "orc_green_staff_front_frame_1",
+														  "type":  "orc_green_staff",
+														  "facing":  "front",
+														  "frame":  1,
+														  "row":  12,
+														  "column":  1,
+														  "x":  16,
+														  "y":  204,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 16,
+																		 204,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"orc_green_staff_front_frame_2":  {
+														  "name":  "orc_green_staff_front_frame_2",
+														  "type":  "orc_green_staff",
+														  "facing":  "front",
+														  "frame":  2,
+														  "row":  12,
+														  "column":  2,
+														  "x":  32,
+														  "y":  204,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 32,
+																		 204,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"orc_green_staff_front_frame_3":  {
+														  "name":  "orc_green_staff_front_frame_3",
+														  "type":  "orc_green_staff",
+														  "facing":  "front",
+														  "frame":  3,
+														  "row":  12,
+														  "column":  3,
+														  "x":  48,
+														  "y":  204,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 48,
+																		 204,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"orc_green_staff_back_frame_0":  {
+														 "name":  "orc_green_staff_back_frame_0",
+														 "type":  "orc_green_staff",
+														 "facing":  "back",
+														 "frame":  0,
+														 "row":  13,
+														 "column":  0,
+														 "x":  0,
+														 "y":  221,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		0,
+																		221,
+																		16,
+																		17
+																	]
+													 },
+					"orc_green_staff_back_frame_1":  {
+														 "name":  "orc_green_staff_back_frame_1",
+														 "type":  "orc_green_staff",
+														 "facing":  "back",
+														 "frame":  1,
+														 "row":  13,
+														 "column":  1,
+														 "x":  16,
+														 "y":  221,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		16,
+																		221,
+																		16,
+																		17
+																	]
+													 },
+					"orc_green_staff_back_frame_2":  {
+														 "name":  "orc_green_staff_back_frame_2",
+														 "type":  "orc_green_staff",
+														 "facing":  "back",
+														 "frame":  2,
+														 "row":  13,
+														 "column":  2,
+														 "x":  32,
+														 "y":  221,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		32,
+																		221,
+																		16,
+																		17
+																	]
+													 },
+					"orc_green_staff_back_frame_3":  {
+														 "name":  "orc_green_staff_back_frame_3",
+														 "type":  "orc_green_staff",
+														 "facing":  "back",
+														 "frame":  3,
+														 "row":  13,
+														 "column":  3,
+														 "x":  48,
+														 "y":  221,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		48,
+																		221,
+																		16,
+																		17
+																	]
+													 },
+					"goblin_green_heavy_front_frame_0":  {
+															 "name":  "goblin_green_heavy_front_frame_0",
+															 "type":  "goblin_green_heavy",
+															 "facing":  "front",
+															 "frame":  0,
+															 "row":  14,
+															 "column":  0,
+															 "x":  0,
+															 "y":  238,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			0,
+																			238,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_heavy_front_frame_1":  {
+															 "name":  "goblin_green_heavy_front_frame_1",
+															 "type":  "goblin_green_heavy",
+															 "facing":  "front",
+															 "frame":  1,
+															 "row":  14,
+															 "column":  1,
+															 "x":  16,
+															 "y":  238,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			16,
+																			238,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_heavy_front_frame_2":  {
+															 "name":  "goblin_green_heavy_front_frame_2",
+															 "type":  "goblin_green_heavy",
+															 "facing":  "front",
+															 "frame":  2,
+															 "row":  14,
+															 "column":  2,
+															 "x":  32,
+															 "y":  238,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			32,
+																			238,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_heavy_front_frame_3":  {
+															 "name":  "goblin_green_heavy_front_frame_3",
+															 "type":  "goblin_green_heavy",
+															 "facing":  "front",
+															 "frame":  3,
+															 "row":  14,
+															 "column":  3,
+															 "x":  48,
+															 "y":  238,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			48,
+																			238,
+																			16,
+																			17
+																		]
+														 },
+					"goblin_green_heavy_back_frame_0":  {
+															"name":  "goblin_green_heavy_back_frame_0",
+															"type":  "goblin_green_heavy",
+															"facing":  "back",
+															"frame":  0,
+															"row":  15,
+															"column":  0,
+															"x":  0,
+															"y":  255,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   0,
+																		   255,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_heavy_back_frame_1":  {
+															"name":  "goblin_green_heavy_back_frame_1",
+															"type":  "goblin_green_heavy",
+															"facing":  "back",
+															"frame":  1,
+															"row":  15,
+															"column":  1,
+															"x":  16,
+															"y":  255,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   16,
+																		   255,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_heavy_back_frame_2":  {
+															"name":  "goblin_green_heavy_back_frame_2",
+															"type":  "goblin_green_heavy",
+															"facing":  "back",
+															"frame":  2,
+															"row":  15,
+															"column":  2,
+															"x":  32,
+															"y":  255,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   32,
+																		   255,
+																		   16,
+																		   17
+																	   ]
+														},
+					"goblin_green_heavy_back_frame_3":  {
+															"name":  "goblin_green_heavy_back_frame_3",
+															"type":  "goblin_green_heavy",
+															"facing":  "back",
+															"frame":  3,
+															"row":  15,
+															"column":  3,
+															"x":  48,
+															"y":  255,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   48,
+																		   255,
+																		   16,
+																		   17
+																	   ]
+														},
+					"dark_knight_red_front_frame_0":  {
+														  "name":  "dark_knight_red_front_frame_0",
+														  "type":  "dark_knight_red",
+														  "facing":  "front",
+														  "frame":  0,
+														  "row":  16,
+														  "column":  0,
+														  "x":  0,
+														  "y":  272,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 0,
+																		 272,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"dark_knight_red_front_frame_1":  {
+														  "name":  "dark_knight_red_front_frame_1",
+														  "type":  "dark_knight_red",
+														  "facing":  "front",
+														  "frame":  1,
+														  "row":  16,
+														  "column":  1,
+														  "x":  16,
+														  "y":  272,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 16,
+																		 272,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"dark_knight_red_front_frame_2":  {
+														  "name":  "dark_knight_red_front_frame_2",
+														  "type":  "dark_knight_red",
+														  "facing":  "front",
+														  "frame":  2,
+														  "row":  16,
+														  "column":  2,
+														  "x":  32,
+														  "y":  272,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 32,
+																		 272,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"dark_knight_red_front_frame_3":  {
+														  "name":  "dark_knight_red_front_frame_3",
+														  "type":  "dark_knight_red",
+														  "facing":  "front",
+														  "frame":  3,
+														  "row":  16,
+														  "column":  3,
+														  "x":  48,
+														  "y":  272,
+														  "w":  16,
+														  "h":  17,
+														  "region":  [
+																		 48,
+																		 272,
+																		 16,
+																		 17
+																	 ]
+													  },
+					"dark_knight_red_back_frame_0":  {
+														 "name":  "dark_knight_red_back_frame_0",
+														 "type":  "dark_knight_red",
+														 "facing":  "back",
+														 "frame":  0,
+														 "row":  17,
+														 "column":  0,
+														 "x":  0,
+														 "y":  289,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		0,
+																		289,
+																		16,
+																		17
+																	]
+													 },
+					"dark_knight_red_back_frame_1":  {
+														 "name":  "dark_knight_red_back_frame_1",
+														 "type":  "dark_knight_red",
+														 "facing":  "back",
+														 "frame":  1,
+														 "row":  17,
+														 "column":  1,
+														 "x":  16,
+														 "y":  289,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		16,
+																		289,
+																		16,
+																		17
+																	]
+													 },
+					"dark_knight_red_back_frame_2":  {
+														 "name":  "dark_knight_red_back_frame_2",
+														 "type":  "dark_knight_red",
+														 "facing":  "back",
+														 "frame":  2,
+														 "row":  17,
+														 "column":  2,
+														 "x":  32,
+														 "y":  289,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		32,
+																		289,
+																		16,
+																		17
+																	]
+													 },
+					"dark_knight_red_back_frame_3":  {
+														 "name":  "dark_knight_red_back_frame_3",
+														 "type":  "dark_knight_red",
+														 "facing":  "back",
+														 "frame":  3,
+														 "row":  17,
+														 "column":  3,
+														 "x":  48,
+														 "y":  289,
+														 "w":  16,
+														 "h":  17,
+														 "region":  [
+																		48,
+																		289,
+																		16,
+																		17
+																	]
+													 },
+					"necromancer_purple_front_frame_0":  {
+															 "name":  "necromancer_purple_front_frame_0",
+															 "type":  "necromancer_purple",
+															 "facing":  "front",
+															 "frame":  0,
+															 "row":  18,
+															 "column":  0,
+															 "x":  0,
+															 "y":  306,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			0,
+																			306,
+																			16,
+																			17
+																		]
+														 },
+					"necromancer_purple_front_frame_1":  {
+															 "name":  "necromancer_purple_front_frame_1",
+															 "type":  "necromancer_purple",
+															 "facing":  "front",
+															 "frame":  1,
+															 "row":  18,
+															 "column":  1,
+															 "x":  16,
+															 "y":  306,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			16,
+																			306,
+																			16,
+																			17
+																		]
+														 },
+					"necromancer_purple_front_frame_2":  {
+															 "name":  "necromancer_purple_front_frame_2",
+															 "type":  "necromancer_purple",
+															 "facing":  "front",
+															 "frame":  2,
+															 "row":  18,
+															 "column":  2,
+															 "x":  32,
+															 "y":  306,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			32,
+																			306,
+																			16,
+																			17
+																		]
+														 },
+					"necromancer_purple_front_frame_3":  {
+															 "name":  "necromancer_purple_front_frame_3",
+															 "type":  "necromancer_purple",
+															 "facing":  "front",
+															 "frame":  3,
+															 "row":  18,
+															 "column":  3,
+															 "x":  48,
+															 "y":  306,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			48,
+																			306,
+																			16,
+																			17
+																		]
+														 },
+					"necromancer_purple_back_frame_0":  {
+															"name":  "necromancer_purple_back_frame_0",
+															"type":  "necromancer_purple",
+															"facing":  "back",
+															"frame":  0,
+															"row":  19,
+															"column":  0,
+															"x":  0,
+															"y":  323,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   0,
+																		   323,
+																		   16,
+																		   17
+																	   ]
+														},
+					"necromancer_purple_back_frame_1":  {
+															"name":  "necromancer_purple_back_frame_1",
+															"type":  "necromancer_purple",
+															"facing":  "back",
+															"frame":  1,
+															"row":  19,
+															"column":  1,
+															"x":  16,
+															"y":  323,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   16,
+																		   323,
+																		   16,
+																		   17
+																	   ]
+														},
+					"necromancer_purple_back_frame_2":  {
+															"name":  "necromancer_purple_back_frame_2",
+															"type":  "necromancer_purple",
+															"facing":  "back",
+															"frame":  2,
+															"row":  19,
+															"column":  2,
+															"x":  32,
+															"y":  323,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   32,
+																		   323,
+																		   16,
+																		   17
+																	   ]
+														},
+					"necromancer_purple_back_frame_3":  {
+															"name":  "necromancer_purple_back_frame_3",
+															"type":  "necromancer_purple",
+															"facing":  "back",
+															"frame":  3,
+															"row":  19,
+															"column":  3,
+															"x":  48,
+															"y":  323,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   48,
+																		   323,
+																		   16,
+																		   17
+																	   ]
+														},
+					"demon_red_axe_front_frame_0":  {
+														"name":  "demon_red_axe_front_frame_0",
+														"type":  "demon_red_axe",
+														"facing":  "front",
+														"frame":  0,
+														"row":  20,
+														"column":  0,
+														"x":  0,
+														"y":  340,
+														"w":  16,
+														"h":  17,
+														"region":  [
+																	   0,
+																	   340,
+																	   16,
+																	   17
+																   ]
+													},
+					"demon_red_axe_front_frame_1":  {
+														"name":  "demon_red_axe_front_frame_1",
+														"type":  "demon_red_axe",
+														"facing":  "front",
+														"frame":  1,
+														"row":  20,
+														"column":  1,
+														"x":  16,
+														"y":  340,
+														"w":  16,
+														"h":  17,
+														"region":  [
+																	   16,
+																	   340,
+																	   16,
+																	   17
+																   ]
+													},
+					"demon_red_axe_front_frame_2":  {
+														"name":  "demon_red_axe_front_frame_2",
+														"type":  "demon_red_axe",
+														"facing":  "front",
+														"frame":  2,
+														"row":  20,
+														"column":  2,
+														"x":  32,
+														"y":  340,
+														"w":  16,
+														"h":  17,
+														"region":  [
+																	   32,
+																	   340,
+																	   16,
+																	   17
+																   ]
+													},
+					"demon_red_axe_front_frame_3":  {
+														"name":  "demon_red_axe_front_frame_3",
+														"type":  "demon_red_axe",
+														"facing":  "front",
+														"frame":  3,
+														"row":  20,
+														"column":  3,
+														"x":  48,
+														"y":  340,
+														"w":  16,
+														"h":  17,
+														"region":  [
+																	   48,
+																	   340,
+																	   16,
+																	   17
+																   ]
+													},
+					"demon_red_axe_back_frame_0":  {
+													   "name":  "demon_red_axe_back_frame_0",
+													   "type":  "demon_red_axe",
+													   "facing":  "back",
+													   "frame":  0,
+													   "row":  21,
+													   "column":  0,
+													   "x":  0,
+													   "y":  357,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  0,
+																	  357,
+																	  16,
+																	  17
+																  ]
+												   },
+					"demon_red_axe_back_frame_1":  {
+													   "name":  "demon_red_axe_back_frame_1",
+													   "type":  "demon_red_axe",
+													   "facing":  "back",
+													   "frame":  1,
+													   "row":  21,
+													   "column":  1,
+													   "x":  16,
+													   "y":  357,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  16,
+																	  357,
+																	  16,
+																	  17
+																  ]
+												   },
+					"demon_red_axe_back_frame_2":  {
+													   "name":  "demon_red_axe_back_frame_2",
+													   "type":  "demon_red_axe",
+													   "facing":  "back",
+													   "frame":  2,
+													   "row":  21,
+													   "column":  2,
+													   "x":  32,
+													   "y":  357,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  32,
+																	  357,
+																	  16,
+																	  17
+																  ]
+												   },
+					"demon_red_axe_back_frame_3":  {
+													   "name":  "demon_red_axe_back_frame_3",
+													   "type":  "demon_red_axe",
+													   "facing":  "back",
+													   "frame":  3,
+													   "row":  21,
+													   "column":  3,
+													   "x":  48,
+													   "y":  357,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  48,
+																	  357,
+																	  16,
+																	  17
+																  ]
+												   },
+					"cultist_purple_bow_front_frame_0":  {
+															 "name":  "cultist_purple_bow_front_frame_0",
+															 "type":  "cultist_purple_bow",
+															 "facing":  "front",
+															 "frame":  0,
+															 "row":  22,
+															 "column":  0,
+															 "x":  0,
+															 "y":  374,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			0,
+																			374,
+																			16,
+																			17
+																		]
+														 },
+					"cultist_purple_bow_front_frame_1":  {
+															 "name":  "cultist_purple_bow_front_frame_1",
+															 "type":  "cultist_purple_bow",
+															 "facing":  "front",
+															 "frame":  1,
+															 "row":  22,
+															 "column":  1,
+															 "x":  16,
+															 "y":  374,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			16,
+																			374,
+																			16,
+																			17
+																		]
+														 },
+					"cultist_purple_bow_front_frame_2":  {
+															 "name":  "cultist_purple_bow_front_frame_2",
+															 "type":  "cultist_purple_bow",
+															 "facing":  "front",
+															 "frame":  2,
+															 "row":  22,
+															 "column":  2,
+															 "x":  32,
+															 "y":  374,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			32,
+																			374,
+																			16,
+																			17
+																		]
+														 },
+					"cultist_purple_bow_front_frame_3":  {
+															 "name":  "cultist_purple_bow_front_frame_3",
+															 "type":  "cultist_purple_bow",
+															 "facing":  "front",
+															 "frame":  3,
+															 "row":  22,
+															 "column":  3,
+															 "x":  48,
+															 "y":  374,
+															 "w":  16,
+															 "h":  17,
+															 "region":  [
+																			48,
+																			374,
+																			16,
+																			17
+																		]
+														 },
+					"cultist_purple_bow_back_frame_0":  {
+															"name":  "cultist_purple_bow_back_frame_0",
+															"type":  "cultist_purple_bow",
+															"facing":  "back",
+															"frame":  0,
+															"row":  23,
+															"column":  0,
+															"x":  0,
+															"y":  391,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   0,
+																		   391,
+																		   16,
+																		   17
+																	   ]
+														},
+					"cultist_purple_bow_back_frame_1":  {
+															"name":  "cultist_purple_bow_back_frame_1",
+															"type":  "cultist_purple_bow",
+															"facing":  "back",
+															"frame":  1,
+															"row":  23,
+															"column":  1,
+															"x":  16,
+															"y":  391,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   16,
+																		   391,
+																		   16,
+																		   17
+																	   ]
+														},
+					"cultist_purple_bow_back_frame_2":  {
+															"name":  "cultist_purple_bow_back_frame_2",
+															"type":  "cultist_purple_bow",
+															"facing":  "back",
+															"frame":  2,
+															"row":  23,
+															"column":  2,
+															"x":  32,
+															"y":  391,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   32,
+																		   391,
+																		   16,
+																		   17
+																	   ]
+														},
+					"cultist_purple_bow_back_frame_3":  {
+															"name":  "cultist_purple_bow_back_frame_3",
+															"type":  "cultist_purple_bow",
+															"facing":  "back",
+															"frame":  3,
+															"row":  23,
+															"column":  3,
+															"x":  48,
+															"y":  391,
+															"w":  16,
+															"h":  17,
+															"region":  [
+																		   48,
+																		   391,
+																		   16,
+																		   17
+																	   ]
+														},
+					"spider_red_front_frame_0":  {
+													 "name":  "spider_red_front_frame_0",
+													 "type":  "spider_red",
+													 "facing":  "front",
+													 "frame":  0,
+													 "row":  24,
+													 "column":  0,
+													 "x":  0,
+													 "y":  408,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	0,
+																	408,
+																	16,
+																	17
+																]
+												 },
+					"spider_red_front_frame_1":  {
+													 "name":  "spider_red_front_frame_1",
+													 "type":  "spider_red",
+													 "facing":  "front",
+													 "frame":  1,
+													 "row":  24,
+													 "column":  1,
+													 "x":  16,
+													 "y":  408,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	16,
+																	408,
+																	16,
+																	17
+																]
+												 },
+					"spider_red_front_frame_2":  {
+													 "name":  "spider_red_front_frame_2",
+													 "type":  "spider_red",
+													 "facing":  "front",
+													 "frame":  2,
+													 "row":  24,
+													 "column":  2,
+													 "x":  32,
+													 "y":  408,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	32,
+																	408,
+																	16,
+																	17
+																]
+												 },
+					"spider_red_front_frame_3":  {
+													 "name":  "spider_red_front_frame_3",
+													 "type":  "spider_red",
+													 "facing":  "front",
+													 "frame":  3,
+													 "row":  24,
+													 "column":  3,
+													 "x":  48,
+													 "y":  408,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	48,
+																	408,
+																	16,
+																	17
+																]
+												 },
+					"spider_red_back_frame_0":  {
+													"name":  "spider_red_back_frame_0",
+													"type":  "spider_red",
+													"facing":  "back",
+													"frame":  0,
+													"row":  25,
+													"column":  0,
+													"x":  0,
+													"y":  425,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   0,
+																   425,
+																   16,
+																   17
+															   ]
+												},
+					"spider_red_back_frame_1":  {
+													"name":  "spider_red_back_frame_1",
+													"type":  "spider_red",
+													"facing":  "back",
+													"frame":  1,
+													"row":  25,
+													"column":  1,
+													"x":  16,
+													"y":  425,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   16,
+																   425,
+																   16,
+																   17
+															   ]
+												},
+					"spider_red_back_frame_2":  {
+													"name":  "spider_red_back_frame_2",
+													"type":  "spider_red",
+													"facing":  "back",
+													"frame":  2,
+													"row":  25,
+													"column":  2,
+													"x":  32,
+													"y":  425,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   32,
+																   425,
+																   16,
+																   17
+															   ]
+												},
+					"spider_red_back_frame_3":  {
+													"name":  "spider_red_back_frame_3",
+													"type":  "spider_red",
+													"facing":  "back",
+													"frame":  3,
+													"row":  25,
+													"column":  3,
+													"x":  48,
+													"y":  425,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   48,
+																   425,
+																   16,
+																   17
+															   ]
+												},
+					"slime_orange_front_frame_0":  {
+													   "name":  "slime_orange_front_frame_0",
+													   "type":  "slime_orange",
+													   "facing":  "front",
+													   "frame":  0,
+													   "row":  26,
+													   "column":  0,
+													   "x":  0,
+													   "y":  442,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  0,
+																	  442,
+																	  16,
+																	  17
+																  ]
+												   },
+					"slime_orange_front_frame_1":  {
+													   "name":  "slime_orange_front_frame_1",
+													   "type":  "slime_orange",
+													   "facing":  "front",
+													   "frame":  1,
+													   "row":  26,
+													   "column":  1,
+													   "x":  16,
+													   "y":  442,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  16,
+																	  442,
+																	  16,
+																	  17
+																  ]
+												   },
+					"slime_orange_front_frame_2":  {
+													   "name":  "slime_orange_front_frame_2",
+													   "type":  "slime_orange",
+													   "facing":  "front",
+													   "frame":  2,
+													   "row":  26,
+													   "column":  2,
+													   "x":  32,
+													   "y":  442,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  32,
+																	  442,
+																	  16,
+																	  17
+																  ]
+												   },
+					"slime_orange_front_frame_3":  {
+													   "name":  "slime_orange_front_frame_3",
+													   "type":  "slime_orange",
+													   "facing":  "front",
+													   "frame":  3,
+													   "row":  26,
+													   "column":  3,
+													   "x":  48,
+													   "y":  442,
+													   "w":  16,
+													   "h":  17,
+													   "region":  [
+																	  48,
+																	  442,
+																	  16,
+																	  17
+																  ]
+												   },
+					"slime_orange_back_frame_0":  {
+													  "name":  "slime_orange_back_frame_0",
+													  "type":  "slime_orange",
+													  "facing":  "back",
+													  "frame":  0,
+													  "row":  27,
+													  "column":  0,
+													  "x":  0,
+													  "y":  459,
+													  "w":  16,
+													  "h":  17,
+													  "region":  [
+																	 0,
+																	 459,
+																	 16,
+																	 17
+																 ]
+												  },
+					"slime_orange_back_frame_1":  {
+													  "name":  "slime_orange_back_frame_1",
+													  "type":  "slime_orange",
+													  "facing":  "back",
+													  "frame":  1,
+													  "row":  27,
+													  "column":  1,
+													  "x":  16,
+													  "y":  459,
+													  "w":  16,
+													  "h":  17,
+													  "region":  [
+																	 16,
+																	 459,
+																	 16,
+																	 17
+																 ]
+												  },
+					"slime_orange_back_frame_2":  {
+													  "name":  "slime_orange_back_frame_2",
+													  "type":  "slime_orange",
+													  "facing":  "back",
+													  "frame":  2,
+													  "row":  27,
+													  "column":  2,
+													  "x":  32,
+													  "y":  459,
+													  "w":  16,
+													  "h":  17,
+													  "region":  [
+																	 32,
+																	 459,
+																	 16,
+																	 17
+																 ]
+												  },
+					"slime_orange_back_frame_3":  {
+													  "name":  "slime_orange_back_frame_3",
+													  "type":  "slime_orange",
+													  "facing":  "back",
+													  "frame":  3,
+													  "row":  27,
+													  "column":  3,
+													  "x":  48,
+													  "y":  459,
+													  "w":  16,
+													  "h":  17,
+													  "region":  [
+																	 48,
+																	 459,
+																	 16,
+																	 17
+																 ]
+												  },
+					"bat_purple_front_frame_0":  {
+													 "name":  "bat_purple_front_frame_0",
+													 "type":  "bat_purple",
+													 "facing":  "front",
+													 "frame":  0,
+													 "row":  28,
+													 "column":  0,
+													 "x":  0,
+													 "y":  476,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	0,
+																	476,
+																	16,
+																	17
+																]
+												 },
+					"bat_purple_front_frame_1":  {
+													 "name":  "bat_purple_front_frame_1",
+													 "type":  "bat_purple",
+													 "facing":  "front",
+													 "frame":  1,
+													 "row":  28,
+													 "column":  1,
+													 "x":  16,
+													 "y":  476,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	16,
+																	476,
+																	16,
+																	17
+																]
+												 },
+					"bat_purple_front_frame_2":  {
+													 "name":  "bat_purple_front_frame_2",
+													 "type":  "bat_purple",
+													 "facing":  "front",
+													 "frame":  2,
+													 "row":  28,
+													 "column":  2,
+													 "x":  32,
+													 "y":  476,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	32,
+																	476,
+																	16,
+																	17
+																]
+												 },
+					"bat_purple_front_frame_3":  {
+													 "name":  "bat_purple_front_frame_3",
+													 "type":  "bat_purple",
+													 "facing":  "front",
+													 "frame":  3,
+													 "row":  28,
+													 "column":  3,
+													 "x":  48,
+													 "y":  476,
+													 "w":  16,
+													 "h":  17,
+													 "region":  [
+																	48,
+																	476,
+																	16,
+																	17
+																]
+												 },
+					"bat_purple_back_frame_0":  {
+													"name":  "bat_purple_back_frame_0",
+													"type":  "bat_purple",
+													"facing":  "back",
+													"frame":  0,
+													"row":  29,
+													"column":  0,
+													"x":  0,
+													"y":  493,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   0,
+																   493,
+																   16,
+																   17
+															   ]
+												},
+					"bat_purple_back_frame_1":  {
+													"name":  "bat_purple_back_frame_1",
+													"type":  "bat_purple",
+													"facing":  "back",
+													"frame":  1,
+													"row":  29,
+													"column":  1,
+													"x":  16,
+													"y":  493,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   16,
+																   493,
+																   16,
+																   17
+															   ]
+												},
+					"bat_purple_back_frame_2":  {
+													"name":  "bat_purple_back_frame_2",
+													"type":  "bat_purple",
+													"facing":  "back",
+													"frame":  2,
+													"row":  29,
+													"column":  2,
+													"x":  32,
+													"y":  493,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   32,
+																   493,
+																   16,
+																   17
+															   ]
+												},
+					"bat_purple_back_frame_3":  {
+													"name":  "bat_purple_back_frame_3",
+													"type":  "bat_purple",
+													"facing":  "back",
+													"frame":  3,
+													"row":  29,
+													"column":  3,
+													"x":  48,
+													"y":  493,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   48,
+																   493,
+																   16,
+																   17
+															   ]
+												},
+					"mage_blue_front_frame_0":  {
+													"name":  "mage_blue_front_frame_0",
+													"type":  "mage_blue",
+													"facing":  "front",
+													"frame":  0,
+													"row":  30,
+													"column":  0,
+													"x":  0,
+													"y":  510,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   0,
+																   510,
+																   16,
+																   17
+															   ]
+												},
+					"mage_blue_front_frame_1":  {
+													"name":  "mage_blue_front_frame_1",
+													"type":  "mage_blue",
+													"facing":  "front",
+													"frame":  1,
+													"row":  30,
+													"column":  1,
+													"x":  16,
+													"y":  510,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   16,
+																   510,
+																   16,
+																   17
+															   ]
+												},
+					"mage_blue_front_frame_2":  {
+													"name":  "mage_blue_front_frame_2",
+													"type":  "mage_blue",
+													"facing":  "front",
+													"frame":  2,
+													"row":  30,
+													"column":  2,
+													"x":  32,
+													"y":  510,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   32,
+																   510,
+																   16,
+																   17
+															   ]
+												},
+					"mage_blue_front_frame_3":  {
+													"name":  "mage_blue_front_frame_3",
+													"type":  "mage_blue",
+													"facing":  "front",
+													"frame":  3,
+													"row":  30,
+													"column":  3,
+													"x":  48,
+													"y":  510,
+													"w":  16,
+													"h":  17,
+													"region":  [
+																   48,
+																   510,
+																   16,
+																   17
+															   ]
+												},
+					"mage_blue_back_frame_0":  {
+												   "name":  "mage_blue_back_frame_0",
+												   "type":  "mage_blue",
+												   "facing":  "back",
+												   "frame":  0,
+												   "row":  31,
+												   "column":  0,
+												   "x":  0,
+												   "y":  527,
+												   "w":  16,
+												   "h":  17,
+												   "region":  [
+																  0,
+																  527,
+																  16,
+																  17
+															  ]
+											   },
+					"mage_blue_back_frame_1":  {
+												   "name":  "mage_blue_back_frame_1",
+												   "type":  "mage_blue",
+												   "facing":  "back",
+												   "frame":  1,
+												   "row":  31,
+												   "column":  1,
+												   "x":  16,
+												   "y":  527,
+												   "w":  16,
+												   "h":  17,
+												   "region":  [
+																  16,
+																  527,
+																  16,
+																  17
+															  ]
+											   },
+					"mage_blue_back_frame_2":  {
+												   "name":  "mage_blue_back_frame_2",
+												   "type":  "mage_blue",
+												   "facing":  "back",
+												   "frame":  2,
+												   "row":  31,
+												   "column":  2,
+												   "x":  32,
+												   "y":  527,
+												   "w":  16,
+												   "h":  17,
+												   "region":  [
+																  32,
+																  527,
+																  16,
+																  17
+															  ]
+											   },
+					"mage_blue_back_frame_3":  {
+												   "name":  "mage_blue_back_frame_3",
+												   "type":  "mage_blue",
+												   "facing":  "back",
+												   "frame":  3,
+												   "row":  31,
+												   "column":  3,
+												   "x":  48,
+												   "y":  527,
+												   "w":  16,
+												   "h":  17,
+												   "region":  [
+																  48,
+																  527,
+																  16,
+																  17
+															  ]
+											   },
+					"tombstone_gray":  {
+										   "name":  "tombstone_gray",
+										   "type":  "prop_tombstone",
+										   "facing":  "single",
+										   "frame":  0,
+										   "row":  32,
+										   "column":  0,
+										   "x":  0,
+										   "y":  544,
+										   "w":  16,
+										   "h":  17,
+										   "region":  [
+														  0,
+														  544,
+														  16,
+														  17
+													  ]
+									   },
+					"bones_gray":  {
+									   "name":  "bones_gray",
+									   "type":  "prop_bones",
+									   "facing":  "single",
+									   "frame":  0,
+									   "row":  32,
+									   "column":  1,
+									   "x":  16,
+									   "y":  544,
+									   "w":  16,
+									   "h":  17,
+									   "region":  [
+													  16,
+													  544,
+													  16,
+													  17
+												  ]
+								   }
+				},
+	"groups":  {
+				   "knight_blue_shield":  [
+											  "knight_blue_shield_front_frame_0",
+											  "knight_blue_shield_front_frame_1",
+											  "knight_blue_shield_front_frame_2",
+											  "knight_blue_shield_front_frame_3",
+											  "knight_blue_shield_back_frame_0",
+											  "knight_blue_shield_back_frame_1",
+											  "knight_blue_shield_back_frame_2",
+                                              "knight_blue_shield_back_frame_3"
+										  ],
+				   "knight_blue_shield_front":  [
+													"knight_blue_shield_front_frame_0",
+													"knight_blue_shield_front_frame_1",
+													"knight_blue_shield_front_frame_2",
+                                                    "knight_blue_shield_front_frame_3"
+												],
+				   "knight_blue_shield_back":  [
+												   "knight_blue_shield_back_frame_0",
+												   "knight_blue_shield_back_frame_1",
+												   "knight_blue_shield_back_frame_2",
+                                                   "knight_blue_shield_back_frame_3"
+											   ],
+				   "soldier_brown_spear":  [
+											   "soldier_brown_spear_front_frame_0",
+											   "soldier_brown_spear_front_frame_1",
+											   "soldier_brown_spear_front_frame_2",
+											   "soldier_brown_spear_front_frame_3",
+											   "soldier_brown_spear_back_frame_0",
+											   "soldier_brown_spear_back_frame_1",
+											   "soldier_brown_spear_back_frame_2",
+                                               "soldier_brown_spear_back_frame_3"
+										   ],
+				   "soldier_brown_spear_front":  [
+													 "soldier_brown_spear_front_frame_0",
+													 "soldier_brown_spear_front_frame_1",
+													 "soldier_brown_spear_front_frame_2",
+                                                     "soldier_brown_spear_front_frame_3"
+												 ],
+				   "soldier_brown_spear_back":  [
+													"soldier_brown_spear_back_frame_0",
+													"soldier_brown_spear_back_frame_1",
+													"soldier_brown_spear_back_frame_2",
+                                                    "soldier_brown_spear_back_frame_3"
+												],
+				   "ranger_blue_bow":  [
+										   "ranger_blue_bow_front_frame_0",
+										   "ranger_blue_bow_front_frame_1",
+										   "ranger_blue_bow_front_frame_2",
+										   "ranger_blue_bow_front_frame_3",
+										   "ranger_blue_bow_back_frame_0",
+										   "ranger_blue_bow_back_frame_1",
+										   "ranger_blue_bow_back_frame_2",
+                                           "ranger_blue_bow_back_frame_3"
+									   ],
+				   "ranger_blue_bow_front":  [
+												 "ranger_blue_bow_front_frame_0",
+												 "ranger_blue_bow_front_frame_1",
+												 "ranger_blue_bow_front_frame_2",
+                                                 "ranger_blue_bow_front_frame_3"
+											 ],
+				   "ranger_blue_bow_back":  [
+												"ranger_blue_bow_back_frame_0",
+												"ranger_blue_bow_back_frame_1",
+												"ranger_blue_bow_back_frame_2",
+                                                "ranger_blue_bow_back_frame_3"
+											],
+				   "rogue_blue_hood":  [
+										   "rogue_blue_hood_front_frame_0",
+										   "rogue_blue_hood_front_frame_1",
+										   "rogue_blue_hood_front_frame_2",
+										   "rogue_blue_hood_front_frame_3",
+										   "rogue_blue_hood_back_frame_0",
+										   "rogue_blue_hood_back_frame_1",
+										   "rogue_blue_hood_back_frame_2",
+                                           "rogue_blue_hood_back_frame_3"
+									   ],
+				   "rogue_blue_hood_front":  [
+												 "rogue_blue_hood_front_frame_0",
+												 "rogue_blue_hood_front_frame_1",
+												 "rogue_blue_hood_front_frame_2",
+                                                 "rogue_blue_hood_front_frame_3"
+											 ],
+				   "rogue_blue_hood_back":  [
+												"rogue_blue_hood_back_frame_0",
+												"rogue_blue_hood_back_frame_1",
+												"rogue_blue_hood_back_frame_2",
+                                                "rogue_blue_hood_back_frame_3"
+											],
+				   "goblin_green_sword":  [
+											  "goblin_green_sword_front_frame_0",
+											  "goblin_green_sword_front_frame_1",
+											  "goblin_green_sword_front_frame_2",
+											  "goblin_green_sword_front_frame_3",
+											  "goblin_green_sword_back_frame_0",
+											  "goblin_green_sword_back_frame_1",
+											  "goblin_green_sword_back_frame_2",
+                                              "goblin_green_sword_back_frame_3"
+										  ],
+				   "goblin_green_sword_front":  [
+													"goblin_green_sword_front_frame_0",
+													"goblin_green_sword_front_frame_1",
+													"goblin_green_sword_front_frame_2",
+                                                    "goblin_green_sword_front_frame_3"
+												],
+				   "goblin_green_sword_back":  [
+												   "goblin_green_sword_back_frame_0",
+												   "goblin_green_sword_back_frame_1",
+												   "goblin_green_sword_back_frame_2",
+                                                   "goblin_green_sword_back_frame_3"
+											   ],
+				   "goblin_green_spear":  [
+											  "goblin_green_spear_front_frame_0",
+											  "goblin_green_spear_front_frame_1",
+											  "goblin_green_spear_front_frame_2",
+											  "goblin_green_spear_front_frame_3",
+											  "goblin_green_spear_back_frame_0",
+											  "goblin_green_spear_back_frame_1",
+											  "goblin_green_spear_back_frame_2",
+                                              "goblin_green_spear_back_frame_3"
+										  ],
+				   "goblin_green_spear_front":  [
+													"goblin_green_spear_front_frame_0",
+													"goblin_green_spear_front_frame_1",
+													"goblin_green_spear_front_frame_2",
+                                                    "goblin_green_spear_front_frame_3"
+												],
+				   "goblin_green_spear_back":  [
+												   "goblin_green_spear_back_frame_0",
+												   "goblin_green_spear_back_frame_1",
+												   "goblin_green_spear_back_frame_2",
+                                                   "goblin_green_spear_back_frame_3"
+											   ],
+				   "orc_green_staff":  [
+										   "orc_green_staff_front_frame_0",
+										   "orc_green_staff_front_frame_1",
+										   "orc_green_staff_front_frame_2",
+										   "orc_green_staff_front_frame_3",
+										   "orc_green_staff_back_frame_0",
+										   "orc_green_staff_back_frame_1",
+										   "orc_green_staff_back_frame_2",
+                                           "orc_green_staff_back_frame_3"
+									   ],
+				   "orc_green_staff_front":  [
+												 "orc_green_staff_front_frame_0",
+												 "orc_green_staff_front_frame_1",
+												 "orc_green_staff_front_frame_2",
+                                                 "orc_green_staff_front_frame_3"
+											 ],
+				   "orc_green_staff_back":  [
+												"orc_green_staff_back_frame_0",
+												"orc_green_staff_back_frame_1",
+												"orc_green_staff_back_frame_2",
+                                                "orc_green_staff_back_frame_3"
+											],
+				   "goblin_green_heavy":  [
+											  "goblin_green_heavy_front_frame_0",
+											  "goblin_green_heavy_front_frame_1",
+											  "goblin_green_heavy_front_frame_2",
+											  "goblin_green_heavy_front_frame_3",
+											  "goblin_green_heavy_back_frame_0",
+											  "goblin_green_heavy_back_frame_1",
+											  "goblin_green_heavy_back_frame_2",
+                                              "goblin_green_heavy_back_frame_3"
+										  ],
+				   "goblin_green_heavy_front":  [
+													"goblin_green_heavy_front_frame_0",
+													"goblin_green_heavy_front_frame_1",
+													"goblin_green_heavy_front_frame_2",
+                                                    "goblin_green_heavy_front_frame_3"
+												],
+				   "goblin_green_heavy_back":  [
+												   "goblin_green_heavy_back_frame_0",
+												   "goblin_green_heavy_back_frame_1",
+												   "goblin_green_heavy_back_frame_2",
+                                                   "goblin_green_heavy_back_frame_3"
+											   ],
+				   "dark_knight_red":  [
+										   "dark_knight_red_front_frame_0",
+										   "dark_knight_red_front_frame_1",
+										   "dark_knight_red_front_frame_2",
+										   "dark_knight_red_front_frame_3",
+										   "dark_knight_red_back_frame_0",
+										   "dark_knight_red_back_frame_1",
+										   "dark_knight_red_back_frame_2",
+                                           "dark_knight_red_back_frame_3"
+									   ],
+				   "dark_knight_red_front":  [
+												 "dark_knight_red_front_frame_0",
+												 "dark_knight_red_front_frame_1",
+												 "dark_knight_red_front_frame_2",
+                                                 "dark_knight_red_front_frame_3"
+											 ],
+				   "dark_knight_red_back":  [
+												"dark_knight_red_back_frame_0",
+												"dark_knight_red_back_frame_1",
+												"dark_knight_red_back_frame_2",
+                                                "dark_knight_red_back_frame_3"
+											],
+				   "necromancer_purple":  [
+											  "necromancer_purple_front_frame_0",
+											  "necromancer_purple_front_frame_1",
+											  "necromancer_purple_front_frame_2",
+											  "necromancer_purple_front_frame_3",
+											  "necromancer_purple_back_frame_0",
+											  "necromancer_purple_back_frame_1",
+											  "necromancer_purple_back_frame_2",
+                                              "necromancer_purple_back_frame_3"
+										  ],
+				   "necromancer_purple_front":  [
+													"necromancer_purple_front_frame_0",
+													"necromancer_purple_front_frame_1",
+													"necromancer_purple_front_frame_2",
+                                                    "necromancer_purple_front_frame_3"
+												],
+				   "necromancer_purple_back":  [
+												   "necromancer_purple_back_frame_0",
+												   "necromancer_purple_back_frame_1",
+												   "necromancer_purple_back_frame_2",
+                                                   "necromancer_purple_back_frame_3"
+											   ],
+				   "demon_red_axe":  [
+										 "demon_red_axe_front_frame_0",
+										 "demon_red_axe_front_frame_1",
+										 "demon_red_axe_front_frame_2",
+										 "demon_red_axe_front_frame_3",
+										 "demon_red_axe_back_frame_0",
+										 "demon_red_axe_back_frame_1",
+										 "demon_red_axe_back_frame_2",
+                                         "demon_red_axe_back_frame_3"
+									 ],
+				   "demon_red_axe_front":  [
+											   "demon_red_axe_front_frame_0",
+											   "demon_red_axe_front_frame_1",
+											   "demon_red_axe_front_frame_2",
+                                               "demon_red_axe_front_frame_3"
+										   ],
+				   "demon_red_axe_back":  [
+											  "demon_red_axe_back_frame_0",
+											  "demon_red_axe_back_frame_1",
+											  "demon_red_axe_back_frame_2",
+                                              "demon_red_axe_back_frame_3"
+										  ],
+				   "cultist_purple_bow":  [
+											  "cultist_purple_bow_front_frame_0",
+											  "cultist_purple_bow_front_frame_1",
+											  "cultist_purple_bow_front_frame_2",
+											  "cultist_purple_bow_front_frame_3",
+											  "cultist_purple_bow_back_frame_0",
+											  "cultist_purple_bow_back_frame_1",
+											  "cultist_purple_bow_back_frame_2",
+                                              "cultist_purple_bow_back_frame_3"
+										  ],
+				   "cultist_purple_bow_front":  [
+													"cultist_purple_bow_front_frame_0",
+													"cultist_purple_bow_front_frame_1",
+													"cultist_purple_bow_front_frame_2",
+                                                    "cultist_purple_bow_front_frame_3"
+												],
+				   "cultist_purple_bow_back":  [
+												   "cultist_purple_bow_back_frame_0",
+												   "cultist_purple_bow_back_frame_1",
+												   "cultist_purple_bow_back_frame_2",
+                                                   "cultist_purple_bow_back_frame_3"
+											   ],
+				   "spider_red":  [
+									  "spider_red_front_frame_0",
+									  "spider_red_front_frame_1",
+									  "spider_red_front_frame_2",
+									  "spider_red_front_frame_3",
+									  "spider_red_back_frame_0",
+									  "spider_red_back_frame_1",
+									  "spider_red_back_frame_2",
+                                      "spider_red_back_frame_3"
+								  ],
+				   "spider_red_front":  [
+											"spider_red_front_frame_0",
+											"spider_red_front_frame_1",
+											"spider_red_front_frame_2",
+                                            "spider_red_front_frame_3"
+										],
+				   "spider_red_back":  [
+										   "spider_red_back_frame_0",
+										   "spider_red_back_frame_1",
+										   "spider_red_back_frame_2",
+                                           "spider_red_back_frame_3"
+									   ],
+				   "slime_orange":  [
+										"slime_orange_front_frame_0",
+										"slime_orange_front_frame_1",
+										"slime_orange_front_frame_2",
+										"slime_orange_front_frame_3",
+										"slime_orange_back_frame_0",
+										"slime_orange_back_frame_1",
+										"slime_orange_back_frame_2",
+                                        "slime_orange_back_frame_3"
+									],
+				   "slime_orange_front":  [
+											  "slime_orange_front_frame_0",
+											  "slime_orange_front_frame_1",
+											  "slime_orange_front_frame_2",
+                                              "slime_orange_front_frame_3"
+										  ],
+				   "slime_orange_back":  [
+											 "slime_orange_back_frame_0",
+											 "slime_orange_back_frame_1",
+											 "slime_orange_back_frame_2",
+                                             "slime_orange_back_frame_3"
+										 ],
+				   "bat_purple":  [
+									  "bat_purple_front_frame_0",
+									  "bat_purple_front_frame_1",
+									  "bat_purple_front_frame_2",
+									  "bat_purple_front_frame_3",
+									  "bat_purple_back_frame_0",
+									  "bat_purple_back_frame_1",
+									  "bat_purple_back_frame_2",
+                                      "bat_purple_back_frame_3"
+								  ],
+				   "bat_purple_front":  [
+											"bat_purple_front_frame_0",
+											"bat_purple_front_frame_1",
+											"bat_purple_front_frame_2",
+                                            "bat_purple_front_frame_3"
+										],
+				   "bat_purple_back":  [
+										   "bat_purple_back_frame_0",
+										   "bat_purple_back_frame_1",
+										   "bat_purple_back_frame_2",
+                                           "bat_purple_back_frame_3"
+									   ],
+				   "mage_blue":  [
+									 "mage_blue_front_frame_0",
+									 "mage_blue_front_frame_1",
+									 "mage_blue_front_frame_2",
+									 "mage_blue_front_frame_3",
+									 "mage_blue_back_frame_0",
+									 "mage_blue_back_frame_1",
+									 "mage_blue_back_frame_2",
+                                     "mage_blue_back_frame_3"
+								 ],
+				   "mage_blue_front":  [
+										   "mage_blue_front_frame_0",
+										   "mage_blue_front_frame_1",
+										   "mage_blue_front_frame_2",
+                                           "mage_blue_front_frame_3"
+									   ],
+				   "mage_blue_back":  [
+										  "mage_blue_back_frame_0",
+										  "mage_blue_back_frame_1",
+										  "mage_blue_back_frame_2",
+                                          "mage_blue_back_frame_3"
+									  ],
+				   "prop_tombstone":  [
+                                          "tombstone_gray"
+									  ],
+				   "prop_bones":  [
+                                      "bones_gray"
+								  ]
+			   }
+}
