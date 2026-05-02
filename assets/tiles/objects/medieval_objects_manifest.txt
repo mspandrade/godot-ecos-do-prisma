@@ -1,0 +1,18 @@
+medieval_objects_sheet.png
+cell_size=128x128
+grid=4 columns x 3 rows
+perspective=true_isometric_2to1_diamond
+total_objects=12
+index,row,col,source
+0,0,0,castle_00.png
+1,0,1,castle_01.png
+2,0,2,castle_02.png
+3,0,3,castle_03.png
+4,1,0,obstacle_00.png
+5,1,1,obstacle_01.png
+6,1,2,obstacle_02.png
+7,1,3,obstacle_03.png
+8,2,0,village_house_00.png
+9,2,1,village_house_01.png
+10,2,2,village_house_02.png
+11,2,3,village_house_03.png
