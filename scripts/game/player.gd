@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name Player
 
 const EntitySpriteAtlas := preload("res://scripts/core/entity_sprite_atlas.gd")
+const OBSTACLE_LAYER_MASK := 1 << 4
 
 signal health_changed(current: float, maximum: float)
 signal died
@@ -227,7 +228,7 @@ func _flash_damage() -> void:
 func _disable_collision() -> void:
 	is_intangible = true
 	collision_layer = 0
-	collision_mask = 0
+	collision_mask = base_collision_mask & OBSTACLE_LAYER_MASK
 	hit_area.collision_mask = 0
 
 func _restore_collision() -> void:

@@ -8,6 +8,7 @@ signal enemy_killed(pos: Vector2, xp_value: int, coin_value: int)
 @export var spawn_radius := 760.0
 @export var despawn_radius := 1250.0
 @export var initial_spawn_count := 18
+@export var spawns_enabled := true
 
 var player: Node2D
 var wave := 1
@@ -24,6 +25,8 @@ func setup(target: Node2D) -> void:
 		enemy.killed.connect(_on_enemy_killed)
 		enemy.recycled.connect(_recycle_enemy)
 		pool.append(enemy)
+	if not spawns_enabled:
+		return
 	for i in range(initial_spawn_count):
 		_spawn_enemy(false)
 
@@ -32,6 +35,9 @@ func _process(delta: float) -> void:
 		return
 	elapsed += delta
 	wave = 1 + int(elapsed / 45.0)
+	if not spawns_enabled:
+		_despawn_far_enemies()
+		return
 	spawn_timer -= delta
 	boss_timer += delta
 	if spawn_timer <= 0.0:
@@ -45,6 +51,8 @@ func _process(delta: float) -> void:
 	_despawn_far_enemies()
 
 func _spawn_enemy(boss: bool) -> void:
+	if not spawns_enabled:
+		return
 	var enemy := _get_enemy()
 	if enemy == null:
 		return
@@ -69,3 +77,10 @@ func _recycle_enemy(enemy: Enemy) -> void:
 
 func _on_enemy_killed(enemy: Enemy, xp_value: int, coin_value: int) -> void:
 	enemy_killed.emit(enemy.global_position, xp_value, coin_value)
+
+func set_spawns_enabled(enabled: bool, clear_active_enemies := false) -> void:
+	spawns_enabled = enabled
+	if clear_active_enemies:
+		for enemy in pool:
+			if enemy.is_active:
+				_recycle_enemy(enemy)
