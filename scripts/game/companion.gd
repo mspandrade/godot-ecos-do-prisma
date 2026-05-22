@@ -8,12 +8,16 @@ signal health_changed(companion: Node, current: float, maximum: float)
 var companion_id := "shield_warrior"
 var display_name := "Guerreiro do Escudo"
 var class_type := "shield"
+var rarity := "comum"
+var state := "disponivel"
 var level := 1
 var xp := 0
 var xp_required := 10
 var max_health := 34.0
 var health := 34.0
 var move_speed := 210.0
+var speed_rating := 6.0
+var defense := 0.0
 var attack_damage := 5.0
 var attack_range := 115.0
 var attack_cooldown := 1.35
@@ -46,11 +50,16 @@ func setup(data: Dictionary, p_player: Node2D, offset: Vector2) -> void:
 	companion_id = str(data["id"])
 	display_name = str(data["name"])
 	class_type = str(data["class"])
+	rarity = str(data.get("rarity", rarity))
+	state = str(data.get("state", state))
 	player = p_player
 	follow_offset = offset
+	level = int(data.get("level", level))
 	max_health = float(data["health"])
 	health = max_health
 	move_speed = float(data["speed"])
+	speed_rating = float(data.get("speed_rating", speed_rating))
+	defense = float(data.get("defense", defense))
 	attack_damage = float(data["damage"])
 	attack_range = float(data["range"])
 	attack_cooldown = float(data["cooldown"])
@@ -71,6 +80,8 @@ func _class_sprite_type() -> String:
 	match class_type:
 		"shield":
 			return "knight_blue_shield"
+		"tank":
+			return "knight_blue_shield"
 		"mage":
 			return "mage_blue"
 		"archer":
@@ -79,6 +90,8 @@ func _class_sprite_type() -> String:
 			return "necromancer_purple"
 		"cleric":
 			return "mage_blue"
+		"assassin":
+			return "cultist_purple_bow"
 	return "knight_blue_shield"
 
 func _apply_class_sprite() -> void:
@@ -213,6 +226,8 @@ func _use_class_action() -> void:
 	match class_type:
 		"shield":
 			_shield_attack()
+		"tank":
+			_tank_attack()
 		"mage":
 			_mage_attack()
 		"archer":
@@ -221,11 +236,14 @@ func _use_class_action() -> void:
 			_bard_buff()
 		"cleric":
 			_cleric_heal()
+		"assassin":
+			_assassin_attack()
 
 func take_damage(amount: float) -> void:
 	if is_down or not is_recruited or spawn_grace_time > 0.0 or is_invulnerable:
 		return
-	health = max(0.0, health - amount)
+	var mitigated_amount := maxf(1.0, amount - defense * 0.35)
+	health = max(0.0, health - mitigated_amount)
 	if health <= 0.0:
 		_fall()
 	else:
@@ -259,6 +277,7 @@ func _apply_contact_damage() -> void:
 
 func _fall() -> void:
 	is_down = true
+	state = "caido"
 	velocity = Vector2.ZERO
 	visible = false
 	collision_layer = 0
@@ -270,6 +289,7 @@ func recruit(new_offset: Vector2) -> void:
 	if is_recruited or is_down:
 		return
 	is_recruited = true
+	state = "em_missao"
 	follow_offset = new_offset
 	health = max_health
 	_snap_to_formation()
@@ -297,6 +317,18 @@ func _shield_attack() -> void:
 	shield_charge_state = "out"
 	is_invulnerable = true
 	_flash_line(global_position, shield_charge_target, Color(0.55, 0.75, 1.0, 0.75), 7.0)
+
+func _tank_attack() -> void:
+	var enemy := _nearest_enemy(attack_range)
+	if not enemy:
+		_flash(player.global_position, Color(0.55, 0.75, 0.95, 0.22), 72.0)
+		return
+	enemy.take_damage(attack_damage)
+	enemy.apply_knockback(global_position.direction_to(enemy.global_position), 220.0 * ability_power)
+	for nearby in get_tree().get_nodes_in_group("enemies"):
+		if nearby != enemy and nearby.is_active and nearby.global_position.distance_to(global_position) <= 130.0:
+			nearby.apply_knockback(global_position.direction_to(nearby.global_position), 120.0 * ability_power)
+	_flash(global_position, Color(0.55, 0.75, 0.95, 0.28), 112.0)
 
 func _process_shield_charge(delta: float) -> void:
 	var destination := shield_charge_target
@@ -340,6 +372,18 @@ func _archer_attack() -> void:
 	enemy.take_damage(attack_damage * 1.35)
 	_flash_line(global_position, enemy.global_position, Color(1.0, 0.86, 0.32, 0.85), 3.0)
 	_flash(enemy.global_position, Color(0.9, 0.8, 0.35, 0.55), 16.0)
+
+func _assassin_attack() -> void:
+	var enemy := _nearest_enemy(attack_range)
+	if not enemy:
+		return
+	var direction := global_position.direction_to(enemy.global_position)
+	var crit_bonus: float = 1.0 + minf(0.75, ability_power * 0.28)
+	enemy.take_damage(attack_damage * crit_bonus)
+	enemy.apply_knockback(direction, 140.0)
+	global_position = enemy.global_position - direction * 42.0
+	_flash_line(global_position, enemy.global_position, Color(0.95, 0.25, 0.48, 0.8), 4.0)
+	_flash(enemy.global_position, Color(0.95, 0.25, 0.48, 0.42), 22.0)
 
 func _bard_buff() -> void:
 	if player:

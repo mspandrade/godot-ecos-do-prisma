@@ -1,0 +1,116 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/guild_scene.gd" id="1"]
+
+[node name="GuildScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -153.0
+offset_top = -124.0
+offset_right = -89.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.075, 0.095, 0.085, 1)
+
+[node name="Particles" type="CPUParticles2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(640, 360)
+amount = 46
+lifetime = 7.0
+preprocess = 7.0
+emission_shape = 3
+emission_rect_extents = Vector2(760, 430)
+gravity = Vector2(0, -5)
+initial_velocity_min = 5.0
+initial_velocity_max = 18.0
+scale_amount_min = 2.0
+scale_amount_max = 5.0
+color = Color(0.52, 0.82, 0.48, 0.28)
+
+[node name="MenuBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 72.0
+offset_top = -238.0
+offset_right = 500.0
+offset_bottom = 238.0
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="MenuBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Guilda"
+
+[node name="GuildLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Guilda Falida  Nv 1"
+
+[node name="CoinsLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Moedas: 0"
+
+[node name="SquadLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Esquadrao: 0/6 | Level medio 0.0"
+
+[node name="MobilityLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Velocidade 0.0 - -"
+
+[node name="RosterLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+text = "Companions: 0/12"
+
+[node name="MissionButton" type="Button" parent="MenuBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Iniciar missao"
+
+[node name="RosterButton" type="Button" parent="MenuBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Companions e recrutamento"
+
+[node name="UpgradesButton" type="Button" parent="MenuBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Upgrades da guilda"
+
+[node name="SettingsButton" type="Button" parent="MenuBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Configuracoes"
+
+[node name="SettingsLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Audio, idioma e controles: placeholder."
+autowrap_mode = 2

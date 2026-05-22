@@ -38,6 +38,11 @@ func _init() -> void:
 	_test_weapon_evolution()
 	_test_weapon_evolution_requires_passive_and_level()
 	_test_permanent_upgrade_cost_formula()
+	_test_default_guild_squad_summary()
+	_test_squad_can_be_emptied()
+	_test_companion_run_results_update_roster()
+	_test_recruitment_hire_adds_companion()
+	_test_recruitment_reroll_spends_coins_and_scales_cost()
 	_test_scene_pool_acquire_and_recycle_signal()
 	if failures == 0:
 		print("All %d tests passed." % total)
@@ -282,6 +287,91 @@ func _test_permanent_upgrade_cost_formula() -> void:
 	_assert_eq(data.get_upgrade_cost("damage"), 150, "Permanent upgrade base cost is used at level zero")
 	data.permanent_upgrades["damage"] = 3
 	_assert_eq(data.get_upgrade_cost("damage"), 480, "Permanent upgrade cost scales by step per level")
+	data.free()
+
+func _test_default_guild_squad_summary() -> void:
+	var data: Node = GameDataScript.new()
+	var summary: Dictionary = data.get_squad_summary()
+	var combat_defs: Array = data.get_active_companion_defs()
+	_assert_eq(summary["size"], 3, "Default guild starts with three active companions")
+	_assert_float_eq(summary["average_speed"], 6.0, "Default squad speed average uses companion ratings")
+	_assert_eq(summary["speed_label"], "Equilibrado", "Default squad speed gets a readable label")
+	_assert_eq(combat_defs.size(), 3, "Combat companion defs come from active squad")
+	_assert_eq(combat_defs[0]["id"], "c_warrior_001", "Combat companion keeps persistent roster id")
+	data.free()
+
+func _test_squad_can_be_emptied() -> void:
+	var data: Node = GameDataScript.new()
+	var starting_squad: Array = data.get_active_squad().duplicate()
+	for companion_id in starting_squad:
+		_assert_true(data.toggle_companion_in_squad(str(companion_id)), "Squad member can be removed")
+	_assert_eq(data.get_active_squad().size(), 0, "Squad can be empty while editing party")
+	_assert_eq(data.get_squad_summary()["size"], 0, "Empty squad is not repopulated by summary")
+	_assert_eq(data.get_active_companion_defs().size(), 0, "Empty squad does not spawn fallback companions")
+	data.free()
+
+func _test_companion_run_results_update_roster() -> void:
+	var data: Node = GameDataScript.new()
+	data.apply_companion_run_results([
+		{
+			"id": "c_warrior_001",
+			"level": 3,
+			"xp": 4,
+			"xp_required": 18,
+			"max_health": 48.0,
+			"current_health": 0.0,
+			"attack": 7.5,
+			"defense": 5.0,
+			"move_speed": 220.0,
+			"speed_rating": 6.5,
+			"range": 170.0,
+			"cooldown": 1.1,
+			"ability_power": 1.25,
+			"state": "ferido"
+		}
+	])
+	var companion: Dictionary = data.companion_roster["c_warrior_001"]
+	_assert_eq(companion["level"], 3, "Run result persists companion level")
+	_assert_eq(companion["xp"], 4, "Run result persists companion XP remainder")
+	_assert_float_eq(companion["attack"], 7.5, "Run result persists chosen attribute upgrades")
+	_assert_eq(companion["state"], "ferido", "Fallen companion returns as wounded")
+	_assert_float_eq(companion["current_health"], 16.8, "Wounded companion returns with partial health")
+	data.free()
+
+func _test_recruitment_hire_adds_companion() -> void:
+	var data: Node = GameDataScript.new()
+	data.coins = 1000
+	data.recruitment = {
+		"available": [{
+			"name": "Nia",
+			"class": "mage",
+			"class_name": "Mago",
+			"rarity": "raro",
+			"level": 2,
+			"cost": 360,
+			"traits": ["focada"],
+			"ability": "Bola de Fogo",
+			"speed_rating": 5.0
+		}],
+		"reroll_count": 0
+	}
+	var before_count: int = data.get_companion_roster().size()
+	var hired: bool = data.hire_recruit(0)
+	_assert_true(hired, "Recruitment hire succeeds when coins and capacity allow")
+	_assert_eq(data.get_companion_roster().size(), before_count + 1, "Hiring adds companion to roster")
+	_assert_eq(data.coins, 640, "Hiring spends candidate cost")
+	_assert_eq(data.get_recruitment_queue().size(), 3, "Hiring refills recruitment queue")
+	data.free()
+
+func _test_recruitment_reroll_spends_coins_and_scales_cost() -> void:
+	var data: Node = GameDataScript.new()
+	data.coins = 500
+	var first_cost: int = data.get_reroll_cost()
+	var rerolled: bool = data.reroll_recruits()
+	_assert_true(rerolled, "Recruitment reroll succeeds when coins are available")
+	_assert_eq(data.coins, 400, "Recruitment reroll spends first cost")
+	_assert_true(data.get_reroll_cost() > first_cost, "Recruitment reroll cost increases")
+	_assert_eq(data.get_recruitment_queue().size(), 3, "Recruitment reroll creates three candidates")
 	data.free()
 
 func _test_scene_pool_acquire_and_recycle_signal() -> void:

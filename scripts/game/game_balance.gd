@@ -3,12 +3,19 @@ class_name GameBalance
 
 static func get_companion_defs() -> Array:
 	return [
-		{"id": "shield_warrior", "name": "Guerreiro do Escudo", "class": "shield", "health": 30.0, "speed": 210.0, "damage": 4.5, "range": 145.0, "cooldown": 1.35, "ability_power": 0.8, "color": Color(0.35, 0.55, 1.0)},
-		{"id": "mage", "name": "Mago", "class": "mage", "health": 18.0, "speed": 200.0, "damage": 4.2, "range": 520.0, "cooldown": 2.1, "ability_power": 0.75, "color": Color(0.75, 0.35, 1.0)},
-		{"id": "archer", "name": "Arqueiro", "class": "archer", "health": 22.0, "speed": 215.0, "damage": 5.5, "range": 620.0, "cooldown": 1.25, "ability_power": 0.8, "color": Color(0.95, 0.78, 0.28)},
-		{"id": "bard", "name": "Bardo", "class": "bard", "health": 16.0, "speed": 210.0, "damage": 0.0, "range": 0.0, "cooldown": 10.0, "ability_power": 0.7, "color": Color(0.25, 0.95, 0.62)},
-		{"id": "cleric", "name": "Clerigo", "class": "cleric", "health": 20.0, "speed": 205.0, "damage": 5.0, "range": 210.0, "cooldown": 6.5, "ability_power": 1.0, "color": Color(0.95, 0.9, 0.55)}
+		{"id": "shield_warrior", "name": "Guerreiro", "class": "shield", "rarity": "comum", "level": 1, "state": "disponivel", "health": 32.0, "speed": 218.0, "speed_rating": 6.0, "damage": 4.8, "defense": 4.0, "range": 145.0, "crit": 0.05, "luck": 0.04, "cooldown": 1.35, "ability_power": 0.8, "ability": "Golpe Largo", "passive": "Postura firme", "color": Color(0.35, 0.55, 1.0)},
+		{"id": "tank", "name": "Tanque", "class": "tank", "rarity": "comum", "level": 1, "state": "disponivel", "health": 44.0, "speed": 180.0, "speed_rating": 3.0, "damage": 3.4, "defense": 8.0, "range": 110.0, "crit": 0.02, "luck": 0.03, "cooldown": 1.65, "ability_power": 1.1, "ability": "Provocar", "passive": "Armadura pesada", "color": Color(0.55, 0.7, 0.95)},
+		{"id": "archer", "name": "Arqueiro", "class": "archer", "rarity": "comum", "level": 1, "state": "disponivel", "health": 22.0, "speed": 230.0, "speed_rating": 7.0, "damage": 5.5, "defense": 2.0, "range": 620.0, "crit": 0.12, "luck": 0.07, "cooldown": 1.25, "ability_power": 0.8, "ability": "Tiro Duplo", "passive": "Olhos atentos", "color": Color(0.95, 0.78, 0.28)},
+		{"id": "mage", "name": "Mago", "class": "mage", "rarity": "incomum", "level": 1, "state": "disponivel", "health": 18.0, "speed": 205.0, "speed_rating": 5.0, "damage": 4.2, "defense": 1.0, "range": 520.0, "crit": 0.08, "luck": 0.1, "cooldown": 2.1, "ability_power": 0.75, "ability": "Bola de Fogo", "passive": "Mana instavel", "color": Color(0.75, 0.35, 1.0)},
+		{"id": "cleric", "name": "Curandeiro", "class": "cleric", "rarity": "incomum", "level": 1, "state": "disponivel", "health": 20.0, "speed": 205.0, "speed_rating": 5.0, "damage": 5.0, "defense": 2.0, "range": 210.0, "crit": 0.03, "luck": 0.12, "cooldown": 6.5, "ability_power": 1.0, "ability": "Cura Leve", "passive": "Fe serena", "color": Color(0.95, 0.9, 0.55)},
+		{"id": "assassin", "name": "Assassino", "class": "assassin", "rarity": "raro", "level": 1, "state": "disponivel", "health": 20.0, "speed": 265.0, "speed_rating": 9.0, "damage": 7.4, "defense": 1.0, "range": 185.0, "crit": 0.24, "luck": 0.08, "cooldown": 1.8, "ability_power": 1.15, "ability": "Investida Sombria", "passive": "Golpe oportunista", "color": Color(0.85, 0.35, 0.48)}
 	]
+
+static func get_companion_def_by_class(class_type: String) -> Dictionary:
+	for companion_def: Dictionary in get_companion_defs():
+		if str(companion_def["class"]) == class_type:
+			return companion_def.duplicate(true)
+	return get_companion_defs()[0].duplicate(true)
 
 static func get_companion_offsets() -> Array[Vector2]:
 	return [
@@ -16,7 +23,8 @@ static func get_companion_offsets() -> Array[Vector2]:
 		Vector2(58, 52),
 		Vector2(-86, -18),
 		Vector2(86, -18),
-		Vector2(0, 96)
+		Vector2(0, 96),
+		Vector2(0, -82)
 	]
 
 static func get_weapon_defs() -> Dictionary:

@@ -8,12 +8,14 @@ extends Control
 @onready var coins_label: Label = %CoinsLabel
 @onready var weapons_label: Label = %WeaponsLabel
 @onready var pause_button: Button = %PauseButton
+@onready var flee_button: Button = %FleeButton
 
 func bind(player: Player, run_state: RunState) -> void:
 	player.health_changed.connect(_on_health_changed)
 	run_state.xp_changed.connect(_on_xp_changed)
 	run_state.coins_changed.connect(func(c: int): coins_label.text = "Moedas: %d" % c)
 	pause_button.pressed.connect(get_tree().current_scene.pause_game)
+	flee_button.pressed.connect(get_tree().current_scene.flee_run)
 	_on_health_changed(player.health, player.max_health)
 	_on_xp_changed(run_state.xp, run_state.xp_required)
 	set_level(run_state.level)

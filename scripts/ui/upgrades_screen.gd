@@ -4,7 +4,7 @@ extends Control
 @onready var coins_label: Label = %CoinsLabel
 
 func _ready() -> void:
-	%BackButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn"))
+	%BackButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GuildScene.tscn"))
 	GameData.coins_changed.connect(func(_c: int): _refresh())
 	_refresh()
 

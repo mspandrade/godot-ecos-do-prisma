@@ -51,10 +51,14 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Moedas: 0"
 
-[node name="CharacterList" type="VBoxContainer" parent="Panel/VBox"]
-unique_name_in_owner = true
+[node name="RosterScroll" type="ScrollContainer" parent="Panel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="CharacterList" type="VBoxContainer" parent="Panel/VBox/RosterScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
 [node name="BackButton" type="Button" parent="Panel/VBox"]

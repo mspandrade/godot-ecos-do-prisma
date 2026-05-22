@@ -63,6 +63,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Pausar"
 
+[node name="FleeButton" type="Button" parent="TopPanel/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Fugir"
+
 [node name="BottomInfo" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 2
