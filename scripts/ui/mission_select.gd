@@ -1,0 +1,82 @@
+extends Control
+
+@onready var list: VBoxContainer = %MissionList
+@onready var title_label: Label = %TitleLabel
+
+func _ready() -> void:
+	%BackButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GuildScene.tscn"))
+	GameData.squad_changed.connect(func(_summary: Dictionary): _refresh())
+	GameData.mission_changed.connect(func(_mission_id: String): _refresh())
+	_refresh()
+
+func _refresh() -> void:
+	var selected := GameData.get_selected_mission()
+	title_label.text = "Missao selecionada: %s" % str(selected.get("name", "-"))
+	for child in list.get_children():
+		child.queue_free()
+	for mission in GameData.get_missions():
+		_add_mission_row(mission)
+
+func _add_mission_row(mission: Dictionary) -> void:
+	var readiness := GameData.get_mission_readiness(str(mission["id"]))
+	var selected := str(mission["id"]) == str(GameData.get_selected_mission()["id"])
+	var row := VBoxContainer.new()
+	row.custom_minimum_size = Vector2(0, 160)
+	var title := Label.new()
+	title.text = "%s%s" % [str(mission["name"]), "  Selecionada" if selected else ""]
+	title.add_theme_font_size_override("font_size", 18)
+	var meta := Label.new()
+	meta.text = "%s | Level recomendado %d | Risco %s" % [
+		str(mission["zone_name"]),
+		int(mission["recommended_level"]),
+		str(readiness["risk"])
+	]
+	var squad := Label.new()
+	squad.text = "Seu esquadrao: Lv %.1f | Vel %.1f - %s" % [
+		float(readiness["average_level"]),
+		float(readiness["average_speed"]),
+		str(readiness["speed_label"])
+	]
+	var rewards := Label.new()
+	var combat: Dictionary = mission.get("combat", {})
+	rewards.text = "Duracao: %s | Recompensas: %d moedas | %d XP" % [
+		_format_duration(float(combat.get("duration_seconds", 180.0))),
+		int(mission["coin_reward"]),
+		int(mission["xp_reward"])
+	]
+	var warning := Label.new()
+	var warnings: Array = readiness["warnings"]
+	warning.text = "Aviso: %s" % " ".join(warnings)
+	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var actions := HBoxContainer.new()
+	var select_button := Button.new()
+	select_button.text = "Selecionar"
+	select_button.disabled = selected or not bool(readiness["unlocked"])
+	select_button.pressed.connect(_select_mission.bind(str(mission["id"])))
+	var start_button := Button.new()
+	start_button.text = "Iniciar"
+	start_button.disabled = not selected or not bool(readiness["can_start"])
+	start_button.pressed.connect(_start_selected_mission)
+	actions.add_child(select_button)
+	actions.add_child(start_button)
+	row.add_child(title)
+	row.add_child(meta)
+	row.add_child(squad)
+	row.add_child(rewards)
+	row.add_child(warning)
+	row.add_child(actions)
+	list.add_child(row)
+
+func _select_mission(mission_id: String) -> void:
+	GameData.select_mission(mission_id)
+	_refresh()
+
+func _start_selected_mission() -> void:
+	var readiness := GameData.get_mission_readiness()
+	if not bool(readiness["can_start"]):
+		return
+	get_tree().change_scene_to_file("res://scenes/Game.tscn")
+
+func _format_duration(seconds: float) -> String:
+	var total := int(seconds)
+	return "%02d:%02d" % [int(total / 60), total % 60]

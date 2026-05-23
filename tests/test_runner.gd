@@ -5,6 +5,7 @@ const UpgradeManagerScript := preload("res://scripts/game/upgrade_manager.gd")
 const GameDataScript := preload("res://scripts/core/game_data.gd")
 const CompanionScript := preload("res://scripts/game/companion.gd")
 const CompanionManagerScript := preload("res://scripts/game/companion_manager.gd")
+const EnemySpawnerScript := preload("res://scripts/game/enemy_spawner.gd")
 const ScenePoolScript := preload("res://scripts/core/scene_pool.gd")
 const PoolItemScript := preload("res://tests/pool_item.gd")
 
@@ -40,6 +41,10 @@ func _init() -> void:
 	_test_permanent_upgrade_cost_formula()
 	_test_default_guild_squad_summary()
 	_test_squad_can_be_emptied()
+	_test_flee_coin_retention_uses_squad_speed()
+	_test_mission_readiness_uses_squad_and_unlocks()
+	_test_selected_mission_combat_profile()
+	_test_enemy_spawner_accepts_mission_profile()
 	_test_companion_run_results_update_roster()
 	_test_recruitment_hire_adds_companion()
 	_test_recruitment_reroll_spends_coins_and_scales_cost()
@@ -309,6 +314,53 @@ func _test_squad_can_be_emptied() -> void:
 	_assert_eq(data.get_squad_summary()["size"], 0, "Empty squad is not repopulated by summary")
 	_assert_eq(data.get_active_companion_defs().size(), 0, "Empty squad does not spawn fallback companions")
 	data.free()
+
+func _test_flee_coin_retention_uses_squad_speed() -> void:
+	var data: Node = GameDataScript.new()
+	_assert_float_eq(data.get_flee_coin_retention(), 0.75, "Balanced default squad keeps most coins when fleeing")
+	data.active_squad = ["c_tank_001"]
+	_assert_float_eq(data.get_flee_coin_retention(), 0.45, "Very slow squad keeps fewer coins when fleeing")
+	data.active_squad = ["c_assassin_001"]
+	_assert_float_eq(data.get_flee_coin_retention(), 1.0, "Very fast squad keeps all coins when fleeing")
+	data.free()
+
+func _test_mission_readiness_uses_squad_and_unlocks() -> void:
+	var data: Node = GameDataScript.new()
+	var initial: Dictionary = data.get_mission_readiness("initial_forest_survival")
+	_assert_true(initial["can_start"], "Initial mission can start with default squad")
+	_assert_eq(initial["risk"], "Baixo", "Initial mission starts with low risk")
+	var locked: Dictionary = data.get_mission_readiness("wolf_cave_scout")
+	_assert_true(not locked["unlocked"], "Locked mission reports locked state")
+	_assert_true(not data.select_mission("wolf_cave_scout"), "Cannot select locked mission")
+	data.guild["unlocked_zones"] = ["initial_forest", "wolf_cave"]
+	_assert_true(data.select_mission("wolf_cave_scout"), "Can select mission after unlocking zone")
+	var cave: Dictionary = data.get_mission_readiness("wolf_cave_scout")
+	_assert_true(cave["unlocked"], "Unlocked mission reports available")
+	_assert_true(cave["warnings"].has("Esquadrao abaixo do level recomendado."), "Underleveled squad warns before mission")
+	data.free()
+
+func _test_selected_mission_combat_profile() -> void:
+	var data: Node = GameDataScript.new()
+	var initial: Dictionary = data.get_selected_mission_combat_profile()
+	_assert_eq(initial["mission_id"], "initial_forest_survival", "Combat profile includes selected mission id")
+	_assert_float_eq(initial["enemy_health_multiplier"], 1.0, "Initial mission keeps base enemy health")
+	_assert_float_eq(initial["duration_seconds"], 180.0, "Initial mission has a phase timer")
+	_assert_eq(initial["completion_coin_reward"], 80, "Initial mission has a completion coin reward")
+	data.guild["unlocked_zones"] = ["initial_forest", "wolf_cave"]
+	data.select_mission("wolf_cave_scout")
+	var cave: Dictionary = data.get_selected_mission_combat_profile()
+	_assert_eq(cave["mission_id"], "wolf_cave_scout", "Combat profile follows selected mission")
+	_assert_float_eq(cave["duration_seconds"], 240.0, "Selected harder mission has its own timer")
+	_assert_true(float(cave["enemy_speed_multiplier"]) > 1.0, "Wolf cave combat profile makes enemies faster")
+	_assert_true(float(cave["coin_multiplier"]) > 1.0, "Harder mission improves coin drops")
+	data.free()
+
+func _test_enemy_spawner_accepts_mission_profile() -> void:
+	var spawner: Node = EnemySpawnerScript.new()
+	spawner.configure_mission({"wave_offset": 3, "spawn_amount_bonus": 2})
+	_assert_eq(spawner.mission_profile["wave_offset"], 3, "Enemy spawner stores mission wave offset")
+	_assert_eq(spawner.mission_profile["spawn_amount_bonus"], 2, "Enemy spawner stores mission spawn bonus")
+	spawner.free()
 
 func _test_companion_run_results_update_roster() -> void:
 	var data: Node = GameDataScript.new()

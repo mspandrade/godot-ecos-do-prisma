@@ -3,6 +3,7 @@ class_name GameManager
 
 @export var projectile_scene: PackedScene
 @export var xp_orb_scene: PackedScene
+@export var flee_channel_seconds := 5.0
 
 const ScenePoolScript := preload("res://scripts/core/scene_pool.gd")
 
@@ -10,7 +11,11 @@ var run_state := RunState.new()
 var projectile_pool := ScenePoolScript.new()
 var orb_pool := ScenePoolScript.new()
 var elapsed := 0.0
+var mission_profile := {}
+var mission_duration := 20.0 * 60.0
 var run_finished := false
+var flee_pending := false
+var flee_elapsed := 0.0
 
 @onready var player: Player = $Player
 @onready var camera: CameraController = $Camera2D
@@ -32,6 +37,9 @@ func _ready() -> void:
 	player.joystick_path = joystick.get_path()
 	player.setup(run_state)
 	camera.set_target(player)
+	mission_profile = GameData.get_selected_mission_combat_profile()
+	mission_duration = float(mission_profile.get("duration_seconds", mission_duration))
+	spawner.configure_mission(mission_profile)
 	spawner.setup(player)
 	weapons.setup(player, run_state)
 	upgrades.setup(run_state, weapons)
@@ -49,9 +57,23 @@ func _process(delta: float) -> void:
 	if run_finished:
 		return
 	elapsed += delta
-	hud.call("set_timer", elapsed)
-	if elapsed >= 20.0 * 60.0:
-		_finish_run()
+	var remaining := maxf(0.0, mission_duration - elapsed)
+	hud.call("set_timer", remaining)
+	_process_flee(delta)
+	if run_finished:
+		return
+	if elapsed >= mission_duration:
+		_finish_run("vitoria")
+
+func _process_flee(delta: float) -> void:
+	if not flee_pending:
+		return
+	flee_elapsed += delta
+	var remaining := maxf(0.0, flee_channel_seconds - flee_elapsed)
+	hud.call("set_flee_status", true, remaining)
+	if flee_elapsed >= flee_channel_seconds:
+		var retained_coins := int(floor(run_state.coins * GameData.get_flee_coin_retention()))
+		_finish_run("fuga", retained_coins)
 
 func _build_pools() -> void:
 	projectile_pool.build(self, projectile_scene, 70, _recycle_projectile)
@@ -131,17 +153,22 @@ func continue_after_companion_upgrade() -> void:
 	get_tree().paused = false
 
 func flee_run() -> void:
-	if run_finished:
+	if run_finished or flee_pending:
 		return
-	var retained_coins := int(floor(run_state.coins * GameData.get_flee_coin_retention()))
-	_finish_run("fuga", retained_coins)
+	flee_pending = true
+	flee_elapsed = 0.0
+	hud.call("set_flee_status", true, flee_channel_seconds)
 
 func _finish_run(result_reason := "derrota", coins_override := -1) -> void:
 	if run_finished:
 		return
 	run_finished = true
+	flee_pending = false
+	hud.call("set_flee_status", false, 0.0)
 	get_tree().paused = true
 	var awarded_coins: int = run_state.coins if coins_override < 0 else coins_override
+	if result_reason == "vitoria":
+		awarded_coins += int(mission_profile.get("completion_coin_reward", 0))
 	GameData.add_coins(awarded_coins)
 	if companion_manager.has_method("get_run_results"):
 		GameData.apply_companion_run_results(companion_manager.call("get_run_results"))

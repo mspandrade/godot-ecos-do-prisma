@@ -16,6 +16,10 @@ var elapsed := 0.0
 var spawn_timer := 0.0
 var boss_timer := 0.0
 var pool: Array[Enemy] = []
+var mission_profile := {}
+
+func configure_mission(profile: Dictionary) -> void:
+	mission_profile = profile.duplicate(true)
 
 func setup(target: Node2D) -> void:
 	player = target
@@ -34,18 +38,18 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	elapsed += delta
-	wave = 1 + int(elapsed / 45.0)
+	wave = 1 + int(elapsed / 45.0) + int(mission_profile.get("wave_offset", 0))
 	if not spawns_enabled:
 		_despawn_far_enemies()
 		return
 	spawn_timer -= delta
 	boss_timer += delta
 	if spawn_timer <= 0.0:
-		var amount: int = clamp(4 + int(wave * 0.8), 4, 14)
+		var amount: int = clamp(4 + int(wave * 0.8) + int(mission_profile.get("spawn_amount_bonus", 0)), 4, 18)
 		for i in range(amount):
 			_spawn_enemy(false)
-		spawn_timer = max(0.18, 0.95 - wave * 0.045)
-	if boss_timer >= 150.0:
+		spawn_timer = max(0.18, (0.95 - wave * 0.045) * float(mission_profile.get("spawn_interval_multiplier", 1.0)))
+	if boss_timer >= float(mission_profile.get("boss_interval", 150.0)):
 		boss_timer = 0.0
 		_spawn_enemy(true)
 	_despawn_far_enemies()
@@ -59,7 +63,7 @@ func _spawn_enemy(boss: bool) -> void:
 	var angle := randf() * TAU
 	var radius := spawn_radius + randf_range(-80.0, 120.0)
 	var pos := player.global_position + Vector2(cos(angle), sin(angle)) * radius
-	enemy.spawn(pos, player, wave, boss)
+	enemy.spawn(pos, player, wave, boss, mission_profile)
 
 func _get_enemy() -> Enemy:
 	for enemy in pool:

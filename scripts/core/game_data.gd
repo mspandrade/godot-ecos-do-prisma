@@ -7,6 +7,7 @@ signal guild_changed
 signal companion_roster_changed
 signal squad_changed(summary: Dictionary)
 signal recruitment_changed
+signal mission_changed(mission_id: String)
 
 const SAVE_PATH := "user://save_data.cfg"
 const GameBalanceScript := preload("res://scripts/game/game_balance.gd")
@@ -28,6 +29,87 @@ var guild := {
 var companion_roster := {}
 var active_squad := []
 var recruitment := {}
+var selected_mission_id := "initial_forest_survival"
+var missions := {
+	"initial_forest_survival": {
+		"id": "initial_forest_survival",
+		"name": "Patrulha na Floresta Inicial",
+		"zone": "initial_forest",
+		"zone_name": "Floresta Inicial",
+		"recommended_level": 1,
+		"coin_reward": 80,
+		"xp_reward": 30,
+		"enemies": ["goblins", "slimes"],
+		"objective": "Sobreviver ate decidir fugir ou cair.",
+		"risk": "Baixo",
+		"unlocked": true,
+		"combat": {
+			"duration_seconds": 180.0,
+			"completion_coin_reward": 80,
+			"wave_offset": 0,
+			"spawn_amount_bonus": 0,
+			"spawn_interval_multiplier": 1.0,
+			"boss_interval": 150.0,
+			"enemy_health_multiplier": 1.0,
+			"enemy_speed_multiplier": 1.0,
+			"enemy_damage_multiplier": 1.0,
+			"xp_multiplier": 1.0,
+			"coin_multiplier": 1.0
+		}
+	},
+	"wolf_cave_scout": {
+		"id": "wolf_cave_scout",
+		"name": "Batedores na Caverna dos Lobos",
+		"zone": "wolf_cave",
+		"zone_name": "Caverna dos Lobos",
+		"recommended_level": 3,
+		"coin_reward": 150,
+		"xp_reward": 70,
+		"enemies": ["lobos", "goblins rapidos"],
+		"objective": "Testar o esquadrao contra hordas rapidas.",
+		"risk": "Medio",
+		"unlocked": false,
+		"combat": {
+			"duration_seconds": 240.0,
+			"completion_coin_reward": 150,
+			"wave_offset": 2,
+			"spawn_amount_bonus": 2,
+			"spawn_interval_multiplier": 0.86,
+			"boss_interval": 125.0,
+			"enemy_health_multiplier": 1.18,
+			"enemy_speed_multiplier": 1.16,
+			"enemy_damage_multiplier": 1.12,
+			"xp_multiplier": 1.25,
+			"coin_multiplier": 1.25
+		}
+	},
+	"ancient_ruins_contract": {
+		"id": "ancient_ruins_contract",
+		"name": "Contrato nas Ruinas Antigas",
+		"zone": "ancient_ruins",
+		"zone_name": "Ruinas Antigas",
+		"recommended_level": 5,
+		"coin_reward": 260,
+		"xp_reward": 130,
+		"enemies": ["cultistas", "mortos-vivos"],
+		"objective": "Enfrentar inimigos resistentes e buscar reliquias.",
+		"risk": "Alto",
+		"unlocked": false,
+		"combat": {
+			"duration_seconds": 300.0,
+			"completion_coin_reward": 260,
+			"wave_offset": 4,
+			"spawn_amount_bonus": 3,
+			"spawn_interval_multiplier": 0.78,
+			"boss_interval": 110.0,
+			"enemy_health_multiplier": 1.45,
+			"enemy_speed_multiplier": 1.06,
+			"enemy_damage_multiplier": 1.28,
+			"xp_multiplier": 1.55,
+			"coin_multiplier": 1.55
+		}
+	}
+}
 var permanent_upgrades := {
 	"max_health": 0,
 	"damage": 0,
@@ -240,6 +322,87 @@ func hire_recruit(index: int) -> bool:
 	recruitment_changed.emit()
 	return true
 
+func get_missions() -> Array:
+	_ensure_guild_defaults()
+	var result := []
+	for mission_id in missions.keys():
+		var mission: Dictionary = missions[mission_id].duplicate(true)
+		mission["unlocked"] = _is_mission_unlocked(mission)
+		result.append(mission)
+	result.sort_custom(func(a: Dictionary, b: Dictionary): return int(a["recommended_level"]) < int(b["recommended_level"]))
+	return result
+
+func get_selected_mission() -> Dictionary:
+	_ensure_guild_defaults()
+	if not missions.has(selected_mission_id):
+		selected_mission_id = "initial_forest_survival"
+	var mission: Dictionary = missions[selected_mission_id].duplicate(true)
+	mission["unlocked"] = _is_mission_unlocked(mission)
+	return mission
+
+func select_mission(mission_id: String) -> bool:
+	_ensure_guild_defaults()
+	if not missions.has(mission_id):
+		return false
+	var mission: Dictionary = missions[mission_id]
+	if not _is_mission_unlocked(mission):
+		return false
+	selected_mission_id = mission_id
+	save_data()
+	mission_changed.emit(selected_mission_id)
+	return true
+
+func get_mission_readiness(mission_id: String = "") -> Dictionary:
+	_ensure_guild_defaults()
+	var resolved_id := selected_mission_id if mission_id.is_empty() else mission_id
+	if not missions.has(resolved_id):
+		resolved_id = "initial_forest_survival"
+	var mission: Dictionary = missions[resolved_id]
+	var squad := get_squad_summary()
+	var average_level := float(squad["average_level"])
+	var average_speed := float(squad["average_speed"])
+	var recommended_level := int(mission["recommended_level"])
+	var level_delta := average_level - float(recommended_level)
+	var unlocked := _is_mission_unlocked(mission)
+	var risk := _mission_risk_label(level_delta, average_speed, str(mission.get("risk", "Baixo")))
+	var warnings := _mission_warnings(level_delta, average_speed, int(squad["size"]), unlocked)
+	return {
+		"mission_id": resolved_id,
+		"unlocked": unlocked,
+		"squad_size": int(squad["size"]),
+		"average_level": average_level,
+		"recommended_level": recommended_level,
+		"average_speed": average_speed,
+		"speed_label": str(squad["speed_label"]),
+		"risk": risk,
+		"warnings": warnings,
+		"can_start": unlocked and int(squad["size"]) > 0
+	}
+
+func get_selected_mission_combat_profile() -> Dictionary:
+	_ensure_guild_defaults()
+	var mission := get_selected_mission()
+	var profile: Dictionary = mission.get("combat", {}).duplicate(true)
+	var defaults := {
+		"mission_id": str(mission.get("id", selected_mission_id)),
+		"mission_name": str(mission.get("name", "")),
+		"duration_seconds": 180.0,
+		"completion_coin_reward": int(mission.get("coin_reward", 0)),
+		"wave_offset": 0,
+		"spawn_amount_bonus": 0,
+		"spawn_interval_multiplier": 1.0,
+		"boss_interval": 150.0,
+		"enemy_health_multiplier": 1.0,
+		"enemy_speed_multiplier": 1.0,
+		"enemy_damage_multiplier": 1.0,
+		"xp_multiplier": 1.0,
+		"coin_multiplier": 1.0
+	}
+	for key in defaults.keys():
+		if not profile.has(key):
+			profile[key] = defaults[key]
+	return profile
+
 func get_squad_summary() -> Dictionary:
 	_ensure_guild_defaults()
 	var total_level := 0.0
@@ -311,6 +474,7 @@ func save_data() -> void:
 	cfg.set_value("guild", "companion_roster", companion_roster)
 	cfg.set_value("guild", "active_squad", active_squad)
 	cfg.set_value("guild", "recruitment", recruitment)
+	cfg.set_value("guild", "selected_mission_id", selected_mission_id)
 	cfg.save(SAVE_PATH)
 
 func load_data() -> void:
@@ -325,6 +489,7 @@ func load_data() -> void:
 	companion_roster = cfg.get_value("guild", "companion_roster", companion_roster)
 	active_squad = cfg.get_value("guild", "active_squad", active_squad)
 	recruitment = cfg.get_value("guild", "recruitment", recruitment)
+	selected_mission_id = str(cfg.get_value("guild", "selected_mission_id", selected_mission_id))
 	_ensure_guild_defaults()
 
 func _ensure_guild_defaults() -> void:
@@ -351,6 +516,8 @@ func _ensure_guild_defaults() -> void:
 		recruitment["available"] = _generate_recruitment_queue()
 	if not recruitment.has("reroll_count"):
 		recruitment["reroll_count"] = 0
+	if not missions.has(selected_mission_id) or not _is_mission_unlocked(missions[selected_mission_id]):
+		selected_mission_id = "initial_forest_survival"
 
 func _default_guild_value(key: String) -> Variant:
 	match key:
@@ -502,6 +669,42 @@ func _next_companion_id() -> String:
 		companion_id = "c_recruit_%03d" % next_index
 	guild["next_companion_index"] = next_index + 1
 	return companion_id
+
+func _is_mission_unlocked(mission: Dictionary) -> bool:
+	if bool(mission.get("unlocked", false)):
+		return true
+	var zone := str(mission.get("zone", ""))
+	var unlocked_zones: Array = guild.get("unlocked_zones", [])
+	return unlocked_zones.has(zone)
+
+func _mission_risk_label(level_delta: float, average_speed: float, base_risk: String) -> String:
+	var score := 0
+	match base_risk:
+		"Medio":
+			score += 1
+		"Alto":
+			score += 2
+	if level_delta < -2.0:
+		score += 2
+	elif level_delta < 0.0:
+		score += 1
+	if average_speed < 4.0:
+		score += 1
+	return ["Baixo", "Medio", "Alto", "Critico"][min(score, 3)]
+
+func _mission_warnings(level_delta: float, average_speed: float, squad_size: int, unlocked: bool) -> Array:
+	var warnings := []
+	if not unlocked:
+		warnings.append("Zona bloqueada. Evolua a guilda ou conclua missoes anteriores.")
+	if squad_size <= 0:
+		warnings.append("Monte um esquadrao antes de iniciar.")
+	if level_delta < 0.0:
+		warnings.append("Esquadrao abaixo do level recomendado.")
+	if average_speed < 6.0:
+		warnings.append("Baixa mobilidade pode dificultar a fuga.")
+	if warnings.is_empty():
+		warnings.append("Esquadrao pronto para esta missao.")
+	return warnings
 
 func _normalized_return_state(run_state: String) -> String:
 	if run_state in ["caido", "ferido"]:

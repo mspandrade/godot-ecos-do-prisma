@@ -47,17 +47,19 @@ func _ready() -> void:
 	hurtbox.area_entered.connect(_on_hurtbox_area_entered)
 	deactivate()
 
-func spawn(pos: Vector2, player: Node2D, wave: int, boss := false) -> void:
+func spawn(pos: Vector2, player: Node2D, wave: int, boss := false, mission_profile := {}) -> void:
 	global_position = pos
 	target = player
 	is_boss = boss
 	var scale_factor := 1.0 + wave * 0.12
-	max_health = (75.0 if boss else 10.0) * scale_factor
+	max_health = (75.0 if boss else 10.0) * scale_factor * float(mission_profile.get("enemy_health_multiplier", 1.0))
 	health = max_health
-	speed = (70.0 if boss else 92.0 + wave * 2.0)
-	contact_damage = (18.0 if boss else 7.0 + wave * 0.4)
-	xp_value = int(12 + wave * 2) if boss else int(1 + wave * 0.15)
-	coin_value = int(35 + wave * 4) if boss else 1
+	speed = (70.0 if boss else 92.0 + wave * 2.0) * float(mission_profile.get("enemy_speed_multiplier", 1.0))
+	contact_damage = (18.0 if boss else 7.0 + wave * 0.4) * float(mission_profile.get("enemy_damage_multiplier", 1.0))
+	var base_xp: int = int(12 + wave * 2) if boss else int(1 + wave * 0.15)
+	var base_coins := int(35 + wave * 4) if boss else 1
+	xp_value = max(1, int(round(base_xp * float(mission_profile.get("xp_multiplier", 1.0)))))
+	coin_value = max(1, int(round(base_coins * float(mission_profile.get("coin_multiplier", 1.0)))))
 	_apply_spawn_sprite(wave, boss)
 	body.modulate = Color.WHITE
 	scale = Vector2.ONE * (1.75 if boss else 1.0)

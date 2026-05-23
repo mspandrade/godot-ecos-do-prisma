@@ -20,6 +20,7 @@ func bind(player: Player, run_state: RunState) -> void:
 	_on_xp_changed(run_state.xp, run_state.xp_required)
 	set_level(run_state.level)
 	set_weapons(run_state.get_weapon_summary())
+	set_flee_status(false, 0.0)
 
 func bind_companions(companion_manager: Node) -> void:
 	for child in companion_health_list.get_children():
@@ -69,7 +70,15 @@ func set_level(level: int) -> void:
 
 func set_timer(seconds: float) -> void:
 	var total := int(seconds)
-	timer_label.text = "%02d:%02d" % [int(total / 60), total % 60]
+	timer_label.text = "Fim %02d:%02d" % [int(total / 60), total % 60]
+
+func set_flee_status(is_preparing: bool, seconds: float) -> void:
+	if is_preparing:
+		flee_button.disabled = true
+		flee_button.text = "Fuga %ds" % int(ceil(seconds))
+	else:
+		flee_button.disabled = false
+		flee_button.text = "Fugir"
 
 func set_weapons(summary: Array) -> void:
 	var parts := []
