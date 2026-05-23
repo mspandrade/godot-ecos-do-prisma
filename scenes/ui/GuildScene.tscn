@@ -100,7 +100,13 @@ text = "Quadro de missoes"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Companions"
+text = "Esquadrao"
+
+[node name="LeaderButton" type="Button" parent="MenuBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Lider"
 
 [node name="RecruitmentButton" type="Button" parent="MenuBox"]
 unique_name_in_owner = true
@@ -119,6 +125,12 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "Cemiterio"
+
+[node name="BlacksmithButton" type="Button" parent="MenuBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Ferreiro"
 
 [node name="SettingsButton" type="Button" parent="MenuBox"]
 unique_name_in_owner = true

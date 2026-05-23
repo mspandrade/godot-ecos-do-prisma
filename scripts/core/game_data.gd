@@ -8,10 +8,12 @@ signal companion_roster_changed
 signal squad_changed(summary: Dictionary)
 signal recruitment_changed
 signal mission_changed(mission_id: String)
+signal equipment_changed
 
 const SAVE_PATH := "user://save_data.cfg"
 const GameBalanceScript := preload("res://scripts/game/game_balance.gd")
 const MAX_SQUAD_SIZE := 6
+const MAX_COMPANION_EQUIPMENT := 2
 const RECRUITMENT_QUEUE_SIZE := 3
 const REROLL_COSTS := [100, 150, 250, 400]
 
@@ -29,6 +31,8 @@ var guild := {
 var companion_roster := {}
 var active_squad := []
 var recruitment := {}
+var equipment_inventory := []
+var equipment_serial := 0
 var selected_mission_id := "initial_forest_survival"
 var missions := {
 	"initial_forest_survival": {
@@ -164,6 +168,7 @@ var upgrade_defs := {
 		"category": "Companions",
 		"desc": "Abre espaco para manter mais aventureiros contratados.",
 		"effect": "+2 capacidade de companions por melhoria.",
+		"requires_guild_level": 1,
 		"base_cost": 180,
 		"step": 180,
 		"max": 5
@@ -173,6 +178,7 @@ var upgrade_defs := {
 		"category": "Companions",
 		"desc": "Melhora a rotina de treino e acelera aprendizado em missoes concluidas.",
 		"effect": "+15% XP de missao por melhoria.",
+		"requires_guild_level": 2,
 		"base_cost": 260,
 		"step": 240,
 		"max": 5
@@ -182,6 +188,7 @@ var upgrade_defs := {
 		"category": "Recrutamento",
 		"desc": "Contatos melhores reduzem custo de reroll e aumentam candidatos raros.",
 		"effect": "-10% custo de reroll e +chance de raridade por melhoria.",
+		"requires_guild_level": 2,
 		"base_cost": 240,
 		"step": 230,
 		"max": 5
@@ -191,9 +198,41 @@ var upgrade_defs := {
 		"category": "Combate",
 		"desc": "Mantem o lider equipado para sobreviver e recolher recursos.",
 		"effect": "+10 vida e +8 alcance de coleta do lider por melhoria.",
+		"requires_guild_level": 1,
 		"base_cost": 160,
 		"step": 150,
 		"max": 6
+	}
+}
+
+var equipment_defs := {
+	"iron_blade": {
+		"name": "Lamina de Ferro",
+		"slot": "arma",
+		"cost": 140,
+		"effect": "+1.3 ataque",
+		"bonuses": {"attack": 1.3}
+	},
+	"reinforced_vest": {
+		"name": "Colete Reforcado",
+		"slot": "armadura",
+		"cost": 160,
+		"effect": "+10 vida, +1.5 defesa",
+		"bonuses": {"max_health": 10.0, "defense": 1.5}
+	},
+	"scout_boots": {
+		"name": "Botas de Batedor",
+		"slot": "acessorio",
+		"cost": 150,
+		"effect": "+0.6 mobilidade, +12 velocidade",
+		"bonuses": {"speed_rating": 0.6, "move_speed": 12.0}
+	},
+	"focus_charm": {
+		"name": "Amuleto de Foco",
+		"slot": "acessorio",
+		"cost": 180,
+		"effect": "+0.15 poder, +12 alcance",
+		"bonuses": {"ability_power": 0.15, "range": 12.0}
 	}
 }
 
@@ -220,12 +259,35 @@ func get_upgrade_cost(upgrade_id: String) -> int:
 	var def: Dictionary = upgrade_defs[upgrade_id]
 	return int(def["base_cost"] + def["step"] * permanent_upgrades.get(upgrade_id, 0))
 
+func get_upgrade_lock_reason(upgrade_id: String) -> String:
+	if not upgrade_defs.has(upgrade_id):
+		return "Melhoria desconhecida."
+	var def: Dictionary = upgrade_defs[upgrade_id]
+	var required_guild_level := int(def.get("requires_guild_level", 1))
+	var current_guild_level := int(guild.get("level", 1))
+	if current_guild_level < required_guild_level:
+		return "Requer Guilda Nv %d." % required_guild_level
+	return ""
+
+func can_buy_permanent_upgrade(upgrade_id: String) -> bool:
+	if not upgrade_defs.has(upgrade_id):
+		return false
+	var def: Dictionary = upgrade_defs[upgrade_id]
+	var current := int(permanent_upgrades.get(upgrade_id, 0))
+	if current >= int(def["max"]):
+		return false
+	if not get_upgrade_lock_reason(upgrade_id).is_empty():
+		return false
+	return coins >= get_upgrade_cost(upgrade_id)
+
 func buy_permanent_upgrade(upgrade_id: String) -> bool:
 	if not upgrade_defs.has(upgrade_id):
 		return false
 	var def: Dictionary = upgrade_defs[upgrade_id]
 	var current := int(permanent_upgrades.get(upgrade_id, 0))
 	if current >= int(def["max"]):
+		return false
+	if not get_upgrade_lock_reason(upgrade_id).is_empty():
 		return false
 	var cost := get_upgrade_cost(upgrade_id)
 	if not spend_coins(cost):
@@ -297,15 +359,21 @@ func get_active_companion_defs() -> Array:
 		result.append(_build_combat_companion_def(companion_id, data))
 	return result
 
-func apply_companion_run_results(results: Array) -> void:
+func apply_companion_run_results(results: Array) -> Dictionary:
 	_ensure_guild_defaults()
 	var changed := false
+	var summary := {
+		"wounded_companions": [],
+		"dead_companions": []
+	}
 	for result_value in results:
 		var result: Dictionary = result_value
 		var companion_id := str(result.get("id", ""))
 		if companion_id.is_empty() or not companion_roster.has(companion_id):
 			continue
 		var data: Dictionary = companion_roster[companion_id]
+		var companion_name := str(data.get("name", companion_id))
+		var returned_state := str(result.get("state", data.get("state", "disponivel")))
 		data["level"] = max(int(data.get("level", 1)), int(result.get("level", data.get("level", 1))))
 		data["xp"] = max(0, int(result.get("xp", data.get("xp", 0))))
 		data["xp_required"] = max(1, int(result.get("xp_required", data.get("xp_required", 10))))
@@ -318,15 +386,19 @@ func apply_companion_run_results(results: Array) -> void:
 		data["range"] = maxf(0.0, float(result.get("range", data.get("range", 0.0))))
 		data["cooldown"] = maxf(0.1, float(result.get("cooldown", data.get("cooldown", 1.0))))
 		data["ability_power"] = maxf(0.0, float(result.get("ability_power", data.get("ability_power", 1.0))))
-		data["state"] = _normalized_return_state(str(result.get("state", data.get("state", "disponivel"))))
+		data["state"] = _normalized_return_state(returned_state)
 		if str(data["state"]) == "morto":
 			active_squad.erase(companion_id)
+			summary["dead_companions"].append(companion_name)
+		elif str(data["state"]) == "ferido":
+			summary["wounded_companions"].append(companion_name)
 		companion_roster[companion_id] = data
 		changed = true
 	if changed:
 		save_data()
 		companion_roster_changed.emit()
 		squad_changed.emit(get_squad_summary())
+	return summary
 
 func get_recruitment_queue() -> Array:
 	_ensure_guild_defaults()
@@ -430,6 +502,133 @@ func resurrect_companion(companion_id: String) -> bool:
 	save_data()
 	companion_roster_changed.emit()
 	squad_changed.emit(get_squad_summary())
+	return true
+
+func get_companion_upgrade_choices(companion_id: String) -> Array:
+	_ensure_guild_defaults()
+	if not companion_roster.has(companion_id):
+		return []
+	var data: Dictionary = companion_roster[companion_id]
+	if int(data.get("pending_upgrades", 0)) <= 0 or str(data.get("state", "disponivel")) == "morto":
+		return []
+	var choices := _companion_upgrade_choices(str(data.get("class", "shield")))
+	var rarity := str(data.get("rarity", "comum"))
+	var count := 3
+	if rarity in ["raro", "epico"]:
+		count = 4
+	elif rarity == "lendario":
+		count = 5
+	return choices.slice(0, min(count, choices.size()))
+
+func apply_companion_pending_upgrade(companion_id: String, upgrade_id: String) -> bool:
+	_ensure_guild_defaults()
+	if not companion_roster.has(companion_id):
+		return false
+	var data: Dictionary = companion_roster[companion_id]
+	if int(data.get("pending_upgrades", 0)) <= 0:
+		return false
+	if str(data.get("state", "disponivel")) == "morto":
+		return false
+	var allowed := false
+	for choice in get_companion_upgrade_choices(companion_id):
+		if str(choice.get("id", "")) == upgrade_id:
+			allowed = true
+			break
+	if not allowed:
+		return false
+	if not _apply_companion_upgrade_to_data(data, upgrade_id):
+		return false
+	data["pending_upgrades"] = max(0, int(data.get("pending_upgrades", 0)) - 1)
+	companion_roster[companion_id] = data
+	save_data()
+	companion_roster_changed.emit()
+	squad_changed.emit(get_squad_summary())
+	return true
+
+func get_equipment_defs() -> Dictionary:
+	return equipment_defs.duplicate(true)
+
+func get_equipment_inventory() -> Array:
+	_ensure_guild_defaults()
+	return equipment_inventory
+
+func craft_equipment(equipment_id: String) -> bool:
+	_ensure_guild_defaults()
+	if not equipment_defs.has(equipment_id):
+		return false
+	var def: Dictionary = equipment_defs[equipment_id]
+	var cost := int(def.get("cost", 0))
+	if not spend_coins(cost):
+		return false
+	equipment_serial += 1
+	equipment_inventory.append({
+		"uid": "%s_%03d" % [equipment_id, equipment_serial],
+		"equipment_id": equipment_id,
+		"equipped_to": ""
+	})
+	save_data()
+	equipment_changed.emit()
+	return true
+
+func equip_companion_item(companion_id: String, item_uid: String) -> bool:
+	_ensure_guild_defaults()
+	if not companion_roster.has(companion_id):
+		return false
+	var data: Dictionary = companion_roster[companion_id]
+	if str(data.get("state", "disponivel")) == "morto":
+		return false
+	var equipment: Array = data.get("equipment", [])
+	if equipment.has(item_uid) or equipment.size() >= MAX_COMPANION_EQUIPMENT:
+		return false
+	var item_index := _equipment_index(item_uid)
+	if item_index < 0:
+		return false
+	var item: Dictionary = equipment_inventory[item_index]
+	if not str(item.get("equipped_to", "")).is_empty():
+		return false
+	var equipment_id := str(item.get("equipment_id", ""))
+	if not equipment_defs.has(equipment_id):
+		return false
+	var def: Dictionary = equipment_defs[equipment_id]
+	_apply_equipment_bonus(data, def, 1.0)
+	equipment.append(item_uid)
+	data["equipment"] = equipment
+	item["equipped_to"] = companion_id
+	equipment_inventory[item_index] = item
+	companion_roster[companion_id] = data
+	save_data()
+	companion_roster_changed.emit()
+	squad_changed.emit(get_squad_summary())
+	equipment_changed.emit()
+	return true
+
+func unequip_companion_item(item_uid: String) -> bool:
+	_ensure_guild_defaults()
+	var item_index := _equipment_index(item_uid)
+	if item_index < 0:
+		return false
+	var item: Dictionary = equipment_inventory[item_index]
+	var companion_id := str(item.get("equipped_to", ""))
+	if companion_id.is_empty() or not companion_roster.has(companion_id):
+		return false
+	var data: Dictionary = companion_roster[companion_id]
+	var equipment: Array = data.get("equipment", [])
+	if not equipment.has(item_uid):
+		return false
+	var equipment_id := str(item.get("equipment_id", ""))
+	if not equipment_defs.has(equipment_id):
+		return false
+	var def: Dictionary = equipment_defs[equipment_id]
+	_apply_equipment_bonus(data, def, -1.0)
+	equipment.erase(item_uid)
+	data["equipment"] = equipment
+	item["equipped_to"] = ""
+	equipment_inventory[item_index] = item
+	companion_roster[companion_id] = data
+	save_data()
+	companion_roster_changed.emit()
+	squad_changed.emit(get_squad_summary())
+	equipment_changed.emit()
 	return true
 
 func get_missions() -> Array:
@@ -645,12 +844,55 @@ func _add_companion_xp(companion_id: String, amount: int) -> Dictionary:
 		data["level"] = int(data.get("level", 1)) + 1
 		data["xp_required"] = int(int(data["xp_required"]) * 1.28 + 6)
 		data["current_health"] = maxf(1.0, float(data.get("max_health", 1.0)))
+		data["pending_upgrades"] = int(data.get("pending_upgrades", 0)) + 1
 		levels_gained += 1
 	companion_roster[companion_id] = data
 	return {
 		"name": str(data.get("name", companion_id)),
 		"levels_gained": levels_gained
 	}
+
+func _companion_upgrade_choices(class_type: String) -> Array:
+	var choices := []
+	if class_type == "cleric":
+		choices = [
+			{"id": "damage", "name": "Cura", "desc": "+12% cura e dano da classe"},
+			{"id": "cooldown", "name": "Prece Rapida", "desc": "-7% cooldown da habilidade"},
+			{"id": "health", "name": "Vigor", "desc": "+8 vida maxima"},
+			{"id": "range", "name": "Area Sagrada", "desc": "+18 alcance"},
+			{"id": "speed", "name": "Passos Leves", "desc": "+velocidade do esquadrao"},
+			{"id": "ability", "name": "Graca", "desc": "+15% eficiencia da habilidade"}
+		]
+	else:
+		choices = [
+			{"id": "damage", "name": "Dano", "desc": "+12% dano da classe"},
+			{"id": "cooldown", "name": "Ritmo", "desc": "-7% cooldown de habilidade"},
+			{"id": "health", "name": "Vigor", "desc": "+8 vida maxima"},
+			{"id": "range", "name": "Alcance", "desc": "+18 alcance de ataque"},
+			{"id": "speed", "name": "Mobilidade", "desc": "+velocidade do esquadrao"},
+			{"id": "ability", "name": "Tecnica", "desc": "+15% efeito especial"}
+		]
+	return choices
+
+func _apply_companion_upgrade_to_data(data: Dictionary, upgrade_id: String) -> bool:
+	match upgrade_id:
+		"damage":
+			data["attack"] = float(data.get("attack", 0.0)) * 1.12
+		"cooldown":
+			data["cooldown"] = maxf(0.1, float(data.get("cooldown", 1.0)) * 0.93)
+		"health":
+			data["max_health"] = float(data.get("max_health", 1.0)) + 8.0
+			data["current_health"] = float(data.get("max_health", 1.0))
+		"range":
+			data["range"] = float(data.get("range", 0.0)) + 18.0
+		"speed":
+			data["move_speed"] = float(data.get("move_speed", 1.0)) + 10.0
+			data["speed_rating"] = float(data.get("speed_rating", 0.0)) + 0.35
+		"ability":
+			data["ability_power"] = float(data.get("ability_power", 1.0)) * 1.15
+		_:
+			return false
+	return true
 
 func get_selected_stats() -> Dictionary:
 	var stats: Dictionary = characters[selected_character].duplicate(true)
@@ -673,6 +915,8 @@ func save_data() -> void:
 	cfg.set_value("guild", "companion_roster", companion_roster)
 	cfg.set_value("guild", "active_squad", active_squad)
 	cfg.set_value("guild", "recruitment", recruitment)
+	cfg.set_value("guild", "equipment_inventory", equipment_inventory)
+	cfg.set_value("guild", "equipment_serial", equipment_serial)
 	cfg.set_value("guild", "selected_mission_id", selected_mission_id)
 	cfg.save(SAVE_PATH)
 
@@ -688,6 +932,8 @@ func load_data() -> void:
 	companion_roster = cfg.get_value("guild", "companion_roster", companion_roster)
 	active_squad = cfg.get_value("guild", "active_squad", active_squad)
 	recruitment = cfg.get_value("guild", "recruitment", recruitment)
+	equipment_inventory = cfg.get_value("guild", "equipment_inventory", equipment_inventory)
+	equipment_serial = int(cfg.get_value("guild", "equipment_serial", equipment_serial))
 	selected_mission_id = str(cfg.get_value("guild", "selected_mission_id", selected_mission_id))
 	_ensure_guild_defaults()
 
@@ -712,6 +958,13 @@ func _ensure_guild_defaults() -> void:
 		companion_roster = _default_companion_roster()
 		if active_squad.is_empty():
 			active_squad = ["c_warrior_001", "c_archer_001", "c_cleric_001"]
+	for companion_id in companion_roster.keys():
+		var companion_data: Dictionary = companion_roster[companion_id]
+		if not companion_data.has("pending_upgrades"):
+			companion_data["pending_upgrades"] = 0
+		if not companion_data.has("equipment"):
+			companion_data["equipment"] = []
+		companion_roster[companion_id] = companion_data
 	active_squad = active_squad.filter(func(companion_id):
 		var resolved_id := str(companion_id)
 		return companion_roster.has(resolved_id) and str(companion_roster[resolved_id].get("state", "disponivel")) != "morto"
@@ -759,6 +1012,39 @@ func _refresh_guild_upgrade_effects() -> void:
 		structures.append("blacksmith")
 	guild["unlocked_structures"] = structures
 
+func _equipment_index(item_uid: String) -> int:
+	for i in range(equipment_inventory.size()):
+		var item: Dictionary = equipment_inventory[i]
+		if str(item.get("uid", "")) == item_uid:
+			return i
+	return -1
+
+func _apply_equipment_bonus(data: Dictionary, def: Dictionary, direction: float) -> void:
+	var bonuses: Dictionary = def.get("bonuses", {})
+	for stat in bonuses.keys():
+		var amount := float(bonuses[stat]) * direction
+		match str(stat):
+			"attack":
+				data["attack"] = maxf(0.0, float(data.get("attack", 0.0)) + amount)
+			"defense":
+				data["defense"] = maxf(0.0, float(data.get("defense", 0.0)) + amount)
+			"max_health":
+				data["max_health"] = maxf(1.0, float(data.get("max_health", 1.0)) + amount)
+				if direction > 0.0:
+					data["current_health"] = minf(float(data.get("max_health", 1.0)), float(data.get("current_health", data.get("max_health", 1.0))) + amount)
+				else:
+					data["current_health"] = minf(float(data.get("current_health", data.get("max_health", 1.0))), float(data.get("max_health", 1.0)))
+			"move_speed":
+				data["move_speed"] = maxf(1.0, float(data.get("move_speed", 1.0)) + amount)
+			"speed_rating":
+				data["speed_rating"] = maxf(0.0, float(data.get("speed_rating", 0.0)) + amount)
+			"range":
+				data["range"] = maxf(0.0, float(data.get("range", 0.0)) + amount)
+			"ability_power":
+				data["ability_power"] = maxf(0.0, float(data.get("ability_power", 0.0)) + amount)
+			"cooldown":
+				data["cooldown"] = maxf(0.1, float(data.get("cooldown", 1.0)) + amount)
+
 func _default_companion_roster() -> Dictionary:
 	return {
 		"c_warrior_001": _make_companion_data("c_warrior_001", "Bruna", "shield", "comum", ["leal"]),
@@ -795,6 +1081,7 @@ func _make_companion_data(companion_id: String, companion_name: String, class_ty
 		"passive": str(base.get("passive", "")),
 		"traits": traits,
 		"equipment": [],
+		"pending_upgrades": 0,
 		"state": "disponivel"
 	}
 

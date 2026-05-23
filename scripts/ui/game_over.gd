@@ -7,7 +7,7 @@ func bind(p_game: GameManager) -> void:
 	%RetryButton.pressed.connect(game.restart)
 	%MenuButton.pressed.connect(game.back_to_menu)
 
-func show_results(seconds: float, level: int, coins: int, result_reason: String = "derrota", gross_coins: int = -1, mission_result: Dictionary = {}) -> void:
+func show_results(seconds: float, level: int, coins: int, result_reason: String = "derrota", gross_coins: int = -1, mission_result: Dictionary = {}, companion_result: Dictionary = {}) -> void:
 	var total := int(seconds)
 	match result_reason:
 		"fuga":
@@ -23,10 +23,10 @@ func show_results(seconds: float, level: int, coins: int, result_reason: String 
 		%CoinsLabel.text = "Moedas: %d de %d" % [coins, gross_coins]
 	else:
 		%CoinsLabel.text = "Moedas: %d" % coins
-	%OutcomeLabel.text = _format_outcome(result_reason, mission_result)
+	%OutcomeLabel.text = _format_outcome(result_reason, mission_result, companion_result)
 	show()
 
-func _format_outcome(result_reason: String, mission_result: Dictionary) -> String:
+func _format_outcome(result_reason: String, mission_result: Dictionary, companion_result: Dictionary = {}) -> String:
 	var lines := []
 	match result_reason:
 		"vitoria":
@@ -45,6 +45,12 @@ func _format_outcome(result_reason: String, mission_result: Dictionary) -> Strin
 			lines.append("Missao fracassada. O esquadrao voltou para a guilda.")
 	if bool(mission_result.get("reroll_reset", false)):
 		lines.append("Fila de recrutamento renovada.")
+	var wounded_companions: Array = companion_result.get("wounded_companions", [])
+	if wounded_companions.size() > 0:
+		lines.append("Feridos: %s" % ", ".join(wounded_companions))
+	var dead_companions: Array = companion_result.get("dead_companions", [])
+	if dead_companions.size() > 0:
+		lines.append("Mortos: %s" % ", ".join(dead_companions))
 	if lines.is_empty():
 		lines.append("Retorno registrado na guilda.")
 	return "\n".join(lines)

@@ -35,8 +35,14 @@ func _refresh() -> void:
 		]
 		title.add_theme_font_size_override("font_size", 18)
 		var button := Button.new()
-		button.text = "Max" if level >= max_level else "Comprar %d" % GameData.get_upgrade_cost(id)
-		button.disabled = level >= max_level or GameData.coins < GameData.get_upgrade_cost(id)
+		var lock_reason := GameData.get_upgrade_lock_reason(id)
+		if level >= max_level:
+			button.text = "Max"
+		elif not lock_reason.is_empty():
+			button.text = "Bloqueado"
+		else:
+			button.text = "Comprar %d" % GameData.get_upgrade_cost(id)
+		button.disabled = not GameData.can_buy_permanent_upgrade(id)
 		button.pressed.connect(_buy.bind(id))
 		header.add_child(title)
 		header.add_child(button)
@@ -45,6 +51,8 @@ func _refresh() -> void:
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var effect := Label.new()
 		effect.text = str(def.get("effect", ""))
+		if not lock_reason.is_empty():
+			effect.text += " | %s" % lock_reason
 		effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		row.add_child(header)
 		row.add_child(desc)

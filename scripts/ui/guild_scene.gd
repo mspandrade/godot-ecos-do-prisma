@@ -11,9 +11,11 @@ extends Control
 func _ready() -> void:
 	%MissionButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/MissionSelect.tscn"))
 	%RosterButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/CharactersScreen.tscn"))
+	%LeaderButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/LeaderScreen.tscn"))
 	%RecruitmentButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/RecruitmentScene.tscn"))
 	%UpgradesButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/UpgradesScreen.tscn"))
 	%GraveyardButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GraveyardScene.tscn"))
+	%BlacksmithButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/BlacksmithScreen.tscn"))
 	%SettingsButton.pressed.connect(_show_settings)
 	GameData.coins_changed.connect(func(_coins: int): _refresh())
 	GameData.companion_roster_changed.connect(_refresh)
@@ -53,6 +55,9 @@ func _refresh() -> void:
 	var graveyard_unlocked: bool = (GameData.guild.get("unlocked_structures", []) as Array).has("graveyard")
 	%GraveyardButton.disabled = not graveyard_unlocked
 	%GraveyardButton.text = "Cemiterio" if graveyard_unlocked else "Cemiterio bloqueado"
+	var blacksmith_unlocked: bool = (GameData.guild.get("unlocked_structures", []) as Array).has("blacksmith")
+	%BlacksmithButton.disabled = not blacksmith_unlocked
+	%BlacksmithButton.text = "Ferreiro" if blacksmith_unlocked else "Ferreiro bloqueado"
 
 func _show_settings() -> void:
 	%SettingsLabel.visible = not %SettingsLabel.visible

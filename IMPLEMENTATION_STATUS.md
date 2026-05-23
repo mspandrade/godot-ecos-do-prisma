@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-23, after graveyard and resurrection slice
+Last updated: 2026-05-23, after leader button type fix
 
 ## Current Goal
 
@@ -139,6 +139,53 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Resurrected companions return as `ferido`, with partial health and a 25% XP penalty.
 - Added regression coverage for downed timers, death persistence, graveyard listing and resurrection.
 
+### End-of-Run Companion Feedback
+
+- `GameData.apply_companion_run_results()` now returns a consequence summary.
+- GameOver now shows companions that returned `Feridos` and companions that died as `Mortos`.
+- Added regression coverage for wounded/dead companion result summaries.
+
+### Persistent Companion Upgrade Choices
+
+- Mission XP level-ups now add `pending_upgrades` to persistent companion roster data.
+- `CharactersScreen` shows pending upgrade choices directly on each companion row.
+- Persistent upgrade choices apply to attack, cooldown, health, range, speed and ability power.
+- Rarity affects how many choices are shown: common 3, rare/epic 4, legendary 5.
+- Runtime combat companion upgrades also support the new `speed` choice.
+- Added regression coverage for pending upgrade creation and application.
+
+### Guild Upgrade Locks
+
+- Guild upgrades now support guild-level requirements.
+- `Campo de Treino` and `Rede de Recrutadores` require Guilda Nv 2.
+- Upgrade purchases now fail if the guild-level requirement is not met.
+- Upgrade UI now shows `Bloqueado` and the requirement text when a guild upgrade is locked.
+- Added regression coverage for locked upgrades, unlock after `Salao da Guilda`, and buying unlocked upgrades.
+
+### Recruitment UX Comparison
+
+- Recruitment candidates now show rarity-colored names for quick scanning.
+- Candidate rows compare level and mobility against the current active squad average.
+- Candidate rows show how many companions of the same class already exist in the roster and active squad.
+- Hire buttons now communicate blocked states directly: full dormitories or missing coins.
+
+### Leader And Squad Screen Split
+
+- `CharactersScreen` is now focused on active squad management and pending companion upgrades.
+- Added a dedicated `LeaderScreen` for selecting or unlocking the playable leader.
+- Guild menu now exposes separate `Esquadrao` and `Lider` buttons.
+- Fixed `LeaderScreen` missing coin calculation to use explicit integer typing (`maxi`) so the leader button opens without the GDScript inference error.
+
+### Initial Blacksmith And Equipment Screen
+
+- Added persistent equipment inventory and equipment serial data to `GameData`.
+- Added a first blacksmith catalog: `Lamina de Ferro`, `Colete Reforcado`, `Botas de Batedor` and `Amuleto de Foco`.
+- Equipment can now be forged with coins, equipped on companions and unequipped.
+- Equipped items modify persistent companion stats and are limited to two items per companion.
+- Added `BlacksmithScreen` behind the existing guild `blacksmith` structure unlock.
+- Guild menu now shows `Ferreiro bloqueado` until the structure is unlocked.
+- Added regression coverage for forge, equip, stat bonus and unequip flow.
+
 ## Current State
 
 - Default roster has six companions.
@@ -148,6 +195,12 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Recruitment queue now has a dedicated guild screen.
 - Guild upgrades now affect roster capacity, mission XP, reroll costs, recruitment rarity and leader supplies.
 - Companion death and resurrection are now represented in data and in a dedicated graveyard screen.
+- End-of-run popup now communicates companion consequences before returning to the guild.
+- Companions that level from mission rewards now wait for player-selected persistent upgrades in the guild roster screen.
+- Guild upgrade progression now gates later structures through guild level.
+- Recruitment now gives clearer candidate comparison and blocked-hire feedback.
+- Leader selection and squad editing now live on separate guild screens.
+- The blacksmith/equipment loop now exists as a first playable guild system.
 - The application start scene is now the guild scene.
 - Party editing now allows removing companions, including clearing the party completely.
 - Combat HUD now has a flee action. Flee takes 5 seconds to prepare, preserves companion run progress and applies a coin penalty based on squad mobility.
@@ -158,14 +211,14 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 
 ## Pending After This Slice
 
-- Add upgrade requirements/locks tied to guild level once graveyard/training/blacksmith are active screens.
-- Improve recruitment UX with rarity colors and candidate comparison.
-- Add richer feedback on GameOver for wounded companions and persistent companion upgrade choices after mission XP level-ups.
+- Expand equipment into drops, item rarity and upgrade/reforge rules.
+- Improve guild screen layout now that more facilities exist.
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 137 tests passed after graveyard/death flow.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after graveyard/death flow.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 162 tests passed after leader button type fix.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after leader button type fix.
+- Known issue reproduced: direct headless launch of `BlacksmithScreen.tscn` crashes with the same Godot 4.6.2 UI-only scene crash pattern.
 - Known issue: direct headless launch of UI-only scenes still crashes Godot 4.6.2 on this machine; `GraveyardScene.tscn` hit the same engine crash pattern as the older UI scenes.
 - Note: Direct headless runs of UI-only scenes crash Godot 4.6.2 on this machine, including the existing `MainMenu`, `CharactersScreen` and `UpgradesScreen`; use editor/GUI verification for UI scene rendering.
 
@@ -175,6 +228,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `project.godot`
 - `scenes/ui/GuildScene.tscn`
 - `scenes/ui/GraveyardScene.tscn`
+- `scenes/ui/BlacksmithScreen.tscn`
+- `scenes/ui/LeaderScreen.tscn`
 - `scenes/ui/MissionSelect.tscn`
 - `scenes/ui/CharactersScreen.tscn`
 - `scenes/ui/HUD.tscn`
@@ -190,6 +245,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/ui/characters_screen.gd`
 - `scripts/ui/game_over.gd`
 - `scripts/ui/graveyard_scene.gd`
+- `scripts/ui/blacksmith_screen.gd`
+- `scripts/ui/leader_screen.gd`
 - `scripts/ui/hud.gd`
 - `scripts/ui/mission_select.gd`
 - `scripts/ui/recruitment_scene.gd`

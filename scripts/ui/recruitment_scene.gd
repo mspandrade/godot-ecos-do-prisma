@@ -34,34 +34,107 @@ func _refresh() -> void:
 
 func _add_recruit_row(index: int, candidate: Dictionary, roster_size: int, capacity: int) -> void:
 	var row := VBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 128)
+	row.custom_minimum_size = Vector2(0, 156)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var traits: Array = candidate.get("traits", [])
+	var rarity := str(candidate.get("rarity", "comum"))
 	var title := Label.new()
 	title.text = "%s | %s %s" % [
 		str(candidate.get("name", "Recruta")),
 		str(candidate.get("class_name", candidate.get("class", ""))),
-		str(candidate.get("rarity", "comum")).capitalize()
+		rarity.capitalize()
 	]
 	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", _rarity_color(rarity))
 	var details := Label.new()
 	details.text = "Lv %d | Vel %.1f | Habilidade: %s" % [
 		int(candidate.get("level", 1)),
 		float(candidate.get("speed_rating", 0.0)),
 		str(candidate.get("ability", "-"))
 	]
+	var comparison := Label.new()
+	comparison.text = _candidate_comparison(candidate)
+	comparison.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var traits_label := Label.new()
 	traits_label.text = "Traco: %s" % ", ".join(traits)
 	var button := Button.new()
 	var cost := int(candidate.get("cost", 0))
-	button.text = "Contratar - %d moedas" % cost
-	button.disabled = GameData.coins < cost or roster_size >= capacity
+	var disabled_reason := _hire_disabled_reason(cost, roster_size, capacity)
+	button.text = _hire_button_text(cost, disabled_reason)
+	button.disabled = not disabled_reason.is_empty()
+	button.tooltip_text = disabled_reason
 	button.pressed.connect(_hire_recruit.bind(index))
 	row.add_child(title)
 	row.add_child(details)
+	row.add_child(comparison)
 	row.add_child(traits_label)
 	row.add_child(button)
 	recruit_list.add_child(row)
+
+func _candidate_comparison(candidate: Dictionary) -> String:
+	var summary := GameData.get_squad_summary()
+	var class_type := str(candidate.get("class", ""))
+	var candidate_level := int(candidate.get("level", 1))
+	var candidate_speed := float(candidate.get("speed_rating", 0.0))
+	var squad_size := int(summary.get("size", 0))
+	var average_level := float(summary.get("average_level", 0.0))
+	var average_speed := float(summary.get("average_speed", 0.0))
+	var roster_count := _class_count_in_roster(class_type)
+	var squad_count := _class_count_in_squad(class_type)
+	if squad_size == 0:
+		return "Comparacao: sem esquadrao ativo. Classe no roster: %d." % roster_count
+	return "Comparacao: nivel %+.1f e mobilidade %+.1f vs esquadrao. Classe no roster: %d | no esquadrao: %d." % [
+		float(candidate_level) - average_level,
+		candidate_speed - average_speed,
+		roster_count,
+		squad_count
+	]
+
+func _class_count_in_roster(class_type: String) -> int:
+	var count := 0
+	var roster := GameData.get_companion_roster()
+	for companion_id in roster.keys():
+		var data: Dictionary = roster[companion_id]
+		if str(data.get("class", "")) == class_type:
+			count += 1
+	return count
+
+func _class_count_in_squad(class_type: String) -> int:
+	var count := 0
+	var roster := GameData.get_companion_roster()
+	for companion_id in GameData.get_active_squad():
+		if not roster.has(companion_id):
+			continue
+		var data: Dictionary = roster[companion_id]
+		if str(data.get("class", "")) == class_type:
+			count += 1
+	return count
+
+func _hire_disabled_reason(cost: int, roster_size: int, capacity: int) -> String:
+	if roster_size >= capacity:
+		return "Dormitorios cheios. Melhore a capacidade da guilda."
+	if GameData.coins < cost:
+		return "Faltam %d moedas." % (cost - GameData.coins)
+	return ""
+
+func _hire_button_text(cost: int, disabled_reason: String) -> String:
+	if disabled_reason.begins_with("Dormitorios"):
+		return "Sem vagas"
+	if disabled_reason.begins_with("Faltam"):
+		return disabled_reason
+	return "Contratar - %d moedas" % cost
+
+func _rarity_color(rarity: String) -> Color:
+	match rarity:
+		"incomum":
+			return Color.html("#77d47b")
+		"raro":
+			return Color.html("#6fb7ff")
+		"epico":
+			return Color.html("#c990ff")
+		"lendario":
+			return Color.html("#f2c14e")
+	return Color.html("#d8d3c8")
 
 func _reroll_recruits() -> void:
 	if not GameData.reroll_recruits():

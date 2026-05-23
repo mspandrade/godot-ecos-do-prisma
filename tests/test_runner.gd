@@ -40,16 +40,19 @@ func _init() -> void:
 	_test_weapon_evolution_requires_passive_and_level()
 	_test_guild_upgrade_cost_formula()
 	_test_guild_upgrade_effects()
+	_test_guild_upgrade_requirements()
 	_test_default_guild_squad_summary()
 	_test_squad_can_be_emptied()
 	_test_flee_coin_retention_uses_squad_speed()
 	_test_mission_readiness_uses_squad_and_unlocks()
 	_test_selected_mission_combat_profile()
 	_test_mission_victory_rewards_progression()
+	_test_persistent_companion_upgrade_choice()
 	_test_flee_does_not_complete_mission()
 	_test_enemy_spawner_accepts_mission_profile()
 	_test_companion_run_results_update_roster()
 	_test_dead_companion_resurrection_flow()
+	_test_blacksmith_equipment_flow()
 	_test_recruitment_hire_adds_companion()
 	_test_recruitment_reroll_spends_coins_and_scales_cost()
 	_test_scene_pool_acquire_and_recycle_signal()
@@ -135,6 +138,8 @@ func _test_companion_level_and_upgrades() -> void:
 	companion.max_health = 20.0
 	companion.attack_range = 100.0
 	companion.ability_power = 1.0
+	companion.move_speed = 200.0
+	companion.speed_rating = 5.0
 	companion.xp_required = 5
 	companion.add_xp(5)
 	_assert_eq(companion.level, 2, "Companion levels up after receiving enough XP")
@@ -142,11 +147,14 @@ func _test_companion_level_and_upgrades() -> void:
 	companion.apply_upgrade("cooldown")
 	companion.apply_upgrade("health")
 	companion.apply_upgrade("range")
+	companion.apply_upgrade("speed")
 	companion.apply_upgrade("ability")
 	_assert_float_eq(companion.attack_damage, 11.2, "Companion damage upgrade applies")
 	_assert_float_eq(companion.attack_cooldown, 1.86, "Companion cooldown upgrade applies")
 	_assert_float_eq(companion.max_health, 28.0, "Companion health upgrade applies")
 	_assert_float_eq(companion.attack_range, 118.0, "Companion range upgrade applies")
+	_assert_float_eq(companion.move_speed, 210.0, "Companion speed upgrade applies to movement")
+	_assert_float_eq(companion.speed_rating, 5.35, "Companion speed upgrade applies to squad rating")
 	_assert_float_eq(companion.ability_power, 1.15, "Companion ability upgrade applies")
 	companion.take_damage(40.0)
 	_assert_eq(companion.health, 0.0, "Companion can fall after taking lethal damage")
@@ -316,6 +324,18 @@ func _test_guild_upgrade_effects() -> void:
 	_assert_float_eq(float(stats["pickup_range"]), 128.0, "Supply cache increases leader pickup range")
 	data.free()
 
+func _test_guild_upgrade_requirements() -> void:
+	var data: Node = GameDataScript.new()
+	data.coins = 1200
+	_assert_true(not data.can_buy_permanent_upgrade("training_field"), "Training field is locked before guild level requirement")
+	_assert_eq(data.get_upgrade_lock_reason("training_field"), "Requer Guilda Nv 2.", "Locked guild upgrade reports requirement")
+	_assert_true(not data.buy_permanent_upgrade("training_field"), "Locked guild upgrade cannot be bought")
+	_assert_true(data.buy_permanent_upgrade("guild_hall"), "Guild hall can be upgraded first")
+	_assert_eq(data.guild["level"], 2, "Guild hall upgrade raises guild level")
+	_assert_true(data.can_buy_permanent_upgrade("training_field"), "Training field unlocks after guild reaches level two")
+	_assert_true(data.buy_permanent_upgrade("training_field"), "Unlocked guild upgrade can be bought")
+	data.free()
+
 func _test_default_guild_squad_summary() -> void:
 	var data: Node = GameDataScript.new()
 	var summary: Dictionary = data.get_squad_summary()
@@ -383,10 +403,25 @@ func _test_mission_victory_rewards_progression() -> void:
 	var summary: Dictionary = data.apply_mission_result("initial_forest_survival", "vitoria")
 	_assert_eq(summary["xp_per_companion"], 10, "Mission XP reward is split across active companions")
 	_assert_eq(data.companion_roster["c_warrior_001"]["level"], 2, "Mission XP can level active companions")
+	_assert_eq(data.companion_roster["c_warrior_001"]["pending_upgrades"], 1, "Mission level up creates pending companion upgrade")
 	_assert_true(summary["leveled_companions"].has("Bruna"), "Mission result reports companions that leveled")
 	_assert_true(data.guild["unlocked_zones"].has("wolf_cave"), "Completing initial mission unlocks wolf cave")
 	_assert_true(summary["unlocked_zone_names"].has("Caverna dos Lobos"), "Mission result reports unlocked zone name")
 	_assert_eq(data.recruitment["reroll_count"], 0, "Mission return resets recruitment reroll cost")
+	data.free()
+
+func _test_persistent_companion_upgrade_choice() -> void:
+	var data: Node = GameDataScript.new()
+	data.get_companion_roster()
+	var companion: Dictionary = data.companion_roster["c_warrior_001"]
+	companion["pending_upgrades"] = 1
+	data.companion_roster["c_warrior_001"] = companion
+	var before_attack := float(data.companion_roster["c_warrior_001"]["attack"])
+	var choices: Array = data.get_companion_upgrade_choices("c_warrior_001")
+	_assert_true(choices.size() > 0, "Pending companion upgrade exposes choices")
+	_assert_true(data.apply_companion_pending_upgrade("c_warrior_001", "damage"), "Pending companion upgrade can be applied")
+	_assert_float_eq(float(data.companion_roster["c_warrior_001"]["attack"]), before_attack * 1.12, "Persistent companion damage upgrade changes roster stat")
+	_assert_eq(data.companion_roster["c_warrior_001"]["pending_upgrades"], 0, "Applying persistent companion upgrade spends pending point")
 	data.free()
 
 func _test_flee_does_not_complete_mission() -> void:
@@ -408,7 +443,7 @@ func _test_enemy_spawner_accepts_mission_profile() -> void:
 
 func _test_companion_run_results_update_roster() -> void:
 	var data: Node = GameDataScript.new()
-	data.apply_companion_run_results([
+	var summary: Dictionary = data.apply_companion_run_results([
 		{
 			"id": "c_warrior_001",
 			"level": 3,
@@ -432,12 +467,13 @@ func _test_companion_run_results_update_roster() -> void:
 	_assert_float_eq(companion["attack"], 7.5, "Run result persists chosen attribute upgrades")
 	_assert_eq(companion["state"], "ferido", "Fallen companion returns as wounded")
 	_assert_float_eq(companion["current_health"], 16.8, "Wounded companion returns with partial health")
+	_assert_true(summary["wounded_companions"].has("Bruna"), "Run result reports wounded companions")
 	data.free()
 
 func _test_dead_companion_resurrection_flow() -> void:
 	var data: Node = GameDataScript.new()
 	data.coins = 1000
-	data.apply_companion_run_results([
+	var summary: Dictionary = data.apply_companion_run_results([
 		{
 			"id": "c_warrior_001",
 			"level": 3,
@@ -456,6 +492,7 @@ func _test_dead_companion_resurrection_flow() -> void:
 		}
 	])
 	_assert_eq(data.companion_roster["c_warrior_001"]["state"], "morto", "Dead run result persists in roster")
+	_assert_true(summary["dead_companions"].has("Bruna"), "Run result reports dead companions")
 	_assert_true(not data.get_active_squad().has("c_warrior_001"), "Dead companion is removed from active squad")
 	_assert_eq(data.get_dead_companions().size(), 1, "Dead companion appears in graveyard list")
 	var cost: int = data.get_resurrection_cost("c_warrior_001")
@@ -463,6 +500,29 @@ func _test_dead_companion_resurrection_flow() -> void:
 	_assert_eq(data.coins, 1000 - cost, "Resurrection spends coins")
 	_assert_eq(data.companion_roster["c_warrior_001"]["state"], "ferido", "Resurrected companion returns wounded")
 	_assert_eq(data.companion_roster["c_warrior_001"]["xp"], 6, "Resurrection applies XP penalty")
+	data.free()
+
+func _test_blacksmith_equipment_flow() -> void:
+	var data: Node = GameDataScript.new()
+	data.add_coins(500)
+	var roster: Dictionary = data.get_companion_roster()
+	var base_attack := float(roster["c_warrior_001"]["attack"])
+	var crafted: bool = data.craft_equipment("iron_blade")
+	_assert_true(crafted, "Blacksmith can craft equipment when coins are available")
+	_assert_eq(data.coins, 360, "Crafting equipment spends coins")
+	var inventory: Array = data.get_equipment_inventory()
+	_assert_eq(inventory.size(), 1, "Crafting adds one inventory item")
+	var item_uid := str(inventory[0]["uid"])
+	var equipped: bool = data.equip_companion_item("c_warrior_001", item_uid)
+	_assert_true(equipped, "Equipment can be equipped on a companion")
+	roster = data.get_companion_roster()
+	_assert_true((roster["c_warrior_001"]["equipment"] as Array).has(item_uid), "Equipped item is tracked on companion")
+	_assert_float_eq(float(roster["c_warrior_001"]["attack"]), base_attack + 1.3, "Equipment bonus changes companion stats")
+	var unequipped: bool = data.unequip_companion_item(item_uid)
+	_assert_true(unequipped, "Equipment can be unequipped")
+	roster = data.get_companion_roster()
+	_assert_true(not (roster["c_warrior_001"]["equipment"] as Array).has(item_uid), "Unequipped item is removed from companion")
+	_assert_float_eq(float(roster["c_warrior_001"]["attack"]), base_attack, "Unequipping removes equipment bonus")
 	data.free()
 
 func _test_recruitment_hire_adds_companion() -> void:

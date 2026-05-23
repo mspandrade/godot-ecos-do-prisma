@@ -193,6 +193,7 @@ func get_upgrade_choices() -> Array:
 			{"id": "cooldown", "name": "Prece Rapida", "desc": "-7% cooldown de cura"},
 			{"id": "health", "name": "Vigor", "desc": "+8 vida maxima"},
 			{"id": "range", "name": "Area Sagrada", "desc": "+18 area de cura"},
+			{"id": "speed", "name": "Passos Leves", "desc": "+velocidade do esquadrao"},
 			{"id": "ability", "name": "Graca", "desc": "+15% eficiencia da cura"}
 		]
 	else:
@@ -200,7 +201,8 @@ func get_upgrade_choices() -> Array:
 			{"id": "damage", "name": "Dano", "desc": "+12% dano da classe"},
 			{"id": "cooldown", "name": "Ritmo", "desc": "-7% cooldown de habilidade"},
 			{"id": "health", "name": "Vigor", "desc": "+8 vida maxima"},
-			{"id": "range", "name": "Alcance", "desc": "+18 alcance de ataque"}
+			{"id": "range", "name": "Alcance", "desc": "+18 alcance de ataque"},
+			{"id": "speed", "name": "Mobilidade", "desc": "+velocidade do esquadrao"}
 		]
 	if class_type == "bard":
 		choices.append({"id": "ability", "name": "Inspiracao", "desc": "+15% forca do buff"})
@@ -222,6 +224,9 @@ func apply_upgrade(upgrade_id: String) -> void:
 			health = max_health
 		"range":
 			attack_range += 18.0
+		"speed":
+			move_speed += 10.0
+			speed_rating += 0.35
 		"ability":
 			ability_power *= 1.15
 
