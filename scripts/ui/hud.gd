@@ -50,10 +50,22 @@ func _add_companion_health_bar(companion: Node) -> void:
 	companion_health_list.add_child(row)
 	_update_companion_health_bar(bar, companion.health, companion.max_health)
 	companion.health_changed.connect(func(_companion: Node, current: float, maximum: float): _update_companion_health_bar(bar, current, maximum))
+	if companion.has_signal("state_changed"):
+		companion.state_changed.connect(func(_companion: Node, state: String, seconds_remaining: float): _update_companion_state_label(label, companion.display_name, state, seconds_remaining))
 
 func _update_companion_health_bar(bar: ProgressBar, current: float, maximum: float) -> void:
 	bar.max_value = maximum
 	bar.value = current
+
+func _update_companion_state_label(label: Label, companion_name: String, state: String, seconds_remaining: float) -> void:
+	var base_name := _short_companion_name(str(companion_name))
+	match state:
+		"caido":
+			label.text = "%s Caido %ds" % [base_name, int(ceil(seconds_remaining))]
+		"morto":
+			label.text = "%s Morto" % base_name
+		_:
+			label.text = base_name
 
 func _short_companion_name(name: String) -> String:
 	match name:

@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-23, after guild upgrades rework
+Last updated: 2026-05-23, after graveyard and resurrection slice
 
 ## Current Goal
 
@@ -126,6 +126,19 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Legacy stat upgrades remain compatible in `get_selected_stats()` for older saves, but are no longer shown in the guild upgrade UI.
 - Added regression coverage for guild upgrade costs and effects.
 
+### Graveyard And Death Flow
+
+- Companions now enter `caido` when reduced to 0 health instead of disappearing as an immediate wounded return.
+- Downed companions have a 30-second rescue window; if the timer expires they become `morto`.
+- HUD companion rows show `Caido Ns` during the rescue window and `Morto` after death.
+- `CompanionManager.get_run_results()` now persists `caido`, `morto` and normal return states.
+- Dead companions are removed from the active squad and excluded from squad summaries/combat spawns.
+- Added `GameData.get_dead_companions()`, `get_resurrection_cost()` and `resurrect_companion()`.
+- Added `scenes/ui/GraveyardScene.tscn` and `scripts/ui/graveyard_scene.gd`.
+- Guild now has a `Cemiterio` button, locked until the guild has the graveyard structure flag.
+- Resurrected companions return as `ferido`, with partial health and a 25% XP penalty.
+- Added regression coverage for downed timers, death persistence, graveyard listing and resurrection.
+
 ## Current State
 
 - Default roster has six companions.
@@ -134,6 +147,7 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Runtime companion XP/level and selected companion upgrades are now written back to the persistent roster when the run ends.
 - Recruitment queue now has a dedicated guild screen.
 - Guild upgrades now affect roster capacity, mission XP, reroll costs, recruitment rarity and leader supplies.
+- Companion death and resurrection are now represented in data and in a dedicated graveyard screen.
 - The application start scene is now the guild scene.
 - Party editing now allows removing companions, including clearing the party completely.
 - Combat HUD now has a flee action. Flee takes 5 seconds to prepare, preserves companion run progress and applies a coin penalty based on squad mobility.
@@ -144,15 +158,15 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 
 ## Pending After This Slice
 
-- Improve recruitment UX with rarity colors and candidate comparison.
 - Add upgrade requirements/locks tied to guild level once graveyard/training/blacksmith are active screens.
-- Add fallen/death/graveyard flow.
+- Improve recruitment UX with rarity colors and candidate comparison.
 - Add richer feedback on GameOver for wounded companions and persistent companion upgrade choices after mission XP level-ups.
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 128 tests passed after guild upgrade rework.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after guild upgrade rework.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 137 tests passed after graveyard/death flow.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after graveyard/death flow.
+- Known issue: direct headless launch of UI-only scenes still crashes Godot 4.6.2 on this machine; `GraveyardScene.tscn` hit the same engine crash pattern as the older UI scenes.
 - Note: Direct headless runs of UI-only scenes crash Godot 4.6.2 on this machine, including the existing `MainMenu`, `CharactersScreen` and `UpgradesScreen`; use editor/GUI verification for UI scene rendering.
 
 ## Files Changed By This Slice
@@ -160,6 +174,7 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `IMPLEMENTATION_STATUS.md`
 - `project.godot`
 - `scenes/ui/GuildScene.tscn`
+- `scenes/ui/GraveyardScene.tscn`
 - `scenes/ui/MissionSelect.tscn`
 - `scenes/ui/CharactersScreen.tscn`
 - `scenes/ui/HUD.tscn`
@@ -174,6 +189,7 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/ui/mission_select.gd`
 - `scripts/ui/characters_screen.gd`
 - `scripts/ui/game_over.gd`
+- `scripts/ui/graveyard_scene.gd`
 - `scripts/ui/hud.gd`
 - `scripts/ui/mission_select.gd`
 - `scripts/ui/recruitment_scene.gd`

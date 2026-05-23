@@ -49,6 +49,7 @@ func _init() -> void:
 	_test_flee_does_not_complete_mission()
 	_test_enemy_spawner_accepts_mission_profile()
 	_test_companion_run_results_update_roster()
+	_test_dead_companion_resurrection_flow()
 	_test_recruitment_hire_adds_companion()
 	_test_recruitment_reroll_spends_coins_and_scales_cost()
 	_test_scene_pool_acquire_and_recycle_signal()
@@ -149,8 +150,11 @@ func _test_companion_level_and_upgrades() -> void:
 	_assert_float_eq(companion.ability_power, 1.15, "Companion ability upgrade applies")
 	companion.take_damage(40.0)
 	_assert_eq(companion.health, 0.0, "Companion can fall after taking lethal damage")
-	_assert_true(companion.is_down, "Companion dies permanently after falling")
-	_assert_true(not companion.is_damage_target(), "Dead companion is no longer a damage target")
+	_assert_true(companion.is_down, "Companion enters downed state after falling")
+	_assert_eq(companion.state, "caido", "Fallen companion waits in caido state")
+	_assert_true(not companion.is_damage_target(), "Downed companion is no longer a damage target")
+	companion._process_downed(companion.downed_duration)
+	_assert_eq(companion.state, "morto", "Downed companion dies when the rescue timer expires")
 	companion.free()
 
 func _test_companion_ignores_xp_and_upgrades_when_unavailable() -> void:
@@ -428,6 +432,37 @@ func _test_companion_run_results_update_roster() -> void:
 	_assert_float_eq(companion["attack"], 7.5, "Run result persists chosen attribute upgrades")
 	_assert_eq(companion["state"], "ferido", "Fallen companion returns as wounded")
 	_assert_float_eq(companion["current_health"], 16.8, "Wounded companion returns with partial health")
+	data.free()
+
+func _test_dead_companion_resurrection_flow() -> void:
+	var data: Node = GameDataScript.new()
+	data.coins = 1000
+	data.apply_companion_run_results([
+		{
+			"id": "c_warrior_001",
+			"level": 3,
+			"xp": 8,
+			"xp_required": 18,
+			"max_health": 48.0,
+			"current_health": 0.0,
+			"attack": 7.5,
+			"defense": 5.0,
+			"move_speed": 220.0,
+			"speed_rating": 6.5,
+			"range": 170.0,
+			"cooldown": 1.1,
+			"ability_power": 1.25,
+			"state": "morto"
+		}
+	])
+	_assert_eq(data.companion_roster["c_warrior_001"]["state"], "morto", "Dead run result persists in roster")
+	_assert_true(not data.get_active_squad().has("c_warrior_001"), "Dead companion is removed from active squad")
+	_assert_eq(data.get_dead_companions().size(), 1, "Dead companion appears in graveyard list")
+	var cost: int = data.get_resurrection_cost("c_warrior_001")
+	_assert_true(data.resurrect_companion("c_warrior_001"), "Dead companion can be resurrected when coins are available")
+	_assert_eq(data.coins, 1000 - cost, "Resurrection spends coins")
+	_assert_eq(data.companion_roster["c_warrior_001"]["state"], "ferido", "Resurrected companion returns wounded")
+	_assert_eq(data.companion_roster["c_warrior_001"]["xp"], 6, "Resurrection applies XP penalty")
 	data.free()
 
 func _test_recruitment_hire_adds_companion() -> void:

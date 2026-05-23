@@ -74,7 +74,7 @@ func get_run_results() -> Array:
 			"range": companion.attack_range,
 			"cooldown": companion.attack_cooldown,
 			"ability_power": companion.ability_power,
-			"state": "ferido" if companion.is_down else "disponivel"
+			"state": companion.state if companion.is_down else "disponivel"
 		})
 	return results
 

@@ -4,6 +4,7 @@ const EntitySpriteAtlas := preload("res://scripts/core/entity_sprite_atlas.gd")
 
 signal leveled_up(companion: Node, choices: Array)
 signal health_changed(companion: Node, current: float, maximum: float)
+signal state_changed(companion: Node, state: String, seconds_remaining: float)
 
 var companion_id := "shield_warrior"
 var display_name := "Guerreiro do Escudo"
@@ -27,6 +28,8 @@ var follow_offset := Vector2.ZERO
 var player: Node2D
 var contact_tick := 0.0
 var is_down := false
+var downed_time_remaining := 30.0
+var downed_duration := 30.0
 var is_recruited := false
 var is_invulnerable := false
 var shield_charge_state := "idle"
@@ -106,6 +109,7 @@ func _physics_process(delta: float) -> void:
 		_update_walk_animation(false)
 		return
 	if is_down:
+		_process_downed(delta)
 		_update_walk_animation(false)
 		return
 	spawn_grace_time = max(0.0, spawn_grace_time - delta)
@@ -240,7 +244,7 @@ func _use_class_action() -> void:
 			_assassin_attack()
 
 func take_damage(amount: float) -> void:
-	if is_down or not is_recruited or spawn_grace_time > 0.0 or is_invulnerable:
+	if is_down or state == "morto" or not is_recruited or spawn_grace_time > 0.0 or is_invulnerable:
 		return
 	var mitigated_amount := maxf(1.0, amount - defense * 0.35)
 	health = max(0.0, health - mitigated_amount)
@@ -253,7 +257,7 @@ func take_damage(amount: float) -> void:
 	health_changed.emit(self, health, max_health)
 
 func heal(amount: float) -> void:
-	if is_down or not is_recruited or health >= max_health:
+	if is_down or state == "morto" or not is_recruited or health >= max_health:
 		return
 	health = min(max_health, health + amount)
 	if body:
@@ -278,18 +282,41 @@ func _apply_contact_damage() -> void:
 func _fall() -> void:
 	is_down = true
 	state = "caido"
+	downed_time_remaining = downed_duration
 	velocity = Vector2.ZERO
+	collision_layer = 0
+	collision_mask = 0
+	remove_from_group("heroes")
+	if body:
+		body.modulate = Color(0.45, 0.45, 0.45, 0.78)
+	health_changed.emit(self, health, max_health)
+	state_changed.emit(self, state, downed_time_remaining)
+
+func _process_downed(delta: float) -> void:
+	if state != "caido":
+		return
+	downed_time_remaining = maxf(0.0, downed_time_remaining - delta)
+	state_changed.emit(self, state, downed_time_remaining)
+	if downed_time_remaining <= 0.0:
+		_die()
+
+func _die() -> void:
+	is_down = true
+	state = "morto"
+	health = 0.0
 	visible = false
 	collision_layer = 0
 	collision_mask = 0
 	remove_from_group("heroes")
 	health_changed.emit(self, health, max_health)
+	state_changed.emit(self, state, 0.0)
 
 func recruit(new_offset: Vector2) -> void:
-	if is_recruited or is_down:
+	if is_recruited or is_down or state == "morto":
 		return
 	is_recruited = true
 	state = "em_missao"
+	downed_time_remaining = downed_duration
 	follow_offset = new_offset
 	health = max_health
 	_snap_to_formation()

@@ -319,6 +319,8 @@ func apply_companion_run_results(results: Array) -> void:
 		data["cooldown"] = maxf(0.1, float(result.get("cooldown", data.get("cooldown", 1.0))))
 		data["ability_power"] = maxf(0.0, float(result.get("ability_power", data.get("ability_power", 1.0))))
 		data["state"] = _normalized_return_state(str(result.get("state", data.get("state", "disponivel"))))
+		if str(data["state"]) == "morto":
+			active_squad.erase(companion_id)
 		companion_roster[companion_id] = data
 		changed = true
 	if changed:
@@ -378,6 +380,56 @@ func hire_recruit(index: int) -> bool:
 	save_data()
 	companion_roster_changed.emit()
 	recruitment_changed.emit()
+	return true
+
+func get_dead_companions() -> Array:
+	_ensure_guild_defaults()
+	var result := []
+	for companion_id in companion_roster.keys():
+		var data: Dictionary = companion_roster[companion_id].duplicate(true)
+		if str(data.get("state", "disponivel")) != "morto":
+			continue
+		data["id"] = str(companion_id)
+		data["resurrection_cost"] = get_resurrection_cost(str(companion_id))
+		result.append(data)
+	result.sort_custom(func(a: Dictionary, b: Dictionary): return str(a["name"]) < str(b["name"]))
+	return result
+
+func get_resurrection_cost(companion_id: String) -> int:
+	if not companion_roster.has(companion_id):
+		return 0
+	var data: Dictionary = companion_roster[companion_id]
+	var level := int(data.get("level", 1))
+	var rarity := str(data.get("rarity", "comum"))
+	var rarity_cost := 0
+	match rarity:
+		"incomum":
+			rarity_cost = 80
+		"raro":
+			rarity_cost = 180
+		"epico":
+			rarity_cost = 360
+		"lendario":
+			rarity_cost = 700
+	return 220 + max(0, level - 1) * 90 + rarity_cost
+
+func resurrect_companion(companion_id: String) -> bool:
+	_ensure_guild_defaults()
+	if not companion_roster.has(companion_id):
+		return false
+	var data: Dictionary = companion_roster[companion_id]
+	if str(data.get("state", "disponivel")) != "morto":
+		return false
+	var cost := get_resurrection_cost(companion_id)
+	if not spend_coins(cost):
+		return false
+	data["state"] = "ferido"
+	data["current_health"] = maxf(1.0, float(data.get("max_health", 1.0)) * 0.35)
+	data["xp"] = int(floor(max(0, int(data.get("xp", 0))) * 0.75))
+	companion_roster[companion_id] = data
+	save_data()
+	companion_roster_changed.emit()
+	squad_changed.emit(get_squad_summary())
 	return true
 
 func get_missions() -> Array:
@@ -503,6 +555,8 @@ func get_squad_summary() -> Dictionary:
 		if not companion_roster.has(companion_id):
 			continue
 		var data: Dictionary = companion_roster[companion_id]
+		if str(data.get("state", "disponivel")) == "morto":
+			continue
 		total_level += float(data.get("level", 1))
 		total_speed += float(data.get("speed_rating", 0.0))
 		count += 1
@@ -658,7 +712,10 @@ func _ensure_guild_defaults() -> void:
 		companion_roster = _default_companion_roster()
 		if active_squad.is_empty():
 			active_squad = ["c_warrior_001", "c_archer_001", "c_cleric_001"]
-	active_squad = active_squad.filter(func(companion_id): return companion_roster.has(str(companion_id)))
+	active_squad = active_squad.filter(func(companion_id):
+		var resolved_id := str(companion_id)
+		return companion_roster.has(resolved_id) and str(companion_roster[resolved_id].get("state", "disponivel")) != "morto"
+	)
 	if recruitment.is_empty():
 		recruitment = {"available": _generate_recruitment_queue(), "reroll_count": 0}
 	if not recruitment.has("available") or recruitment.get("available", []).is_empty():

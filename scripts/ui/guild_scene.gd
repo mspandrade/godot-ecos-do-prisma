@@ -13,12 +13,14 @@ func _ready() -> void:
 	%RosterButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/CharactersScreen.tscn"))
 	%RecruitmentButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/RecruitmentScene.tscn"))
 	%UpgradesButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/UpgradesScreen.tscn"))
+	%GraveyardButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GraveyardScene.tscn"))
 	%SettingsButton.pressed.connect(_show_settings)
 	GameData.coins_changed.connect(func(_coins: int): _refresh())
 	GameData.companion_roster_changed.connect(_refresh)
 	GameData.squad_changed.connect(func(_summary: Dictionary): _refresh())
 	GameData.recruitment_changed.connect(_refresh)
 	GameData.mission_changed.connect(func(_mission_id: String): _refresh())
+	GameData.guild_changed.connect(_refresh)
 	particles.emitting = true
 	_refresh()
 
@@ -48,6 +50,9 @@ func _refresh() -> void:
 		str(summary["mobility_warning"])
 	]
 	%MissionButton.disabled = int(summary["size"]) <= 0
+	var graveyard_unlocked: bool = (GameData.guild.get("unlocked_structures", []) as Array).has("graveyard")
+	%GraveyardButton.disabled = not graveyard_unlocked
+	%GraveyardButton.text = "Cemiterio" if graveyard_unlocked else "Cemiterio bloqueado"
 
 func _show_settings() -> void:
 	%SettingsLabel.visible = not %SettingsLabel.visible

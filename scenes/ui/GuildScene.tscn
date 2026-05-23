@@ -114,6 +114,12 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "Upgrades da guilda"
 
+[node name="GraveyardButton" type="Button" parent="MenuBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Cemiterio"
+
 [node name="SettingsButton" type="Button" parent="MenuBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
