@@ -8,7 +8,6 @@ func _ready() -> void:
 	GameData.coins_changed.connect(func(_c: int): _refresh())
 	GameData.companion_roster_changed.connect(_refresh)
 	GameData.squad_changed.connect(func(_summary: Dictionary): _refresh())
-	GameData.recruitment_changed.connect(_refresh)
 	_refresh()
 
 func _refresh() -> void:
@@ -50,8 +49,6 @@ func _refresh() -> void:
 	var roster := GameData.get_companion_roster()
 	for companion_id in roster.keys():
 		_add_companion_row(str(companion_id), roster[companion_id], summary)
-	_add_section_title("Recrutamento")
-	_add_recruitment_controls()
 
 func _select(id: String) -> void:
 	GameData.unlock_character(id)
@@ -97,45 +94,3 @@ func _add_companion_row(companion_id: String, data: Dictionary, summary: Diction
 
 func _toggle_companion(companion_id: String) -> void:
 	GameData.toggle_companion_in_squad(companion_id)
-
-func _add_recruitment_controls() -> void:
-	var reroll_button := Button.new()
-	reroll_button.text = "Rolar candidatos - %d moedas" % GameData.get_reroll_cost()
-	reroll_button.disabled = GameData.coins < GameData.get_reroll_cost()
-	reroll_button.pressed.connect(_reroll_recruits)
-	list.add_child(reroll_button)
-	var queue := GameData.get_recruitment_queue()
-	for i in range(queue.size()):
-		_add_recruit_row(i, queue[i])
-
-func _add_recruit_row(index: int, candidate: Dictionary) -> void:
-	var row := VBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 112)
-	var traits: Array = candidate.get("traits", [])
-	var title := Label.new()
-	title.text = "%s | %s %s" % [
-		str(candidate.get("name", "Recruta")),
-		str(candidate.get("class_name", candidate.get("class", ""))),
-		str(candidate.get("rarity", "comum")).capitalize()
-	]
-	var details := Label.new()
-	details.text = "Lv %d | Vel %.1f | Habilidade: %s | Traco: %s" % [
-		int(candidate.get("level", 1)),
-		float(candidate.get("speed_rating", 0.0)),
-		str(candidate.get("ability", "-")),
-		", ".join(traits)
-	]
-	var button := Button.new()
-	button.text = "Contratar - %d moedas" % int(candidate.get("cost", 0))
-	button.disabled = GameData.coins < int(candidate.get("cost", 0)) or GameData.get_companion_roster().size() >= int(GameData.guild.get("companion_capacity", 12))
-	button.pressed.connect(_hire_recruit.bind(index))
-	row.add_child(title)
-	row.add_child(details)
-	row.add_child(button)
-	list.add_child(row)
-
-func _reroll_recruits() -> void:
-	GameData.reroll_recruits()
-
-func _hire_recruit(index: int) -> void:
-	GameData.hire_recruit(index)

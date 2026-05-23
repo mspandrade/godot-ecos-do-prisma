@@ -172,4 +172,5 @@ func _finish_run(result_reason := "derrota", coins_override := -1) -> void:
 	GameData.add_coins(awarded_coins)
 	if companion_manager.has_method("get_run_results"):
 		GameData.apply_companion_run_results(companion_manager.call("get_run_results"))
-	game_over.call("show_results", elapsed, run_state.level, awarded_coins, result_reason, run_state.coins)
+	var mission_result := GameData.apply_mission_result(str(mission_profile.get("mission_id", "")), result_reason)
+	game_over.call("show_results", elapsed, run_state.level, awarded_coins, result_reason, run_state.coins, mission_result)

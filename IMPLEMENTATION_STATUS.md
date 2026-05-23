@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-23, after flee preparation cooldown
+Last updated: 2026-05-23, after guild upgrades rework
 
 ## Current Goal
 
@@ -92,8 +92,39 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Victory adds the mission completion coin reward to collected run coins.
 - Result popup shows `Missao concluida` for timer victories.
 - Result popup title node is now marked as unique so victory/flee result titles resolve safely.
+- Result popup now hides `Tentar novamente` on mission victory/flee; retry remains only for defeat.
 - Mission select displays mission duration.
 - Added test coverage for mission duration and completion reward in the combat profile.
+
+### Mission Completion Rewards
+
+- Added `GameData.apply_mission_result()` to centralize end-of-mission progression.
+- Victory now splits the mission XP reward across active companions.
+- Victory reports companions that gained levels from the mission reward.
+- Completing the initial forest unlocks `wolf_cave`; completing wolf cave unlocks `ancient_ruins`.
+- Returning from a mission resets recruitment reroll cost, including flee/failed returns.
+- GameOver now shows mission XP, level gains, newly unlocked zones and reroll reset feedback.
+- Added regression coverage for victory rewards, zone unlocks and flee not completing missions.
+
+### Dedicated Recruitment Screen
+
+- Added `scenes/ui/RecruitmentScene.tscn` and `scripts/ui/recruitment_scene.gd`.
+- Guild now has separate buttons for `Companions` and `Recrutamento`.
+- Recruitment screen shows coins, roster capacity, reroll cost, candidate details and hire buttons.
+- Character screen is now focused on leader selection and active squad management.
+
+### Guild Upgrade Rework
+
+- Replaced generic permanent stat upgrade definitions with guild-focused improvements.
+- New guild upgrades: `Salao da Guilda`, `Dormitorios`, `Campo de Treino`, `Rede de Recrutadores` and `Armazem de Suprimentos`.
+- `Salao da Guilda` increases guild level and unlocks structure flags for later systems.
+- `Dormitorios` increases companion roster capacity by 2 per level.
+- `Campo de Treino` increases mission completion XP by 15% per level.
+- `Rede de Recrutadores` discounts rerolls and improves recruitment rarity rolls.
+- `Armazem de Suprimentos` improves leader health and pickup range.
+- Upgrade UI now shows category, description, effect and current guild capacity/level.
+- Legacy stat upgrades remain compatible in `get_selected_stats()` for older saves, but are no longer shown in the guild upgrade UI.
+- Added regression coverage for guild upgrade costs and effects.
 
 ## Current State
 
@@ -101,25 +132,27 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Default active squad has three companions: `c_warrior_001`, `c_archer_001`, `c_cleric_001`.
 - The squad screen is still a pragmatic bridge inside `CharactersScreen`, not the final guild UI.
 - Runtime companion XP/level and selected companion upgrades are now written back to the persistent roster when the run ends.
-- Recruitment queue is functional, but still lives inside `CharactersScreen` as a temporary bridge.
+- Recruitment queue now has a dedicated guild screen.
+- Guild upgrades now affect roster capacity, mission XP, reroll costs, recruitment rarity and leader supplies.
 - The application start scene is now the guild scene.
 - Party editing now allows removing companions, including clearing the party completely.
 - Combat HUD now has a flee action. Flee takes 5 seconds to prepare, preserves companion run progress and applies a coin penalty based on squad mobility.
 - Mission board is functional for selecting an unlocked mission before starting combat. The selected mission is saved.
 - Selected mission now affects combat pressure and enemy rewards.
 - Missions now end automatically when their timer reaches zero.
+- Timer victories now grant mission XP, unlock the next zone when configured and show the results in the popup.
 
 ## Pending After This Slice
 
-- Build a dedicated recruitment scene instead of keeping recruitment inside the character screen.
-- Add a dedicated recruitment/guild scene once the loop stabilizes.
+- Improve recruitment UX with rarity colors and candidate comparison.
+- Add upgrade requirements/locks tied to guild level once graveyard/training/blacksmith are active screens.
 - Add fallen/death/graveyard flow.
-- Add feedback on GameOver for companion XP, level gains and wounded companions.
+- Add richer feedback on GameOver for wounded companions and persistent companion upgrade choices after mission XP level-ups.
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 112 tests passed after flee cooldown.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after flee cooldown.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 128 tests passed after guild upgrade rework.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after guild upgrade rework.
 - Note: Direct headless runs of UI-only scenes crash Godot 4.6.2 on this machine, including the existing `MainMenu`, `CharactersScreen` and `UpgradesScreen`; use editor/GUI verification for UI scene rendering.
 
 ## Files Changed By This Slice
@@ -143,5 +176,6 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/ui/game_over.gd`
 - `scripts/ui/hud.gd`
 - `scripts/ui/mission_select.gd`
+- `scripts/ui/recruitment_scene.gd`
 - `scripts/ui/upgrades_screen.gd`
 - `tests/test_runner.gd`

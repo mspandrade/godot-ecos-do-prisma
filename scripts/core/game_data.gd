@@ -39,6 +39,8 @@ var missions := {
 		"recommended_level": 1,
 		"coin_reward": 80,
 		"xp_reward": 30,
+		"completion_unlock_zone": "wolf_cave",
+		"completion_unlock_zone_name": "Caverna dos Lobos",
 		"enemies": ["goblins", "slimes"],
 		"objective": "Sobreviver ate decidir fugir ou cair.",
 		"risk": "Baixo",
@@ -65,6 +67,8 @@ var missions := {
 		"recommended_level": 3,
 		"coin_reward": 150,
 		"xp_reward": 70,
+		"completion_unlock_zone": "ancient_ruins",
+		"completion_unlock_zone_name": "Ruinas Antigas",
 		"enemies": ["lobos", "goblins rapidos"],
 		"objective": "Testar o esquadrao contra hordas rapidas.",
 		"risk": "Medio",
@@ -111,10 +115,11 @@ var missions := {
 	}
 }
 var permanent_upgrades := {
-	"max_health": 0,
-	"damage": 0,
-	"move_speed": 0,
-	"pickup_range": 0
+	"guild_hall": 0,
+	"dormitories": 0,
+	"training_field": 0,
+	"recruiter_network": 0,
+	"supply_cache": 0
 }
 
 var characters := {
@@ -145,10 +150,51 @@ var characters := {
 }
 
 var upgrade_defs := {
-	"max_health": {"name": "Vitalidade", "base_cost": 120, "step": 80, "max": 10, "value": 8.0},
-	"damage": {"name": "Forca", "base_cost": 150, "step": 110, "max": 10, "value": 0.035},
-	"move_speed": {"name": "Passos Leves", "base_cost": 130, "step": 95, "max": 8, "value": 8.0},
-	"pickup_range": {"name": "Magnetismo", "base_cost": 100, "step": 75, "max": 8, "value": 12.0}
+	"guild_hall": {
+		"name": "Salao da Guilda",
+		"category": "Base",
+		"desc": "Organiza contratos, reputacao e estruturas da guilda.",
+		"effect": "+1 nivel da guilda por melhoria.",
+		"base_cost": 220,
+		"step": 260,
+		"max": 4
+	},
+	"dormitories": {
+		"name": "Dormitorios",
+		"category": "Companions",
+		"desc": "Abre espaco para manter mais aventureiros contratados.",
+		"effect": "+2 capacidade de companions por melhoria.",
+		"base_cost": 180,
+		"step": 180,
+		"max": 5
+	},
+	"training_field": {
+		"name": "Campo de Treino",
+		"category": "Companions",
+		"desc": "Melhora a rotina de treino e acelera aprendizado em missoes concluidas.",
+		"effect": "+15% XP de missao por melhoria.",
+		"base_cost": 260,
+		"step": 240,
+		"max": 5
+	},
+	"recruiter_network": {
+		"name": "Rede de Recrutadores",
+		"category": "Recrutamento",
+		"desc": "Contatos melhores reduzem custo de reroll e aumentam candidatos raros.",
+		"effect": "-10% custo de reroll e +chance de raridade por melhoria.",
+		"base_cost": 240,
+		"step": 230,
+		"max": 5
+	},
+	"supply_cache": {
+		"name": "Armazem de Suprimentos",
+		"category": "Combate",
+		"desc": "Mantem o lider equipado para sobreviver e recolher recursos.",
+		"effect": "+10 vida e +8 alcance de coleta do lider por melhoria.",
+		"base_cost": 160,
+		"step": 150,
+		"max": 6
+	}
 }
 
 func _ready() -> void:
@@ -169,10 +215,14 @@ func spend_coins(amount: int) -> bool:
 	return true
 
 func get_upgrade_cost(upgrade_id: String) -> int:
+	if not upgrade_defs.has(upgrade_id):
+		return 0
 	var def: Dictionary = upgrade_defs[upgrade_id]
 	return int(def["base_cost"] + def["step"] * permanent_upgrades.get(upgrade_id, 0))
 
 func buy_permanent_upgrade(upgrade_id: String) -> bool:
+	if not upgrade_defs.has(upgrade_id):
+		return false
 	var def: Dictionary = upgrade_defs[upgrade_id]
 	var current := int(permanent_upgrades.get(upgrade_id, 0))
 	if current >= int(def["max"]):
@@ -181,7 +231,13 @@ func buy_permanent_upgrade(upgrade_id: String) -> bool:
 	if not spend_coins(cost):
 		return false
 	permanent_upgrades[upgrade_id] = current + 1
+	_refresh_guild_upgrade_effects()
 	permanent_upgrade_changed.emit(upgrade_id, current + 1)
+	guild_changed.emit()
+	if upgrade_id == "dormitories":
+		companion_roster_changed.emit()
+	if upgrade_id == "recruiter_network":
+		recruitment_changed.emit()
 	save_data()
 	return true
 
@@ -277,7 +333,9 @@ func get_recruitment_queue() -> Array:
 func get_reroll_cost() -> int:
 	_ensure_guild_defaults()
 	var reroll_count := int(recruitment.get("reroll_count", 0))
-	return REROLL_COSTS[min(reroll_count, REROLL_COSTS.size() - 1)]
+	var base_cost: int = REROLL_COSTS[min(reroll_count, REROLL_COSTS.size() - 1)]
+	var discount: float = 1.0 - minf(0.5, int(permanent_upgrades.get("recruiter_network", 0)) * 0.1)
+	return max(25, int(round(base_cost * discount)))
 
 func reroll_recruits() -> bool:
 	_ensure_guild_defaults()
@@ -403,6 +461,39 @@ func get_selected_mission_combat_profile() -> Dictionary:
 			profile[key] = defaults[key]
 	return profile
 
+func apply_mission_result(mission_id: String, result_reason: String) -> Dictionary:
+	_ensure_guild_defaults()
+	var resolved_id := mission_id
+	if resolved_id.is_empty() or not missions.has(resolved_id):
+		resolved_id = selected_mission_id
+	if not missions.has(resolved_id):
+		return {}
+	var mission: Dictionary = missions[resolved_id]
+	var summary := {
+		"mission_id": resolved_id,
+		"result_reason": result_reason,
+		"xp_reward": 0,
+		"xp_per_companion": 0,
+		"leveled_companions": [],
+		"unlocked_zones": [],
+		"unlocked_zone_names": [],
+		"reroll_reset": false
+	}
+	if int(recruitment.get("reroll_count", 0)) != 0:
+		recruitment["reroll_count"] = 0
+		summary["reroll_reset"] = true
+	if result_reason == "vitoria":
+		_apply_mission_victory_rewards(mission, summary)
+	save_data()
+	if result_reason == "vitoria":
+		companion_roster_changed.emit()
+		squad_changed.emit(get_squad_summary())
+		guild_changed.emit()
+		mission_changed.emit(selected_mission_id)
+	if bool(summary["reroll_reset"]):
+		recruitment_changed.emit()
+	return summary
+
 func get_squad_summary() -> Dictionary:
 	_ensure_guild_defaults()
 	var total_level := 0.0
@@ -456,12 +547,66 @@ func get_flee_coin_retention() -> float:
 		return 0.9
 	return 1.0
 
+func _apply_mission_victory_rewards(mission: Dictionary, summary: Dictionary) -> void:
+	var active_ids := _rewardable_active_companion_ids()
+	var xp_reward := int(round(int(mission.get("xp_reward", 0)) * get_mission_xp_multiplier()))
+	var xp_per_companion := int(ceil(float(xp_reward) / max(1, active_ids.size()))) if active_ids.size() > 0 else 0
+	summary["xp_reward"] = xp_reward
+	summary["xp_per_companion"] = xp_per_companion
+	if xp_per_companion > 0:
+		for companion_id in active_ids:
+			var level_result := _add_companion_xp(companion_id, xp_per_companion)
+			if int(level_result["levels_gained"]) > 0:
+				summary["leveled_companions"].append(level_result["name"])
+	var unlock_zone := str(mission.get("completion_unlock_zone", ""))
+	if not unlock_zone.is_empty():
+		var unlocked_zones: Array = guild.get("unlocked_zones", [])
+		if not unlocked_zones.has(unlock_zone):
+			unlocked_zones.append(unlock_zone)
+			guild["unlocked_zones"] = unlocked_zones
+			summary["unlocked_zones"].append(unlock_zone)
+			summary["unlocked_zone_names"].append(str(mission.get("completion_unlock_zone_name", unlock_zone)))
+
+func get_mission_xp_multiplier() -> float:
+	return 1.0 + int(permanent_upgrades.get("training_field", 0)) * 0.15
+
+func _rewardable_active_companion_ids() -> Array:
+	var result := []
+	for companion_id in active_squad:
+		if not companion_roster.has(companion_id):
+			continue
+		var data: Dictionary = companion_roster[companion_id]
+		if str(data.get("state", "disponivel")) == "morto":
+			continue
+		result.append(str(companion_id))
+	return result
+
+func _add_companion_xp(companion_id: String, amount: int) -> Dictionary:
+	var data: Dictionary = companion_roster[companion_id]
+	var levels_gained := 0
+	data["xp"] = max(0, int(data.get("xp", 0))) + max(0, amount)
+	data["xp_required"] = max(1, int(data.get("xp_required", 10)))
+	while int(data["xp"]) >= int(data["xp_required"]):
+		data["xp"] = int(data["xp"]) - int(data["xp_required"])
+		data["level"] = int(data.get("level", 1)) + 1
+		data["xp_required"] = int(int(data["xp_required"]) * 1.28 + 6)
+		data["current_health"] = maxf(1.0, float(data.get("max_health", 1.0)))
+		levels_gained += 1
+	companion_roster[companion_id] = data
+	return {
+		"name": str(data.get("name", companion_id)),
+		"levels_gained": levels_gained
+	}
+
 func get_selected_stats() -> Dictionary:
 	var stats: Dictionary = characters[selected_character].duplicate(true)
-	stats["max_health"] += permanent_upgrades["max_health"] * upgrade_defs["max_health"]["value"]
-	stats["damage"] += permanent_upgrades["damage"] * upgrade_defs["damage"]["value"]
-	stats["speed"] += permanent_upgrades["move_speed"] * upgrade_defs["move_speed"]["value"]
-	stats["pickup_range"] += permanent_upgrades["pickup_range"] * upgrade_defs["pickup_range"]["value"]
+	var supply_level := int(permanent_upgrades.get("supply_cache", 0))
+	stats["max_health"] += supply_level * 10.0
+	stats["pickup_range"] += supply_level * 8.0
+	stats["max_health"] += int(permanent_upgrades.get("max_health", 0)) * 8.0
+	stats["damage"] += int(permanent_upgrades.get("damage", 0)) * 0.035
+	stats["speed"] += int(permanent_upgrades.get("move_speed", 0)) * 8.0
+	stats["pickup_range"] += int(permanent_upgrades.get("pickup_range", 0)) * 12.0
 	return stats
 
 func save_data() -> void:
@@ -505,6 +650,10 @@ func _ensure_guild_defaults() -> void:
 	for key in ["name", "level", "reputation", "companion_capacity", "unlocked_structures", "unlocked_zones"]:
 		if not guild.has(key):
 			guild[key] = _default_guild_value(key)
+	for upgrade_id in upgrade_defs.keys():
+		if not permanent_upgrades.has(upgrade_id):
+			permanent_upgrades[upgrade_id] = 0
+	_refresh_guild_upgrade_effects()
 	if companion_roster.is_empty():
 		companion_roster = _default_companion_roster()
 		if active_squad.is_empty():
@@ -534,6 +683,24 @@ func _default_guild_value(key: String) -> Variant:
 		"unlocked_zones":
 			return ["initial_forest"]
 	return null
+
+func _refresh_guild_upgrade_effects() -> void:
+	var hall_level := int(permanent_upgrades.get("guild_hall", 0))
+	var dormitory_level := int(permanent_upgrades.get("dormitories", 0))
+	guild["level"] = 1 + hall_level
+	guild["companion_capacity"] = 12 + dormitory_level * 2
+	var structures := ["hall", "recruitment", "mission_board"]
+	if int(permanent_upgrades.get("training_field", 0)) > 0 or hall_level >= 1:
+		structures.append("training_field")
+	if int(permanent_upgrades.get("recruiter_network", 0)) > 0 or hall_level >= 2:
+		structures.append("recruiter_network")
+	if int(permanent_upgrades.get("supply_cache", 0)) > 0 or hall_level >= 1:
+		structures.append("supply_cache")
+	if hall_level >= 2:
+		structures.append("graveyard")
+	if hall_level >= 3:
+		structures.append("blacksmith")
+	guild["unlocked_structures"] = structures
 
 func _default_companion_roster() -> Dictionary:
 	return {
@@ -632,13 +799,18 @@ func _generate_recruit_candidate() -> Dictionary:
 
 func _roll_rarity() -> String:
 	var roll := randf()
-	if roll < 0.01:
+	var recruiter_level := int(permanent_upgrades.get("recruiter_network", 0))
+	var legendary_threshold := 0.01 + recruiter_level * 0.002
+	var epic_threshold := 0.05 + recruiter_level * 0.008
+	var rare_threshold := 0.15 + recruiter_level * 0.02
+	var uncommon_threshold := 0.4 + recruiter_level * 0.03
+	if roll < legendary_threshold:
 		return "lendario"
-	if roll < 0.05:
+	if roll < epic_threshold:
 		return "epico"
-	if roll < 0.15:
+	if roll < rare_threshold:
 		return "raro"
-	if roll < 0.4:
+	if roll < uncommon_threshold:
 		return "incomum"
 	return "comum"
 

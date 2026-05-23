@@ -38,12 +38,15 @@ func _init() -> void:
 	_test_upgrade_request_emits_available_choices()
 	_test_weapon_evolution()
 	_test_weapon_evolution_requires_passive_and_level()
-	_test_permanent_upgrade_cost_formula()
+	_test_guild_upgrade_cost_formula()
+	_test_guild_upgrade_effects()
 	_test_default_guild_squad_summary()
 	_test_squad_can_be_emptied()
 	_test_flee_coin_retention_uses_squad_speed()
 	_test_mission_readiness_uses_squad_and_unlocks()
 	_test_selected_mission_combat_profile()
+	_test_mission_victory_rewards_progression()
+	_test_flee_does_not_complete_mission()
 	_test_enemy_spawner_accepts_mission_profile()
 	_test_companion_run_results_update_roster()
 	_test_recruitment_hire_adds_companion()
@@ -286,12 +289,27 @@ func _test_weapon_evolution_requires_passive_and_level() -> void:
 	manager.free()
 	state.free()
 
-func _test_permanent_upgrade_cost_formula() -> void:
+func _test_guild_upgrade_cost_formula() -> void:
 	var data: Node = GameDataScript.new()
-	data.permanent_upgrades["damage"] = 0
-	_assert_eq(data.get_upgrade_cost("damage"), 150, "Permanent upgrade base cost is used at level zero")
-	data.permanent_upgrades["damage"] = 3
-	_assert_eq(data.get_upgrade_cost("damage"), 480, "Permanent upgrade cost scales by step per level")
+	data.permanent_upgrades["guild_hall"] = 0
+	_assert_eq(data.get_upgrade_cost("guild_hall"), 220, "Guild upgrade base cost is used at level zero")
+	data.permanent_upgrades["guild_hall"] = 3
+	_assert_eq(data.get_upgrade_cost("guild_hall"), 1000, "Guild upgrade cost scales by step per level")
+	data.free()
+
+func _test_guild_upgrade_effects() -> void:
+	var data: Node = GameDataScript.new()
+	data.coins = 1200
+	_assert_true(data.buy_permanent_upgrade("dormitories"), "Dormitory guild upgrade can be bought")
+	_assert_eq(data.guild["companion_capacity"], 14, "Dormitory upgrade increases companion capacity")
+	data.permanent_upgrades["recruiter_network"] = 2
+	_assert_eq(data.get_reroll_cost(), 80, "Recruiter network discounts reroll cost")
+	data.permanent_upgrades["training_field"] = 2
+	_assert_float_eq(data.get_mission_xp_multiplier(), 1.3, "Training field increases mission XP multiplier")
+	data.permanent_upgrades["supply_cache"] = 1
+	var stats: Dictionary = data.get_selected_stats()
+	_assert_float_eq(float(stats["max_health"]), 110.0, "Supply cache increases leader health")
+	_assert_float_eq(float(stats["pickup_range"]), 128.0, "Supply cache increases leader pickup range")
 	data.free()
 
 func _test_default_guild_squad_summary() -> void:
@@ -353,6 +371,28 @@ func _test_selected_mission_combat_profile() -> void:
 	_assert_float_eq(cave["duration_seconds"], 240.0, "Selected harder mission has its own timer")
 	_assert_true(float(cave["enemy_speed_multiplier"]) > 1.0, "Wolf cave combat profile makes enemies faster")
 	_assert_true(float(cave["coin_multiplier"]) > 1.0, "Harder mission improves coin drops")
+	data.free()
+
+func _test_mission_victory_rewards_progression() -> void:
+	var data: Node = GameDataScript.new()
+	data.recruitment["reroll_count"] = 2
+	var summary: Dictionary = data.apply_mission_result("initial_forest_survival", "vitoria")
+	_assert_eq(summary["xp_per_companion"], 10, "Mission XP reward is split across active companions")
+	_assert_eq(data.companion_roster["c_warrior_001"]["level"], 2, "Mission XP can level active companions")
+	_assert_true(summary["leveled_companions"].has("Bruna"), "Mission result reports companions that leveled")
+	_assert_true(data.guild["unlocked_zones"].has("wolf_cave"), "Completing initial mission unlocks wolf cave")
+	_assert_true(summary["unlocked_zone_names"].has("Caverna dos Lobos"), "Mission result reports unlocked zone name")
+	_assert_eq(data.recruitment["reroll_count"], 0, "Mission return resets recruitment reroll cost")
+	data.free()
+
+func _test_flee_does_not_complete_mission() -> void:
+	var data: Node = GameDataScript.new()
+	data.recruitment["reroll_count"] = 1
+	var summary: Dictionary = data.apply_mission_result("initial_forest_survival", "fuga")
+	_assert_eq(summary["xp_per_companion"], 0, "Fleeing does not award completion XP")
+	_assert_eq(data.companion_roster["c_warrior_001"]["level"], 1, "Fleeing does not level companions through mission reward")
+	_assert_true(not data.guild["unlocked_zones"].has("wolf_cave"), "Fleeing does not unlock the next zone")
+	_assert_eq(data.recruitment["reroll_count"], 0, "Mission return through flee resets reroll cost")
 	data.free()
 
 func _test_enemy_spawner_accepts_mission_profile() -> void:
