@@ -5,6 +5,7 @@ extends Control
 @onready var xp_bar: ProgressBar = %XPBar
 @onready var level_label: Label = %LevelLabel
 @onready var timer_label: Label = %TimerLabel
+@onready var objective_label: Label = %ObjectiveLabel
 @onready var coins_label: Label = %CoinsLabel
 @onready var weapons_label: Label = %WeaponsLabel
 @onready var pause_button: Button = %PauseButton
@@ -83,6 +84,12 @@ func set_level(level: int) -> void:
 func set_timer(seconds: float) -> void:
 	var total := int(seconds)
 	timer_label.text = "Fim %02d:%02d" % [int(total / 60), total % 60]
+
+func set_objective(objective_type: String, current: int, target: int) -> void:
+	if objective_type == "kill_count" and target > 0:
+		objective_label.text = "Abates: %d/%d" % [current, target]
+	else:
+		objective_label.text = "Objetivo: sobreviver"
 
 func set_flee_status(is_preparing: bool, seconds: float) -> void:
 	if is_preparing:

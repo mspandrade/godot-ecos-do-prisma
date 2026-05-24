@@ -8,12 +8,19 @@ signal companion_roster_changed
 signal squad_changed(summary: Dictionary)
 signal recruitment_changed
 signal mission_changed(mission_id: String)
+signal travel_zone_changed(zone_id: String)
 signal equipment_changed
+signal training_changed(companion_id: String)
+signal bestiary_changed
+signal achievement_unlocked(achievement_id: String)
+signal settings_changed(settings: Dictionary)
+signal save_feedback(message: String)
 
 const SAVE_PATH := "user://save_data.cfg"
 const GameBalanceScript := preload("res://scripts/game/game_balance.gd")
 const MAX_SQUAD_SIZE := 6
 const MAX_COMPANION_EQUIPMENT := 2
+const MAX_EQUIPMENT_LEVEL := 5
 const RECRUITMENT_QUEUE_SIZE := 3
 const REROLL_COSTS := [100, 150, 250, 400]
 
@@ -24,7 +31,9 @@ var guild := {
 	"name": "Guilda Falida",
 	"level": 1,
 	"reputation": 0,
+	"morale": 50,
 	"companion_capacity": 12,
+	"campaign_completed": false,
 	"unlocked_structures": ["hall", "recruitment", "mission_board"],
 	"unlocked_zones": ["initial_forest"]
 }
@@ -33,6 +42,15 @@ var active_squad := []
 var recruitment := {}
 var equipment_inventory := []
 var equipment_serial := 0
+var bestiary := {}
+var achievements := {}
+var settings := {
+	"master_volume": 0.8,
+	"music_volume": 0.8,
+	"sfx_volume": 0.8,
+	"fullscreen": false
+}
+var selected_travel_zone := "initial_forest"
 var selected_mission_id := "initial_forest_survival"
 var missions := {
 	"initial_forest_survival": {
@@ -43,6 +61,8 @@ var missions := {
 		"recommended_level": 1,
 		"coin_reward": 80,
 		"xp_reward": 30,
+		"reputation_reward": 3,
+		"equipment_reward_chance": 0.35,
 		"completion_unlock_zone": "wolf_cave",
 		"completion_unlock_zone_name": "Caverna dos Lobos",
 		"enemies": ["goblins", "slimes"],
@@ -50,6 +70,8 @@ var missions := {
 		"risk": "Baixo",
 		"unlocked": true,
 		"combat": {
+			"objective_type": "survive",
+			"target_kills": 0,
 			"duration_seconds": 180.0,
 			"completion_coin_reward": 80,
 			"wave_offset": 0,
@@ -71,6 +93,8 @@ var missions := {
 		"recommended_level": 3,
 		"coin_reward": 150,
 		"xp_reward": 70,
+		"reputation_reward": 6,
+		"equipment_reward_chance": 0.5,
 		"completion_unlock_zone": "ancient_ruins",
 		"completion_unlock_zone_name": "Ruinas Antigas",
 		"enemies": ["lobos", "goblins rapidos"],
@@ -78,6 +102,8 @@ var missions := {
 		"risk": "Medio",
 		"unlocked": false,
 		"combat": {
+			"objective_type": "kill_count",
+			"target_kills": 140,
 			"duration_seconds": 240.0,
 			"completion_coin_reward": 150,
 			"wave_offset": 2,
@@ -99,11 +125,17 @@ var missions := {
 		"recommended_level": 5,
 		"coin_reward": 260,
 		"xp_reward": 130,
+		"reputation_reward": 10,
+		"completion_unlock_zone": "demon_gate",
+		"completion_unlock_zone_name": "Portao Demoniaco",
+		"equipment_reward_chance": 0.7,
 		"enemies": ["cultistas", "mortos-vivos"],
 		"objective": "Enfrentar inimigos resistentes e buscar reliquias.",
 		"risk": "Alto",
 		"unlocked": false,
 		"combat": {
+			"objective_type": "kill_count",
+			"target_kills": 190,
 			"duration_seconds": 300.0,
 			"completion_coin_reward": 260,
 			"wave_offset": 4,
@@ -115,6 +147,102 @@ var missions := {
 			"enemy_damage_multiplier": 1.28,
 			"xp_multiplier": 1.55,
 			"coin_multiplier": 1.55
+		}
+	},
+	"demon_gate_assault": {
+		"id": "demon_gate_assault",
+		"name": "Assalto ao Portao Demoniaco",
+		"zone": "demon_gate",
+		"zone_name": "Portao Demoniaco",
+		"recommended_level": 8,
+		"coin_reward": 420,
+		"xp_reward": 220,
+		"reputation_reward": 16,
+		"completion_unlock_zone": "demon_keep",
+		"completion_unlock_zone_name": "Fortaleza do Rei Demonio",
+		"equipment_reward_chance": 0.85,
+		"enemies": ["demonios", "cavaleiros corrompidos"],
+		"objective": "Romper a linha de defesa antes que o portal se estabilize.",
+		"risk": "Muito Alto",
+		"unlocked": false,
+		"combat": {
+			"objective_type": "kill_count",
+			"target_kills": 260,
+			"duration_seconds": 360.0,
+			"completion_coin_reward": 420,
+			"wave_offset": 7,
+			"spawn_amount_bonus": 5,
+			"spawn_interval_multiplier": 0.68,
+			"boss_interval": 90.0,
+			"enemy_health_multiplier": 1.85,
+			"enemy_speed_multiplier": 1.14,
+			"enemy_damage_multiplier": 1.55,
+			"xp_multiplier": 2.0,
+			"coin_multiplier": 2.0
+		}
+	},
+	"demon_king_vanguard": {
+		"id": "demon_king_vanguard",
+		"name": "Vanguarda do Rei Demonio",
+		"zone": "demon_keep",
+		"zone_name": "Fortaleza do Rei Demonio",
+		"recommended_level": 11,
+		"coin_reward": 650,
+		"xp_reward": 360,
+		"reputation_reward": 25,
+		"completion_unlock_zone": "demon_throne",
+		"completion_unlock_zone_name": "Trono do Rei Demonio",
+		"equipment_reward_chance": 1.0,
+		"enemies": ["generais demoniacos", "guardioes infernais"],
+		"objective": "Enfraquecer a guarda pessoal antes do confronto final.",
+		"risk": "Extremo",
+		"unlocked": false,
+		"combat": {
+			"objective_type": "kill_count",
+			"target_kills": 320,
+			"duration_seconds": 420.0,
+			"completion_coin_reward": 650,
+			"wave_offset": 11,
+			"spawn_amount_bonus": 7,
+			"spawn_interval_multiplier": 0.58,
+			"boss_interval": 75.0,
+			"enemy_health_multiplier": 2.35,
+			"enemy_speed_multiplier": 1.22,
+			"enemy_damage_multiplier": 1.95,
+			"xp_multiplier": 2.7,
+			"coin_multiplier": 2.6
+		}
+	},
+	"demon_king_final": {
+		"id": "demon_king_final",
+		"name": "Confronto com o Rei Demonio",
+		"zone": "demon_throne",
+		"zone_name": "Trono do Rei Demonio",
+		"recommended_level": 14,
+		"coin_reward": 1200,
+		"xp_reward": 600,
+		"reputation_reward": 50,
+		"equipment_reward_chance": 1.0,
+		"campaign_completion": true,
+		"campaign_completion_name": "O Rei Demonio caiu. A guilda cumpriu seu juramento.",
+		"enemies": ["rei demonio", "legiao final"],
+		"objective": "Derrotar a guarda final e quebrar o dominio do Rei Demonio.",
+		"risk": "Final",
+		"unlocked": false,
+		"combat": {
+			"objective_type": "kill_count",
+			"target_kills": 450,
+			"duration_seconds": 540.0,
+			"completion_coin_reward": 1200,
+			"wave_offset": 16,
+			"spawn_amount_bonus": 9,
+			"spawn_interval_multiplier": 0.5,
+			"boss_interval": 55.0,
+			"enemy_health_multiplier": 3.1,
+			"enemy_speed_multiplier": 1.28,
+			"enemy_damage_multiplier": 2.5,
+			"xp_multiplier": 3.6,
+			"coin_multiplier": 3.4
 		}
 	}
 }
@@ -233,7 +361,34 @@ var equipment_defs := {
 		"cost": 180,
 		"effect": "+0.15 poder, +12 alcance",
 		"bonuses": {"ability_power": 0.15, "range": 12.0}
+	},
+	"tower_shield": {
+		"name": "Escudo Torre",
+		"slot": "armadura",
+		"cost": 210,
+		"effect": "+4 defesa, -0.7 mobilidade, -10 velocidade",
+		"bonuses": {"defense": 4.0, "speed_rating": -0.7, "move_speed": -10.0}
+	},
+	"heavy_plate": {
+		"name": "Placas Pesadas",
+		"slot": "armadura",
+		"cost": 260,
+		"effect": "+22 vida, +2 defesa, -1.0 mobilidade, -14 velocidade",
+		"bonuses": {"max_health": 22.0, "defense": 2.0, "speed_rating": -1.0, "move_speed": -14.0}
 	}
+}
+
+var achievement_defs := {
+	"first_contract": {"name": "Primeiro Contrato", "desc": "Concluir a primeira missao."},
+	"first_recruit": {"name": "Nova Assinatura", "desc": "Contratar um companion."},
+	"first_equipment": {"name": "Aco da Guilda", "desc": "Obter um equipamento."},
+	"full_squad": {"name": "Mesa Cheia", "desc": "Formar um esquadrao com 6 companions."},
+	"expanded_roster": {"name": "Guilda Populosa", "desc": "Manter 7 companions no roster."},
+	"guild_level_5": {"name": "Sede Restaurada", "desc": "Levar a guilda ao nivel 5."},
+	"first_death": {"name": "Preco do Contrato", "desc": "Perder um companion em missao."},
+	"first_resurrection": {"name": "Segunda Chance", "desc": "Ressuscitar um companion."},
+	"bestiary_25": {"name": "Anotacoes de Campo", "desc": "Registrar 25 inimigos derrotados."},
+	"demon_king_defeated": {"name": "Juramento Cumprido", "desc": "Concluir a campanha contra o Rei Demonio."}
 }
 
 func _ready() -> void:
@@ -300,6 +455,7 @@ func buy_permanent_upgrade(upgrade_id: String) -> bool:
 		companion_roster_changed.emit()
 	if upgrade_id == "recruiter_network":
 		recruitment_changed.emit()
+	_check_guild_achievements()
 	save_data()
 	return true
 
@@ -343,6 +499,7 @@ func toggle_companion_in_squad(companion_id: String) -> bool:
 		if str(data.get("state", "disponivel")) in ["morto", "treinando"]:
 			return false
 		active_squad.append(companion_id)
+	_check_squad_achievements()
 	save_data()
 	squad_changed.emit(get_squad_summary())
 	return true
@@ -390,11 +547,15 @@ func apply_companion_run_results(results: Array) -> Dictionary:
 		if str(data["state"]) == "morto":
 			active_squad.erase(companion_id)
 			summary["dead_companions"].append(companion_name)
+			_unlock_achievement("first_death")
 		elif str(data["state"]) == "ferido":
 			summary["wounded_companions"].append(companion_name)
 		companion_roster[companion_id] = data
 		changed = true
 	if changed:
+		var morale_penalty := int(summary["dead_companions"].size()) * -8 + int(summary["wounded_companions"].size()) * -2
+		if morale_penalty != 0:
+			_apply_morale_delta(morale_penalty)
 		save_data()
 		companion_roster_changed.emit()
 		squad_changed.emit(get_squad_summary())
@@ -449,6 +610,8 @@ func hire_recruit(index: int) -> bool:
 	while available.size() < RECRUITMENT_QUEUE_SIZE:
 		available.append(_generate_recruit_candidate())
 	recruitment["available"] = available
+	_unlock_achievement("first_recruit")
+	_check_roster_achievements()
 	save_data()
 	companion_roster_changed.emit()
 	recruitment_changed.emit()
@@ -499,6 +662,7 @@ func resurrect_companion(companion_id: String) -> bool:
 	data["current_health"] = maxf(1.0, float(data.get("max_health", 1.0)) * 0.35)
 	data["xp"] = int(floor(max(0, int(data.get("xp", 0))) * 0.75))
 	companion_roster[companion_id] = data
+	_unlock_achievement("first_resurrection")
 	save_data()
 	companion_roster_changed.emit()
 	squad_changed.emit(get_squad_summary())
@@ -545,6 +709,104 @@ func apply_companion_pending_upgrade(companion_id: String, upgrade_id: String) -
 	squad_changed.emit(get_squad_summary())
 	return true
 
+func get_training_options() -> Array:
+	return [
+		{"id": "attack", "name": "Ataque", "desc": "+6% ataque permanente"},
+		{"id": "health", "name": "Vigor", "desc": "+6 vida maxima"},
+		{"id": "speed", "name": "Mobilidade", "desc": "+0.25 mobilidade e +7 velocidade"},
+		{"id": "defense", "name": "Defesa", "desc": "+1 defesa"}
+	]
+
+func get_training_cost(companion_id: String) -> int:
+	_ensure_guild_defaults()
+	if not companion_roster.has(companion_id):
+		return 0
+	var data: Dictionary = companion_roster[companion_id]
+	var level := int(data.get("level", 1))
+	var sessions := int(data.get("training_sessions", 0))
+	return 90 + level * 35 + sessions * 45
+
+func train_companion(companion_id: String, training_id: String) -> bool:
+	_ensure_guild_defaults()
+	if not (guild.get("unlocked_structures", []) as Array).has("training_field"):
+		return false
+	if not companion_roster.has(companion_id):
+		return false
+	var data: Dictionary = companion_roster[companion_id]
+	if str(data.get("state", "disponivel")) == "morto":
+		return false
+	var allowed := false
+	for option in get_training_options():
+		if str(option.get("id", "")) == training_id:
+			allowed = true
+			break
+	if not allowed:
+		return false
+	var cost := get_training_cost(companion_id)
+	if cost <= 0 or not spend_coins(cost):
+		return false
+	match training_id:
+		"attack":
+			data["attack"] = float(data.get("attack", 0.0)) * 1.06
+		"health":
+			data["max_health"] = float(data.get("max_health", 1.0)) + 6.0
+			data["current_health"] = float(data.get("max_health", 1.0))
+		"speed":
+			data["move_speed"] = float(data.get("move_speed", 1.0)) + 7.0
+			data["speed_rating"] = float(data.get("speed_rating", 0.0)) + 0.25
+		"defense":
+			data["defense"] = float(data.get("defense", 0.0)) + 1.0
+	data["training_sessions"] = int(data.get("training_sessions", 0)) + 1
+	companion_roster[companion_id] = data
+	save_data()
+	companion_roster_changed.emit()
+	squad_changed.emit(get_squad_summary())
+	training_changed.emit(companion_id)
+	return true
+
+func add_bestiary_kills(kill_counts: Dictionary) -> void:
+	_ensure_guild_defaults()
+	var changed := false
+	for enemy_type in kill_counts.keys():
+		var key := str(enemy_type)
+		var amount := int(kill_counts[enemy_type])
+		if key.is_empty() or amount <= 0:
+			continue
+		bestiary[key] = int(bestiary.get(key, 0)) + amount
+		changed = true
+	if changed:
+		_check_bestiary_achievements()
+		save_data()
+		bestiary_changed.emit()
+
+func get_bestiary() -> Dictionary:
+	_ensure_guild_defaults()
+	return bestiary.duplicate(true)
+
+func get_achievements() -> Dictionary:
+	return achievements.duplicate(true)
+
+func get_achievement_defs() -> Dictionary:
+	return achievement_defs.duplicate(true)
+
+func get_settings() -> Dictionary:
+	return settings.duplicate(true)
+
+func set_game_setting(setting_id: String, value: Variant) -> bool:
+	if not settings.has(setting_id):
+		return false
+	match setting_id:
+		"master_volume", "music_volume", "sfx_volume":
+			settings[setting_id] = clampf(float(value), 0.0, 1.0)
+		"fullscreen":
+			settings[setting_id] = bool(value)
+		_:
+			return false
+	_apply_settings()
+	save_data()
+	settings_changed.emit(get_settings())
+	return true
+
 func get_equipment_defs() -> Dictionary:
 	return equipment_defs.duplicate(true)
 
@@ -560,15 +822,23 @@ func craft_equipment(equipment_id: String) -> bool:
 	var cost := int(def.get("cost", 0))
 	if not spend_coins(cost):
 		return false
-	equipment_serial += 1
-	equipment_inventory.append({
-		"uid": "%s_%03d" % [equipment_id, equipment_serial],
-		"equipment_id": equipment_id,
-		"equipped_to": ""
-	})
+	equipment_inventory.append(_create_equipment_item(equipment_id))
+	_unlock_achievement("first_equipment")
 	save_data()
 	equipment_changed.emit()
 	return true
+
+func award_random_equipment(recommended_level: int = 1) -> String:
+	_ensure_guild_defaults()
+	var ids := equipment_defs.keys()
+	if ids.is_empty():
+		return ""
+	var equipment_id := str(ids.pick_random())
+	var item_name := _add_equipment_reward(equipment_id, _roll_mission_equipment_rarity(recommended_level))
+	_unlock_achievement("first_equipment")
+	save_data()
+	equipment_changed.emit()
+	return item_name
 
 func equip_companion_item(companion_id: String, item_uid: String) -> bool:
 	_ensure_guild_defaults()
@@ -590,7 +860,7 @@ func equip_companion_item(companion_id: String, item_uid: String) -> bool:
 	if not equipment_defs.has(equipment_id):
 		return false
 	var def: Dictionary = equipment_defs[equipment_id]
-	_apply_equipment_bonus(data, def, 1.0)
+	_apply_equipment_bonus(data, def, item, 1.0)
 	equipment.append(item_uid)
 	data["equipment"] = equipment
 	item["equipped_to"] = companion_id
@@ -619,7 +889,7 @@ func unequip_companion_item(item_uid: String) -> bool:
 	if not equipment_defs.has(equipment_id):
 		return false
 	var def: Dictionary = equipment_defs[equipment_id]
-	_apply_equipment_bonus(data, def, -1.0)
+	_apply_equipment_bonus(data, def, item, -1.0)
 	equipment.erase(item_uid)
 	data["equipment"] = equipment
 	item["equipped_to"] = ""
@@ -629,6 +899,137 @@ func unequip_companion_item(item_uid: String) -> bool:
 	companion_roster_changed.emit()
 	squad_changed.emit(get_squad_summary())
 	equipment_changed.emit()
+	return true
+
+func get_equipment_upgrade_cost(item_uid: String) -> int:
+	_ensure_guild_defaults()
+	var item_index := _equipment_index(item_uid)
+	if item_index < 0:
+		return 0
+	var item: Dictionary = equipment_inventory[item_index]
+	var equipment_id := str(item.get("equipment_id", ""))
+	if not equipment_defs.has(equipment_id):
+		return 0
+	var def: Dictionary = equipment_defs[equipment_id]
+	var level := int(item.get("level", 1))
+	if level >= MAX_EQUIPMENT_LEVEL:
+		return 0
+	var rarity_multiplier := _equipment_rarity_cost_multiplier(str(item.get("rarity", "comum")))
+	return int(round((int(def.get("cost", 0)) * 0.55 + level * 70) * rarity_multiplier))
+
+func get_equipment_reforge_cost(item_uid: String) -> int:
+	_ensure_guild_defaults()
+	var item_index := _equipment_index(item_uid)
+	if item_index < 0:
+		return 0
+	var item: Dictionary = equipment_inventory[item_index]
+	var equipment_id := str(item.get("equipment_id", ""))
+	if not equipment_defs.has(equipment_id):
+		return 0
+	var def: Dictionary = equipment_defs[equipment_id]
+	var level := int(item.get("level", 1))
+	var rarity_multiplier := _equipment_rarity_cost_multiplier(str(item.get("rarity", "comum")))
+	return int(round((int(def.get("cost", 0)) * 0.8 + level * 55) * rarity_multiplier))
+
+func upgrade_equipment(item_uid: String) -> bool:
+	_ensure_guild_defaults()
+	var item_index := _equipment_index(item_uid)
+	if item_index < 0:
+		return false
+	var item: Dictionary = equipment_inventory[item_index]
+	var level := int(item.get("level", 1))
+	if level >= MAX_EQUIPMENT_LEVEL:
+		return false
+	var equipment_id := str(item.get("equipment_id", ""))
+	if not equipment_defs.has(equipment_id):
+		return false
+	var cost := get_equipment_upgrade_cost(item_uid)
+	if cost <= 0 or not spend_coins(cost):
+		return false
+	var def: Dictionary = equipment_defs[equipment_id]
+	var companion_id := str(item.get("equipped_to", ""))
+	if not companion_id.is_empty() and companion_roster.has(companion_id):
+		var data: Dictionary = companion_roster[companion_id]
+		_apply_equipment_bonus(data, def, item, -1.0)
+		item["level"] = level + 1
+		_apply_equipment_bonus(data, def, item, 1.0)
+		companion_roster[companion_id] = data
+	else:
+		item["level"] = level + 1
+	equipment_inventory[item_index] = item
+	save_data()
+	companion_roster_changed.emit()
+	squad_changed.emit(get_squad_summary())
+	equipment_changed.emit()
+	return true
+
+func reforge_equipment(item_uid: String) -> bool:
+	_ensure_guild_defaults()
+	var item_index := _equipment_index(item_uid)
+	if item_index < 0:
+		return false
+	var item: Dictionary = equipment_inventory[item_index]
+	var equipment_id := str(item.get("equipment_id", ""))
+	if not equipment_defs.has(equipment_id):
+		return false
+	var cost := get_equipment_reforge_cost(item_uid)
+	if cost <= 0 or not spend_coins(cost):
+		return false
+	var def: Dictionary = equipment_defs[equipment_id]
+	var companion_id := str(item.get("equipped_to", ""))
+	if not companion_id.is_empty() and companion_roster.has(companion_id):
+		var data: Dictionary = companion_roster[companion_id]
+		_apply_equipment_bonus(data, def, item, -1.0)
+		item["rarity"] = _roll_reforge_rarity(str(item.get("rarity", "comum")))
+		_apply_equipment_bonus(data, def, item, 1.0)
+		companion_roster[companion_id] = data
+	else:
+		item["rarity"] = _roll_reforge_rarity(str(item.get("rarity", "comum")))
+	equipment_inventory[item_index] = item
+	save_data()
+	companion_roster_changed.emit()
+	squad_changed.emit(get_squad_summary())
+	equipment_changed.emit()
+	return true
+
+func get_travel_zones() -> Array:
+	_ensure_guild_defaults()
+	var zones := {}
+	for mission_id in missions.keys():
+		var mission: Dictionary = missions[mission_id]
+		var zone_id := str(mission.get("zone", ""))
+		if zone_id.is_empty():
+			continue
+		var recommended := int(mission.get("recommended_level", 1))
+		if not zones.has(zone_id):
+			zones[zone_id] = {
+				"id": zone_id,
+				"name": str(mission.get("zone_name", zone_id)),
+				"recommended_level": recommended,
+				"mission_count": 0,
+				"unlocked": _is_zone_unlocked(zone_id)
+			}
+		zones[zone_id]["mission_count"] = int(zones[zone_id]["mission_count"]) + 1
+		zones[zone_id]["recommended_level"] = mini(int(zones[zone_id]["recommended_level"]), recommended)
+	var result := []
+	for zone_id in zones.keys():
+		result.append(zones[zone_id])
+	result.sort_custom(func(a: Dictionary, b: Dictionary): return int(a["recommended_level"]) < int(b["recommended_level"]))
+	return result
+
+func get_selected_travel_zone() -> String:
+	_ensure_guild_defaults()
+	return selected_travel_zone
+
+func select_travel_zone(zone_id: String) -> bool:
+	_ensure_guild_defaults()
+	if not _zone_exists(zone_id):
+		return false
+	if not _is_zone_unlocked(zone_id):
+		return false
+	selected_travel_zone = zone_id
+	save_data()
+	travel_zone_changed.emit(selected_travel_zone)
 	return true
 
 func get_missions() -> Array:
@@ -695,6 +1096,9 @@ func get_selected_mission_combat_profile() -> Dictionary:
 	var defaults := {
 		"mission_id": str(mission.get("id", selected_mission_id)),
 		"mission_name": str(mission.get("name", "")),
+		"recommended_level": int(mission.get("recommended_level", 1)),
+		"objective_type": "survive",
+		"target_kills": 0,
 		"duration_seconds": 180.0,
 		"completion_coin_reward": int(mission.get("coin_reward", 0)),
 		"wave_offset": 0,
@@ -705,7 +1109,9 @@ func get_selected_mission_combat_profile() -> Dictionary:
 		"enemy_speed_multiplier": 1.0,
 		"enemy_damage_multiplier": 1.0,
 		"xp_multiplier": 1.0,
-		"coin_multiplier": 1.0
+		"coin_multiplier": 1.0,
+		"enemy_sprites": _mission_enemy_sprites(str(mission.get("id", selected_mission_id)), false),
+		"boss_sprites": _mission_enemy_sprites(str(mission.get("id", selected_mission_id)), true)
 	}
 	for key in defaults.keys():
 		if not profile.has(key):
@@ -725,9 +1131,14 @@ func apply_mission_result(mission_id: String, result_reason: String) -> Dictiona
 		"result_reason": result_reason,
 		"xp_reward": 0,
 		"xp_per_companion": 0,
+		"reputation_reward": 0,
 		"leveled_companions": [],
 		"unlocked_zones": [],
 		"unlocked_zone_names": [],
+		"equipment_rewards": [],
+		"campaign_completed": false,
+		"campaign_completion_name": "",
+		"morale_delta": 0,
 		"reroll_reset": false
 	}
 	if int(recruitment.get("reroll_count", 0)) != 0:
@@ -735,11 +1146,19 @@ func apply_mission_result(mission_id: String, result_reason: String) -> Dictiona
 		summary["reroll_reset"] = true
 	if result_reason == "vitoria":
 		_apply_mission_victory_rewards(mission, summary)
+		_unlock_achievement("first_contract")
+		_apply_morale_delta(5, summary)
+	elif result_reason == "fuga":
+		_apply_morale_delta(-3, summary)
+	else:
+		_apply_morale_delta(-6, summary)
 	save_data()
 	if result_reason == "vitoria":
 		companion_roster_changed.emit()
 		squad_changed.emit(get_squad_summary())
 		guild_changed.emit()
+		if not summary["equipment_rewards"].is_empty():
+			equipment_changed.emit()
 		mission_changed.emit(selected_mission_id)
 	if bool(summary["reroll_reset"]):
 		recruitment_changed.emit()
@@ -769,6 +1188,64 @@ func get_squad_summary() -> Dictionary:
 		"speed_label": classify_squad_speed(average_speed),
 		"mobility_warning": get_mobility_warning(average_speed)
 	}
+
+func get_morale_label() -> String:
+	var morale := int(guild.get("morale", 50))
+	if morale < 25:
+		return "Abalada"
+	if morale < 50:
+		return "Tensa"
+	if morale < 75:
+		return "Estavel"
+	return "Inspirada"
+
+func _apply_morale_delta(delta: int, summary: Dictionary = {}) -> void:
+	var before := int(guild.get("morale", 50))
+	var after: int = clampi(before + delta, 0, 100)
+	guild["morale"] = after
+	if not summary.is_empty():
+		summary["morale_delta"] = after - before
+
+func _unlock_achievement(achievement_id: String) -> void:
+	if not achievement_defs.has(achievement_id):
+		return
+	if bool(achievements.get(achievement_id, false)):
+		return
+	achievements[achievement_id] = true
+	achievement_unlocked.emit(achievement_id)
+
+func _check_bestiary_achievements() -> void:
+	var total := 0
+	for enemy_type in bestiary.keys():
+		total += int(bestiary[enemy_type])
+	if total >= 25:
+		_unlock_achievement("bestiary_25")
+
+func _check_squad_achievements() -> void:
+	if active_squad.size() >= MAX_SQUAD_SIZE:
+		_unlock_achievement("full_squad")
+
+func _check_roster_achievements() -> void:
+	if companion_roster.size() >= 7:
+		_unlock_achievement("expanded_roster")
+
+func _check_guild_achievements() -> void:
+	if int(guild.get("level", 1)) >= 5:
+		_unlock_achievement("guild_level_5")
+
+func _mission_enemy_sprites(mission_id: String, boss: bool) -> Array:
+	match mission_id:
+		"wolf_cave_scout":
+			return ["orc_green_staff", "goblin_green_heavy"] if boss else ["goblin_green_spear", "bat_purple", "goblin_green_heavy"]
+		"ancient_ruins_push":
+			return ["necromancer_purple", "dark_knight_red"] if boss else ["cultist_purple_bow", "necromancer_purple", "spider_red"]
+		"demon_gate_assault":
+			return ["demon_red_axe", "dark_knight_red"] if boss else ["demon_red_axe", "cultist_purple_bow", "dark_knight_red"]
+		"demon_king_vanguard":
+			return ["demon_red_axe", "dark_knight_red"] if boss else ["demon_red_axe", "dark_knight_red", "necromancer_purple"]
+		"demon_king_final":
+			return ["demon_red_axe"] if boss else ["demon_red_axe", "dark_knight_red", "necromancer_purple"]
+	return ["orc_green_staff", "goblin_green_heavy"] if boss else ["goblin_green_spear", "slime_orange", "goblin_green_sword"]
 
 func classify_squad_speed(average_speed: float) -> String:
 	if average_speed < 4.0:
@@ -804,8 +1281,11 @@ func _apply_mission_victory_rewards(mission: Dictionary, summary: Dictionary) ->
 	var active_ids := _rewardable_active_companion_ids()
 	var xp_reward := int(round(int(mission.get("xp_reward", 0)) * get_mission_xp_multiplier()))
 	var xp_per_companion := int(ceil(float(xp_reward) / max(1, active_ids.size()))) if active_ids.size() > 0 else 0
+	var reputation_reward := int(mission.get("reputation_reward", int(mission.get("recommended_level", 1))))
 	summary["xp_reward"] = xp_reward
 	summary["xp_per_companion"] = xp_per_companion
+	summary["reputation_reward"] = reputation_reward
+	guild["reputation"] = max(0, int(guild.get("reputation", 0)) + reputation_reward)
 	if xp_per_companion > 0:
 		for companion_id in active_ids:
 			var level_result := _add_companion_xp(companion_id, xp_per_companion)
@@ -819,6 +1299,12 @@ func _apply_mission_victory_rewards(mission: Dictionary, summary: Dictionary) ->
 			guild["unlocked_zones"] = unlocked_zones
 			summary["unlocked_zones"].append(unlock_zone)
 			summary["unlocked_zone_names"].append(str(mission.get("completion_unlock_zone_name", unlock_zone)))
+	if bool(mission.get("campaign_completion", false)):
+		guild["campaign_completed"] = true
+		summary["campaign_completed"] = true
+		summary["campaign_completion_name"] = str(mission.get("campaign_completion_name", "Campanha concluida."))
+		_unlock_achievement("demon_king_defeated")
+	_roll_mission_equipment_reward(mission, summary)
 
 func get_mission_xp_multiplier() -> float:
 	return 1.0 + int(permanent_upgrades.get("training_field", 0)) * 0.15
@@ -917,12 +1403,20 @@ func save_data() -> void:
 	cfg.set_value("guild", "recruitment", recruitment)
 	cfg.set_value("guild", "equipment_inventory", equipment_inventory)
 	cfg.set_value("guild", "equipment_serial", equipment_serial)
+	cfg.set_value("guild", "bestiary", bestiary)
+	cfg.set_value("guild", "achievements", achievements)
+	cfg.set_value("guild", "selected_travel_zone", selected_travel_zone)
 	cfg.set_value("guild", "selected_mission_id", selected_mission_id)
-	cfg.save(SAVE_PATH)
+	cfg.set_value("settings", "data", settings)
+	var err := cfg.save(SAVE_PATH)
+	if err == OK:
+		save_feedback.emit("Progresso salvo.")
 
 func load_data() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
+	var err := cfg.load(SAVE_PATH)
+	if err != OK:
+		_backup_corrupt_save_if_needed()
 		return
 	coins = int(cfg.get_value("save", "coins", coins))
 	selected_character = str(cfg.get_value("save", "selected_character", selected_character))
@@ -934,8 +1428,37 @@ func load_data() -> void:
 	recruitment = cfg.get_value("guild", "recruitment", recruitment)
 	equipment_inventory = cfg.get_value("guild", "equipment_inventory", equipment_inventory)
 	equipment_serial = int(cfg.get_value("guild", "equipment_serial", equipment_serial))
+	bestiary = cfg.get_value("guild", "bestiary", bestiary)
+	achievements = cfg.get_value("guild", "achievements", achievements)
+	selected_travel_zone = str(cfg.get_value("guild", "selected_travel_zone", selected_travel_zone))
 	selected_mission_id = str(cfg.get_value("guild", "selected_mission_id", selected_mission_id))
+	settings = cfg.get_value("settings", "data", settings)
 	_ensure_guild_defaults()
+	_apply_settings()
+
+func _backup_corrupt_save_if_needed() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return
+	var absolute_path := ProjectSettings.globalize_path(SAVE_PATH)
+	var backup_path := "%s.corrupt" % absolute_path
+	DirAccess.rename_absolute(absolute_path, backup_path)
+
+func _apply_settings() -> void:
+	_set_bus_volume("Master", float(settings.get("master_volume", 0.8)))
+	_set_bus_volume("Music", float(settings.get("music_volume", 0.8)))
+	_set_bus_volume("SFX", float(settings.get("sfx_volume", 0.8)))
+	if bool(settings.get("fullscreen", false)):
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+
+func _set_bus_volume(bus_name: String, linear_value: float) -> void:
+	var index := AudioServer.get_bus_index(bus_name)
+	if index < 0:
+		return
+	var volume := clampf(linear_value, 0.0, 1.0)
+	AudioServer.set_bus_mute(index, volume <= 0.0)
+	AudioServer.set_bus_volume_db(index, linear_to_db(maxf(volume, 0.0001)))
 
 func _ensure_guild_defaults() -> void:
 	if guild.is_empty():
@@ -947,7 +1470,7 @@ func _ensure_guild_defaults() -> void:
 			"unlocked_structures": ["hall", "recruitment", "mission_board"],
 			"unlocked_zones": ["initial_forest"]
 		}
-	for key in ["name", "level", "reputation", "companion_capacity", "unlocked_structures", "unlocked_zones"]:
+	for key in ["name", "level", "reputation", "morale", "companion_capacity", "campaign_completed", "unlocked_structures", "unlocked_zones"]:
 		if not guild.has(key):
 			guild[key] = _default_guild_value(key)
 	for upgrade_id in upgrade_defs.keys():
@@ -964,6 +1487,8 @@ func _ensure_guild_defaults() -> void:
 			companion_data["pending_upgrades"] = 0
 		if not companion_data.has("equipment"):
 			companion_data["equipment"] = []
+		if not companion_data.has("training_sessions"):
+			companion_data["training_sessions"] = 0
 		companion_roster[companion_id] = companion_data
 	active_squad = active_squad.filter(func(companion_id):
 		var resolved_id := str(companion_id)
@@ -975,8 +1500,19 @@ func _ensure_guild_defaults() -> void:
 		recruitment["available"] = _generate_recruitment_queue()
 	if not recruitment.has("reroll_count"):
 		recruitment["reroll_count"] = 0
+	for i in range(equipment_inventory.size()):
+		var item: Dictionary = equipment_inventory[i]
+		if not item.has("rarity"):
+			item["rarity"] = "comum"
+		if not item.has("level"):
+			item["level"] = 1
+		if not item.has("equipped_to"):
+			item["equipped_to"] = ""
+		equipment_inventory[i] = item
 	if not missions.has(selected_mission_id) or not _is_mission_unlocked(missions[selected_mission_id]):
 		selected_mission_id = "initial_forest_survival"
+	if not _zone_exists(selected_travel_zone) or not _is_zone_unlocked(selected_travel_zone):
+		selected_travel_zone = str(missions[selected_mission_id].get("zone", "initial_forest"))
 
 func _default_guild_value(key: String) -> Variant:
 	match key:
@@ -986,8 +1522,12 @@ func _default_guild_value(key: String) -> Variant:
 			return 1
 		"reputation":
 			return 0
+		"morale":
+			return 50
 		"companion_capacity":
 			return 12
+		"campaign_completed":
+			return false
 		"unlocked_structures":
 			return ["hall", "recruitment", "mission_board"]
 		"unlocked_zones":
@@ -1019,10 +1559,44 @@ func _equipment_index(item_uid: String) -> int:
 			return i
 	return -1
 
-func _apply_equipment_bonus(data: Dictionary, def: Dictionary, direction: float) -> void:
+func _create_equipment_item(equipment_id: String, rarity: String = "") -> Dictionary:
+	equipment_serial += 1
+	return {
+		"uid": "%s_%03d" % [equipment_id, equipment_serial],
+		"equipment_id": equipment_id,
+		"rarity": _roll_equipment_rarity() if rarity.is_empty() else rarity,
+		"level": 1,
+		"equipped_to": ""
+	}
+
+func _add_equipment_reward(equipment_id: String, rarity: String) -> String:
+	if not equipment_defs.has(equipment_id):
+		return ""
+	var item := _create_equipment_item(equipment_id, rarity)
+	equipment_inventory.append(item)
+	var def: Dictionary = equipment_defs[equipment_id]
+	return "%s %s" % [
+		str(def.get("name", equipment_id)),
+		str(item.get("rarity", "comum")).capitalize()
+	]
+
+func _roll_mission_equipment_reward(mission: Dictionary, summary: Dictionary) -> void:
+	var chance := float(mission.get("equipment_reward_chance", 0.0))
+	if chance <= 0.0 or randf() > chance:
+		return
+	var ids := equipment_defs.keys()
+	if ids.is_empty():
+		return
+	var equipment_id := str(ids.pick_random())
+	var item_name := _add_equipment_reward(equipment_id, _roll_mission_equipment_rarity(int(mission.get("recommended_level", 1))))
+	if not item_name.is_empty():
+		summary["equipment_rewards"].append(item_name)
+
+func _apply_equipment_bonus(data: Dictionary, def: Dictionary, item: Dictionary, direction: float) -> void:
 	var bonuses: Dictionary = def.get("bonuses", {})
+	var multiplier := _equipment_power_multiplier(item)
 	for stat in bonuses.keys():
-		var amount := float(bonuses[stat]) * direction
+		var amount := float(bonuses[stat]) * multiplier * direction
 		match str(stat):
 			"attack":
 				data["attack"] = maxf(0.0, float(data.get("attack", 0.0)) + amount)
@@ -1044,6 +1618,95 @@ func _apply_equipment_bonus(data: Dictionary, def: Dictionary, direction: float)
 				data["ability_power"] = maxf(0.0, float(data.get("ability_power", 0.0)) + amount)
 			"cooldown":
 				data["cooldown"] = maxf(0.1, float(data.get("cooldown", 1.0)) + amount)
+
+func _equipment_power_multiplier(item: Dictionary) -> float:
+	var level_bonus := 1.0 + maxi(0, int(item.get("level", 1)) - 1) * 0.25
+	return level_bonus * _equipment_rarity_power_multiplier(str(item.get("rarity", "comum")))
+
+func _equipment_rarity_power_multiplier(rarity: String) -> float:
+	match rarity:
+		"incomum":
+			return 1.12
+		"raro":
+			return 1.28
+		"epico":
+			return 1.5
+		"lendario":
+			return 1.85
+	return 1.0
+
+func _equipment_rarity_cost_multiplier(rarity: String) -> float:
+	match rarity:
+		"incomum":
+			return 1.2
+		"raro":
+			return 1.45
+		"epico":
+			return 1.8
+		"lendario":
+			return 2.35
+	return 1.0
+
+func _roll_equipment_rarity() -> String:
+	var roll := randf()
+	var guild_level := int(guild.get("level", 1))
+	var legendary_threshold := 0.005 + guild_level * 0.002
+	var epic_threshold := 0.035 + guild_level * 0.006
+	var rare_threshold := 0.12 + guild_level * 0.015
+	var uncommon_threshold := 0.36 + guild_level * 0.025
+	if roll < legendary_threshold:
+		return "lendario"
+	if roll < epic_threshold:
+		return "epico"
+	if roll < rare_threshold:
+		return "raro"
+	if roll < uncommon_threshold:
+		return "incomum"
+	return "comum"
+
+func _roll_mission_equipment_rarity(recommended_level: int) -> String:
+	var roll := randf()
+	var level_bonus := maxi(0, recommended_level - 1)
+	if roll < 0.01 + level_bonus * 0.004:
+		return "lendario"
+	if roll < 0.05 + level_bonus * 0.012:
+		return "epico"
+	if roll < 0.18 + level_bonus * 0.03:
+		return "raro"
+	if roll < 0.48 + level_bonus * 0.04:
+		return "incomum"
+	return "comum"
+
+func _roll_reforge_rarity(current_rarity: String) -> String:
+	var roll := randf()
+	match current_rarity:
+		"lendario":
+			if roll < 0.75:
+				return "lendario"
+			return "epico"
+		"epico":
+			if roll < 0.18:
+				return "lendario"
+			if roll < 0.7:
+				return "epico"
+			return "raro"
+		"raro":
+			if roll < 0.08:
+				return "epico"
+			if roll < 0.5:
+				return "raro"
+			return "incomum"
+		"incomum":
+			if roll < 0.08:
+				return "raro"
+			if roll < 0.58:
+				return "incomum"
+			return "comum"
+	if roll < 0.1:
+		return "raro"
+	if roll < 0.45:
+		return "incomum"
+	return "comum"
 
 func _default_companion_roster() -> Dictionary:
 	return {
@@ -1081,6 +1744,7 @@ func _make_companion_data(companion_id: String, companion_name: String, class_ty
 		"passive": str(base.get("passive", "")),
 		"traits": traits,
 		"equipment": [],
+		"training_sessions": 0,
 		"pending_upgrades": 0,
 		"state": "disponivel"
 	}
@@ -1190,8 +1854,17 @@ func _is_mission_unlocked(mission: Dictionary) -> bool:
 	if bool(mission.get("unlocked", false)):
 		return true
 	var zone := str(mission.get("zone", ""))
+	return _is_zone_unlocked(zone)
+
+func _is_zone_unlocked(zone_id: String) -> bool:
 	var unlocked_zones: Array = guild.get("unlocked_zones", [])
-	return unlocked_zones.has(zone)
+	return unlocked_zones.has(zone_id)
+
+func _zone_exists(zone_id: String) -> bool:
+	for mission_id in missions.keys():
+		if str(missions[mission_id].get("zone", "")) == zone_id:
+			return true
+	return false
 
 func _mission_risk_label(level_delta: float, average_speed: float, base_risk: String) -> String:
 	var score := 0

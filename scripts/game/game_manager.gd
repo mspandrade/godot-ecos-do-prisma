@@ -16,6 +16,9 @@ var mission_duration := 20.0 * 60.0
 var run_finished := false
 var flee_pending := false
 var flee_elapsed := 0.0
+var combat_equipment_rewards := []
+var kill_count := 0
+var bestiary_kills := {}
 
 @onready var player: Player = $Player
 @onready var camera: CameraController = $Camera2D
@@ -48,6 +51,7 @@ func _ready() -> void:
 	_connect_signals()
 	hud.call("bind", player, run_state)
 	hud.call("bind_companions", companion_manager)
+	_update_objective_hud()
 	pause_menu.hide()
 	game_over.hide()
 	level_choices.hide()
@@ -102,10 +106,28 @@ func _fire_projectile(pos: Vector2, dir: Vector2, damage: float, speed: float, p
 func _recycle_projectile(projectile: Projectile) -> void:
 	projectile.deactivate()
 
-func _drop_orb(pos: Vector2, xp_value: int, coin_value: int) -> void:
+func _drop_orb(pos: Vector2, xp_value: int, coin_value: int, enemy_type: String = "") -> void:
+	kill_count += 1
+	if not enemy_type.is_empty():
+		bestiary_kills[enemy_type] = int(bestiary_kills.get(enemy_type, 0)) + 1
+	_update_objective_hud()
 	var orb: XPOrb = orb_pool.acquire()
 	if orb:
 		orb.drop(pos, xp_value, coin_value)
+	_roll_combat_equipment_drop(xp_value, coin_value)
+	if str(mission_profile.get("objective_type", "survive")) == "kill_count" and kill_count >= int(mission_profile.get("target_kills", 0)):
+		_finish_run("vitoria")
+
+func _update_objective_hud() -> void:
+	hud.call("set_objective", str(mission_profile.get("objective_type", "survive")), kill_count, int(mission_profile.get("target_kills", 0)))
+
+func _roll_combat_equipment_drop(xp_value: int, coin_value: int) -> void:
+	var chance: float = minf(0.08, 0.001 + xp_value * 0.0015 + coin_value * 0.0004)
+	if randf() > chance:
+		return
+	var item_name := GameData.award_random_equipment(int(mission_profile.get("recommended_level", 1)))
+	if not item_name.is_empty():
+		combat_equipment_rewards.append(item_name)
 
 func _recycle_orb(orb: XPOrb) -> void:
 	orb.deactivate()
@@ -173,5 +195,12 @@ func _finish_run(result_reason := "derrota", coins_override := -1) -> void:
 	var companion_result := {}
 	if companion_manager.has_method("get_run_results"):
 		companion_result = GameData.apply_companion_run_results(companion_manager.call("get_run_results"))
+	if not bestiary_kills.is_empty():
+		GameData.add_bestiary_kills(bestiary_kills)
 	var mission_result := GameData.apply_mission_result(str(mission_profile.get("mission_id", "")), result_reason)
+	if not combat_equipment_rewards.is_empty():
+		if not mission_result.has("equipment_rewards"):
+			mission_result["equipment_rewards"] = []
+		for item_name in combat_equipment_rewards:
+			mission_result["equipment_rewards"].append(item_name)
 	game_over.call("show_results", elapsed, run_state.level, awarded_coins, result_reason, run_state.coins, mission_result, companion_result)

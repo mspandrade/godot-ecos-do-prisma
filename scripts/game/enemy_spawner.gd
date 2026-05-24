@@ -1,7 +1,7 @@
 extends Node2D
 class_name EnemySpawner
 
-signal enemy_killed(pos: Vector2, xp_value: int, coin_value: int)
+signal enemy_killed(pos: Vector2, xp_value: int, coin_value: int, enemy_type: String)
 
 @export var enemy_scene: PackedScene
 @export var pool_size := 130
@@ -80,7 +80,7 @@ func _recycle_enemy(enemy: Enemy) -> void:
 	enemy.deactivate()
 
 func _on_enemy_killed(enemy: Enemy, xp_value: int, coin_value: int) -> void:
-	enemy_killed.emit(enemy.global_position, xp_value, coin_value)
+	enemy_killed.emit(enemy.global_position, xp_value, coin_value, enemy.sprite_type)
 
 func set_spawns_enabled(enabled: bool, clear_active_enemies := false) -> void:
 	spawns_enabled = enabled

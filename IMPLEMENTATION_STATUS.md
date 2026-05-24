@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-23, after leader button type fix
+Last updated: 2026-05-24, after mission objective card clarity
 
 ## Current Goal
 
@@ -186,6 +186,173 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Guild menu now shows `Ferreiro bloqueado` until the structure is unlocked.
 - Added regression coverage for forge, equip, stat bonus and unequip flow.
 
+### Equipment Rarity And Upgrade Rules
+
+- Forged equipment now rolls rarity: comum, incomum, raro, epico or lendario.
+- Equipment now has persistent level data, defaulting old saved items to level 1/common.
+- Added equipment upgrade costs and `upgrade_equipment()` to improve items up to level 5.
+- Upgraded equipped items remove the old bonus, apply the higher scaled bonus and preserve clean unequip behavior.
+- Blacksmith inventory rows now show rarity, level and a `Melhorar` action with coin gating.
+- Added regression coverage for upgrading an equipped item and verifying scaled stat bonuses.
+
+### Mission Equipment Rewards
+
+- Missions now define an `equipment_reward_chance`.
+- Victory can add a rolled equipment item directly to the persistent equipment inventory.
+- Equipment reward rarity scales from mission recommended level.
+- Fleeing/failed mission returns do not grant mission equipment.
+- GameOver outcome text now reports equipment earned on mission victory.
+- Added regression coverage for victory equipment rewards and flee not awarding mission equipment.
+
+### Equipment Reforge Rules
+
+- Added equipment reforge costs.
+- Added `reforge_equipment()` to reroll equipment rarity without changing item type or level.
+- Reforging equipped items removes the old rarity-scaled bonus and reapplies the new one cleanly.
+- Blacksmith inventory rows now expose a `Reforjar` action with coin gating.
+- Added regression coverage for reforging equipped equipment.
+
+### Guild Layout Refresh
+
+- Guild screen now separates summary text from facility actions.
+- Facility actions now use a two-column grid to fit mission, squad, leader, recruitment, upgrades, graveyard, blacksmith and settings.
+- Guild summary now shows equipment inventory count.
+
+### Combat Equipment Drops
+
+- Added `GameData.award_random_equipment()` for reusable direct equipment rewards.
+- Enemy kills during combat now have a low chance to award random equipment directly to the guild inventory.
+- Combat equipment drops scale rarity from selected mission recommended level.
+- End-of-run results include combat equipment drops alongside mission completion equipment rewards.
+- Added regression coverage for random equipment awards.
+
+### Training Field Screen
+
+- Added persistent `training_sessions` to companions.
+- Added `GameData.get_training_options()`, `get_training_cost()` and `train_companion()`.
+- Training is locked until the guild has the training field structure.
+- Training spends coins and permanently improves companion attack, health, speed or defense.
+- Added `TrainingScreen` and a guild `Treinamento` facility button.
+- Added regression coverage for training lock, cost, stat effect and scaling cost.
+
+### Late-Game Mission Chain
+
+- Added `demon_gate_assault`, unlocked by completing `ancient_ruins_contract`.
+- Added `demon_king_vanguard`, unlocked by completing `demon_gate_assault`.
+- Ancient ruins now unlocks `Portao Demoniaco`; demon gate unlocks `Fortaleza do Rei Demonio`.
+- Added late-game combat profiles with higher wave offset, stronger enemies, faster bosses and better rewards.
+- Added regression coverage for the late-game unlock chain and selected combat profile.
+
+### Mission Kill Objectives
+
+- Mission combat profiles now support `objective_type` and `target_kills`.
+- Wolf cave and later missions use kill-count objectives instead of only waiting out the timer.
+- Combat HUD now shows current objective progress.
+- `GameManager` tracks enemy kills and ends kill-count missions with victory when the target is reached.
+- Added regression coverage for objective data in combat profiles.
+
+### Demon King Final Mission
+
+- Added `demon_king_final`, unlocked after the vanguard mission opens `Trono do Rei Demonio`.
+- Added campaign completion state to guild data.
+- Completing the final mission marks the campaign as completed.
+- GameOver now reports the final campaign completion message.
+- Added regression coverage for final unlock, final mission profile and campaign completion.
+
+### Auto-Save Feedback
+
+- `GameData.save_data()` now emits `save_feedback` after a successful save.
+- Guild screen listens to save feedback and briefly shows `Progresso salvo.`.
+- Added regression coverage for the save feedback signal.
+
+### Bestiary Kill Tracking
+
+- Added persistent `bestiary` data to `GameData`.
+- Enemy spawner kill signal now includes enemy sprite/type.
+- GameManager tracks enemy types defeated during a run and persists them at run end.
+- Added `GameData.add_bestiary_kills()` and `get_bestiary()`.
+- Added regression coverage for accumulated bestiary counts.
+
+### Codex Screen
+
+- Added `CodexScreen` to display persistent bestiary enemy counts.
+- Guild menu now has a `Codex` facility button.
+- Codex shows total defeated enemies and sorted per-enemy counts.
+- Codex also shows achievement/milestone progress.
+
+### Guild Morale
+
+- Added persistent guild morale.
+- Victory increases morale; fleeing and defeat reduce morale.
+- Wounded and dead companion run consequences reduce morale.
+- Guild screen now shows morale value and label.
+- GameOver reports mission morale changes.
+- Added regression coverage for morale deltas and morale labels.
+
+### Achievements And Milestones
+
+- Added persistent achievement state to `GameData`.
+- Added milestone definitions for first mission victory, first recruit, first equipment, bestiary progress and Demon King defeat.
+- Achievement unlocks emit `achievement_unlocked`.
+- Achievement unlocks are saved in the same save cycle as the triggering action.
+- Added regression coverage for achievement unlocks and save persistence.
+
+### Heavy Equipment Penalties
+
+- Added heavy equipment options to the blacksmith inventory.
+- `Escudo Torre` and `Placas Pesadas` provide defensive value while reducing mobility and movement speed.
+- Negative equipment bonuses are applied and reversed through the same equip/unequip flow as positive bonuses.
+- Added regression coverage for speed penalties and restoration after unequip.
+
+### Persistent Settings
+
+- Added persistent settings data to `GameData`.
+- Added `SettingsScreen` with sliders for master, music and SFX volume.
+- Added a fullscreen toggle.
+- Guild and main menu settings buttons now open the real settings screen instead of toggling placeholder text.
+- Added regression coverage for settings change events and save/load persistence.
+
+### Mission Fast Travel
+
+- Added persistent selected travel zone to `GameData`.
+- Added travel-zone discovery from mission data.
+- Locked zones cannot be selected until mission progression unlocks them.
+- Mission board now shows fast-travel region buttons and filters missions by selected region.
+- Added regression coverage for locked and unlocked travel-zone selection.
+
+### Expanded Achievement Hooks
+
+- Added additional long-term achievement definitions for full squad, expanded roster, restored guild, first companion death and first resurrection.
+- Squad, roster, guild upgrade, death and resurrection flows now unlock their matching milestones.
+- Codex displays the expanded milestone list automatically.
+- Added regression coverage for each new achievement hook.
+
+### Mission Enemy Variety
+
+- Mission combat profiles now include enemy and boss sprite pools.
+- Enemy spawns store the mission profile and prefer mission-specific sprites when available.
+- Different zones now visually bias toward goblins/slimes, cave creatures, cultists, undead and demons.
+- Added regression coverage that selected mission combat profiles carry zone enemy sprites.
+
+### Mission Reputation Rewards
+
+- Missions now define reputation rewards.
+- Victory applies reputation to the persistent guild data.
+- Guild header shows reputation beside guild level.
+- GameOver victory results show reputation gained.
+- Added regression coverage for reputation reward summary and guild reputation gain.
+
+### Settings Placeholder Cleanup
+
+- Removed dead `SettingsLabel` placeholder nodes from guild and main menu scenes.
+- Confirmed settings buttons now only route to the real persisted settings screen.
+
+### Mission Objective Card Clarity
+
+- Mission board cards now show the actual objective type.
+- Survival missions show the timer objective.
+- Kill-count missions show the target number of enemy defeats.
+
 ## Current State
 
 - Default roster has six companions.
@@ -201,6 +368,28 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Recruitment now gives clearer candidate comparison and blocked-hire feedback.
 - Leader selection and squad editing now live on separate guild screens.
 - The blacksmith/equipment loop now exists as a first playable guild system.
+- Equipment now has rarity, levels and paid upgrade scaling.
+- Mission victories can now feed the equipment inventory.
+- Equipment can now be reforged for rarity rerolls.
+- Guild screen is more readable as facilities accumulate.
+- Combat kills can now feed equipment progression, not only mission completion.
+- Training field is now a playable companion-growth facility.
+- Progression now extends toward the Demon King fortress.
+- Missions can now have kill-count objectives beyond survival timers.
+- The campaign now has a final Demon King completion state.
+- Auto-save now has user-facing feedback in the guild.
+- Enemy kills now feed persistent bestiary progress.
+- Codex screen exposes bestiary progress from the guild.
+- Guild morale now reflects victories, retreats and losses.
+- Achievement milestones now track long-term guild progress and appear in the Codex.
+- Heavy equipment now creates real speed tradeoffs for mission risk and fleeing.
+- Settings are now a real persisted screen reachable from guild and main menu.
+- Mission board now supports fast travel between unlocked regions.
+- More campaign and guild milestones now unlock through normal play.
+- Enemy visuals now vary by mission/zone instead of only by wave number.
+- Reputation is now a real mission reward and visible guild progress metric.
+- Old settings placeholder UI has been removed from guild/main menu scenes.
+- Mission cards clearly show whether a contract is survival or kill-count.
 - The application start scene is now the guild scene.
 - Party editing now allows removing companions, including clearing the party completely.
 - Combat HUD now has a flee action. Flee takes 5 seconds to prepare, preserves companion run progress and applies a coin penalty based on squad mobility.
@@ -211,13 +400,14 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 
 ## Pending After This Slice
 
-- Expand equipment into drops, item rarity and upgrade/reforge rules.
-- Improve guild screen layout now that more facilities exist.
+- Add richer facility pages as systems mature.
+- Add richer long-term progression polish.
+- Add more late-game polish and balance tuning.
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 162 tests passed after leader button type fix.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after leader button type fix.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 245 tests passed after mission objective card clarity.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after mission objective card clarity.
 - Known issue reproduced: direct headless launch of `BlacksmithScreen.tscn` crashes with the same Godot 4.6.2 UI-only scene crash pattern.
 - Known issue: direct headless launch of UI-only scenes still crashes Godot 4.6.2 on this machine; `GraveyardScene.tscn` hit the same engine crash pattern as the older UI scenes.
 - Note: Direct headless runs of UI-only scenes crash Godot 4.6.2 on this machine, including the existing `MainMenu`, `CharactersScreen` and `UpgradesScreen`; use editor/GUI verification for UI scene rendering.
@@ -230,6 +420,9 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scenes/ui/GraveyardScene.tscn`
 - `scenes/ui/BlacksmithScreen.tscn`
 - `scenes/ui/LeaderScreen.tscn`
+- `scenes/ui/TrainingScreen.tscn`
+- `scenes/ui/CodexScreen.tscn`
+- `scenes/ui/SettingsScreen.tscn`
 - `scenes/ui/MissionSelect.tscn`
 - `scenes/ui/CharactersScreen.tscn`
 - `scenes/ui/HUD.tscn`
@@ -247,6 +440,9 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/ui/graveyard_scene.gd`
 - `scripts/ui/blacksmith_screen.gd`
 - `scripts/ui/leader_screen.gd`
+- `scripts/ui/training_screen.gd`
+- `scripts/ui/codex_screen.gd`
+- `scripts/ui/settings_screen.gd`
 - `scripts/ui/hud.gd`
 - `scripts/ui/mission_select.gd`
 - `scripts/ui/recruitment_scene.gd`

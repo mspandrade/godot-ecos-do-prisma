@@ -8,7 +8,7 @@ func _ready() -> void:
 	%PlayButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/Game.tscn"))
 	%UpgradesButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/UpgradesScreen.tscn"))
 	%CharactersButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/CharactersScreen.tscn"))
-	%SettingsButton.pressed.connect(_show_settings)
+	%SettingsButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/SettingsScreen.tscn"))
 	GameData.coins_changed.connect(_refresh)
 	GameData.character_changed.connect(func(_id: String): _refresh(GameData.coins))
 	particles.emitting = true
@@ -21,6 +21,3 @@ func _process(delta: float) -> void:
 func _refresh(_coins: int) -> void:
 	coins_label.text = "Moedas: %d" % GameData.coins
 	character_label.text = "Personagem: %s" % GameData.characters[GameData.selected_character]["name"]
-
-func _show_settings() -> void:
-	%SettingsLabel.visible = not %SettingsLabel.visible

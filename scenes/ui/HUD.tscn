@@ -58,6 +58,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "00:00"
 
+[node name="ObjectiveLabel" type="Label" parent="TopPanel/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Objetivo: sobreviver"
+
 [node name="PauseButton" type="Button" parent="TopPanel/TopBar"]
 unique_name_in_owner = true
 layout_mode = 2

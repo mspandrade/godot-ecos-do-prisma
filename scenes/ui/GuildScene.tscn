@@ -46,11 +46,11 @@ anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = 72.0
-offset_top = -238.0
-offset_right = 500.0
-offset_bottom = 238.0
+offset_top = -296.0
+offset_right = 760.0
+offset_bottom = 296.0
 grow_vertical = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="MenuBox"]
 layout_mode = 2
@@ -68,6 +68,16 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Moedas: 0"
 
+[node name="MoraleLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Moral: 50 - Estavel"
+
+[node name="SummaryTitle" type="Label" parent="MenuBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Resumo"
+
 [node name="SquadLabel" type="Label" parent="MenuBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -84,63 +94,90 @@ layout_mode = 2
 autowrap_mode = 2
 text = "Companions: 0/12"
 
+[node name="EquipmentLabel" type="Label" parent="MenuBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Equipamentos: 0 no inventario"
+
 [node name="MissionLabel" type="Label" parent="MenuBox"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 text = "Missao: -"
 
-[node name="MissionButton" type="Button" parent="MenuBox"]
+[node name="FacilityTitle" type="Label" parent="MenuBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Instalacoes"
+
+[node name="FacilityGrid" type="GridContainer" parent="MenuBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="MissionButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
 text = "Quadro de missoes"
 
-[node name="RosterButton" type="Button" parent="MenuBox"]
+[node name="RosterButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Esquadrao"
 
-[node name="LeaderButton" type="Button" parent="MenuBox"]
+[node name="LeaderButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Lider"
 
-[node name="RecruitmentButton" type="Button" parent="MenuBox"]
+[node name="RecruitmentButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Recrutamento"
 
-[node name="UpgradesButton" type="Button" parent="MenuBox"]
+[node name="TrainingButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+text = "Treinamento"
+
+[node name="UpgradesButton" type="Button" parent="MenuBox/FacilityGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Upgrades da guilda"
 
-[node name="GraveyardButton" type="Button" parent="MenuBox"]
+[node name="CodexButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+text = "Codex"
+
+[node name="GraveyardButton" type="Button" parent="MenuBox/FacilityGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Cemiterio"
 
-[node name="BlacksmithButton" type="Button" parent="MenuBox"]
+[node name="BlacksmithButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Ferreiro"
 
-[node name="SettingsButton" type="Button" parent="MenuBox"]
+[node name="SettingsButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Configuracoes"
 
-[node name="SettingsLabel" type="Label" parent="MenuBox"]
+[node name="SaveLabel" type="Label" parent="MenuBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-text = "Audio, idioma e controles: placeholder."
-autowrap_mode = 2
+text = "Progresso salvo."

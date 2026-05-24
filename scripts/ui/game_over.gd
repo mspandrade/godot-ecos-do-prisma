@@ -33,18 +33,29 @@ func _format_outcome(result_reason: String, mission_result: Dictionary, companio
 			var xp_per_companion := int(mission_result.get("xp_per_companion", 0))
 			if xp_per_companion > 0:
 				lines.append("XP da missao: +%d por companion" % xp_per_companion)
+			var reputation_reward := int(mission_result.get("reputation_reward", 0))
+			if reputation_reward > 0:
+				lines.append("Reputacao da guilda: +%d" % reputation_reward)
 			var leveled_companions: Array = mission_result.get("leveled_companions", [])
 			if leveled_companions.size() > 0:
 				lines.append("Subiram de nivel: %s" % ", ".join(leveled_companions))
 			var unlocked_zone_names: Array = mission_result.get("unlocked_zone_names", [])
 			if unlocked_zone_names.size() > 0:
 				lines.append("Nova zona: %s" % ", ".join(unlocked_zone_names))
+			var equipment_rewards: Array = mission_result.get("equipment_rewards", [])
+			if equipment_rewards.size() > 0:
+				lines.append("Equipamento: %s" % ", ".join(equipment_rewards))
+			if bool(mission_result.get("campaign_completed", false)):
+				lines.append(str(mission_result.get("campaign_completion_name", "Campanha concluida.")))
 		"fuga":
 			lines.append("Missao incompleta. O esquadrao voltou para a guilda.")
 		_:
 			lines.append("Missao fracassada. O esquadrao voltou para a guilda.")
 	if bool(mission_result.get("reroll_reset", false)):
 		lines.append("Fila de recrutamento renovada.")
+	var morale_delta := int(mission_result.get("morale_delta", 0))
+	if morale_delta != 0:
+		lines.append("Moral da guilda: %+d" % morale_delta)
 	var wounded_companions: Array = companion_result.get("wounded_companions", [])
 	if wounded_companions.size() > 0:
 		lines.append("Feridos: %s" % ", ".join(wounded_companions))

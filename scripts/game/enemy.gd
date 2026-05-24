@@ -29,6 +29,7 @@ var avoidance_side := 1.0
 var stuck_time := 0.0
 var burn_damage_per_second := 0.0
 var burn_time := 0.0
+var spawn_profile := {}
 var sprite_type := "goblin_green_sword"
 var sprite_facing := "front"
 var sprite_action := "walk"
@@ -51,6 +52,7 @@ func spawn(pos: Vector2, player: Node2D, wave: int, boss := false, mission_profi
 	global_position = pos
 	target = player
 	is_boss = boss
+	spawn_profile = mission_profile.duplicate(true)
 	var scale_factor := 1.0 + wave * 0.12
 	max_health = (75.0 if boss else 10.0) * scale_factor * float(mission_profile.get("enemy_health_multiplier", 1.0))
 	health = max_health
@@ -238,8 +240,11 @@ func apply_burn(damage_per_second: float, duration: float) -> void:
 	burn_time = max(burn_time, duration)
 
 func _apply_spawn_sprite(wave: int, boss: bool) -> void:
-	sprite_type = "goblin_green_sword"
-	if boss:
+	var profile_key := "boss_sprites" if boss else "enemy_sprites"
+	var profile_sprites: Array = spawn_profile.get(profile_key, [])
+	if not profile_sprites.is_empty():
+		sprite_type = str(profile_sprites.pick_random())
+	elif boss:
 		sprite_type = "demon_red_axe" if wave % 2 == 0 else "dark_knight_red"
 	elif wave >= 10:
 		sprite_type = ["cultist_purple_bow", "necromancer_purple", "spider_red"].pick_random()
@@ -247,6 +252,8 @@ func _apply_spawn_sprite(wave: int, boss: bool) -> void:
 		sprite_type = ["orc_green_staff", "goblin_green_heavy", "bat_purple"].pick_random()
 	elif wave >= 3:
 		sprite_type = ["goblin_green_spear", "slime_orange", "goblin_green_sword"].pick_random()
+	else:
+		sprite_type = "goblin_green_sword"
 	walk_frame = 0
 	_apply_sprite_frame()
 

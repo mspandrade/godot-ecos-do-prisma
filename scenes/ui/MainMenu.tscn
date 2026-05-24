@@ -91,9 +91,3 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "Configuracoes"
 
-[node name="SettingsLabel" type="Label" parent="MenuBox" unique_id=1382972788]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = "Audio, idioma e controles: placeholder."
-autowrap_mode = 2

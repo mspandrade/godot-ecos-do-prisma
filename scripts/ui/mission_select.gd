@@ -1,21 +1,39 @@
 extends Control
 
 @onready var list: VBoxContainer = %MissionList
+@onready var fast_travel_list: HBoxContainer = %FastTravelList
 @onready var title_label: Label = %TitleLabel
+@onready var travel_label: Label = %TravelLabel
 
 func _ready() -> void:
 	%BackButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GuildScene.tscn"))
 	GameData.squad_changed.connect(func(_summary: Dictionary): _refresh())
 	GameData.mission_changed.connect(func(_mission_id: String): _refresh())
+	GameData.travel_zone_changed.connect(func(_zone_id: String): _refresh())
 	_refresh()
 
 func _refresh() -> void:
 	var selected := GameData.get_selected_mission()
+	var selected_zone := GameData.get_selected_travel_zone()
 	title_label.text = "Missao selecionada: %s" % str(selected.get("name", "-"))
+	travel_label.text = "Regiao atual: %s" % _zone_name(selected_zone)
+	_refresh_fast_travel(selected_zone)
 	for child in list.get_children():
 		child.queue_free()
 	for mission in GameData.get_missions():
+		if str(mission.get("zone", "")) != selected_zone:
+			continue
 		_add_mission_row(mission)
+
+func _refresh_fast_travel(selected_zone: String) -> void:
+	for child in fast_travel_list.get_children():
+		child.queue_free()
+	for zone in GameData.get_travel_zones():
+		var button := Button.new()
+		button.text = str(zone.get("name", zone.get("id", "")))
+		button.disabled = not bool(zone.get("unlocked", false)) or str(zone.get("id", "")) == selected_zone
+		button.pressed.connect(_select_travel_zone.bind(str(zone.get("id", ""))))
+		fast_travel_list.add_child(button)
 
 func _add_mission_row(mission: Dictionary) -> void:
 	var readiness := GameData.get_mission_readiness(str(mission["id"]))
@@ -39,11 +57,13 @@ func _add_mission_row(mission: Dictionary) -> void:
 	]
 	var rewards := Label.new()
 	var combat: Dictionary = mission.get("combat", {})
-	rewards.text = "Duracao: %s | Recompensas: %d moedas | %d XP" % [
+	rewards.text = "Objetivo: %s | Duracao: %s | Recompensas: %d moedas | %d XP" % [
+		_format_objective(combat),
 		_format_duration(float(combat.get("duration_seconds", 180.0))),
 		int(mission["coin_reward"]),
 		int(mission["xp_reward"])
 	]
+	rewards.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var warning := Label.new()
 	var warnings: Array = readiness["warnings"]
 	warning.text = "Aviso: %s" % " ".join(warnings)
@@ -71,6 +91,10 @@ func _select_mission(mission_id: String) -> void:
 	GameData.select_mission(mission_id)
 	_refresh()
 
+func _select_travel_zone(zone_id: String) -> void:
+	GameData.select_travel_zone(zone_id)
+	_refresh()
+
 func _start_selected_mission() -> void:
 	var readiness := GameData.get_mission_readiness()
 	if not bool(readiness["can_start"]):
@@ -80,3 +104,14 @@ func _start_selected_mission() -> void:
 func _format_duration(seconds: float) -> String:
 	var total := int(seconds)
 	return "%02d:%02d" % [int(total / 60), total % 60]
+
+func _format_objective(combat: Dictionary) -> String:
+	if str(combat.get("objective_type", "survive")) == "kill_count":
+		return "%d abates" % int(combat.get("target_kills", 0))
+	return "sobreviver ao timer"
+
+func _zone_name(zone_id: String) -> String:
+	for zone in GameData.get_travel_zones():
+		if str(zone.get("id", "")) == zone_id:
+			return str(zone.get("name", zone_id))
+	return zone_id
