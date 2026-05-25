@@ -88,6 +88,10 @@ func set_timer(seconds: float) -> void:
 func set_objective(objective_type: String, current: int, target: int) -> void:
 	if objective_type == "kill_count" and target > 0:
 		objective_label.text = "Abates: %d/%d" % [current, target]
+	elif objective_type == "boss_kill" and target > 0:
+		objective_label.text = "Chefes: %d/%d" % [current, target]
+	elif objective_type == "collect_resources" and target > 0:
+		objective_label.text = "Suprimentos: %d/%d" % [current, target]
 	else:
 		objective_label.text = "Objetivo: sobreviver"
 

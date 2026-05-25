@@ -56,7 +56,10 @@ func _add_recruit_row(index: int, candidate: Dictionary, roster_size: int, capac
 	comparison.text = _candidate_comparison(candidate)
 	comparison.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var traits_label := Label.new()
-	traits_label.text = "Traco: %s" % ", ".join(traits)
+	var trait_effects := []
+	for trait_id in traits:
+		trait_effects.append(GameData.get_trait_effect_text(str(trait_id)))
+	traits_label.text = "Traco: %s" % ", ".join(trait_effects)
 	var button := Button.new()
 	var cost := int(candidate.get("cost", 0))
 	var disabled_reason := _hire_disabled_reason(cost, roster_size, capacity)

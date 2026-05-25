@@ -17,6 +17,8 @@ func _refresh() -> void:
 	var selected_zone := GameData.get_selected_travel_zone()
 	title_label.text = "Missao selecionada: %s" % str(selected.get("name", "-"))
 	travel_label.text = "Regiao atual: %s" % _zone_name(selected_zone)
+	if not GameData.is_fast_travel_unlocked():
+		travel_label.text += " | Portal disponivel na Guilda Nv 3"
 	_refresh_fast_travel(selected_zone)
 	for child in list.get_children():
 		child.queue_free()
@@ -30,16 +32,19 @@ func _refresh_fast_travel(selected_zone: String) -> void:
 		child.queue_free()
 	for zone in GameData.get_travel_zones():
 		var button := Button.new()
-		button.text = str(zone.get("name", zone.get("id", "")))
-		button.disabled = not bool(zone.get("unlocked", false)) or str(zone.get("id", "")) == selected_zone
-		button.pressed.connect(_select_travel_zone.bind(str(zone.get("id", ""))))
+		var zone_id := str(zone.get("id", ""))
+		button.text = str(zone.get("name", zone_id))
+		if bool(zone.get("unlocked", false)) and not bool(zone.get("travel_available", false)):
+			button.text += " (Portal)"
+		button.disabled = not bool(zone.get("travel_available", false)) or zone_id == selected_zone
+		button.pressed.connect(_select_travel_zone.bind(zone_id))
 		fast_travel_list.add_child(button)
 
 func _add_mission_row(mission: Dictionary) -> void:
 	var readiness := GameData.get_mission_readiness(str(mission["id"]))
 	var selected := str(mission["id"]) == str(GameData.get_selected_mission()["id"])
 	var row := VBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 160)
+	row.custom_minimum_size = Vector2(0, 182)
 	var title := Label.new()
 	title.text = "%s%s" % [str(mission["name"]), "  Selecionada" if selected else ""]
 	title.add_theme_font_size_override("font_size", 18)
@@ -55,13 +60,17 @@ func _add_mission_row(mission: Dictionary) -> void:
 		float(readiness["average_speed"]),
 		str(readiness["speed_label"])
 	]
+	var enemies := Label.new()
+	enemies.text = "Inimigos previstos: %s" % ", ".join(mission.get("enemies", []))
 	var rewards := Label.new()
 	var combat: Dictionary = mission.get("combat", {})
-	rewards.text = "Objetivo: %s | Duracao: %s | Recompensas: %d moedas | %d XP" % [
+	rewards.text = "Objetivo: %s | Duracao: %s | Recompensas: %d moedas | %d XP | %d Rep%s" % [
 		_format_objective(combat),
 		_format_duration(float(combat.get("duration_seconds", 180.0))),
 		int(mission["coin_reward"]),
-		int(mission["xp_reward"])
+		int(mission["xp_reward"]),
+		int(mission.get("reputation_reward", 0)),
+		_format_material_rewards(mission.get("material_rewards", {}))
 	]
 	rewards.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var warning := Label.new()
@@ -82,6 +91,7 @@ func _add_mission_row(mission: Dictionary) -> void:
 	row.add_child(title)
 	row.add_child(meta)
 	row.add_child(squad)
+	row.add_child(enemies)
 	row.add_child(rewards)
 	row.add_child(warning)
 	row.add_child(actions)
@@ -108,7 +118,19 @@ func _format_duration(seconds: float) -> String:
 func _format_objective(combat: Dictionary) -> String:
 	if str(combat.get("objective_type", "survive")) == "kill_count":
 		return "%d abates" % int(combat.get("target_kills", 0))
+	if str(combat.get("objective_type", "survive")) == "boss_kill":
+		return "derrotar %d chefe" % int(combat.get("target_bosses", 1))
+	if str(combat.get("objective_type", "survive")) == "collect_resources":
+		return "coletar %d suprimentos" % int(combat.get("target_resources", 1))
 	return "sobreviver ao timer"
+
+func _format_material_rewards(rewards: Dictionary) -> String:
+	if rewards.is_empty():
+		return ""
+	var parts := []
+	for material_id in rewards.keys():
+		parts.append("%s x%d" % [GameData.get_material_name(str(material_id)), int(rewards[material_id])])
+	return " | " + ", ".join(parts)
 
 func _zone_name(zone_id: String) -> String:
 	for zone in GameData.get_travel_zones():

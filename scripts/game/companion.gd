@@ -58,8 +58,8 @@ func setup(data: Dictionary, p_player: Node2D, offset: Vector2) -> void:
 	player = p_player
 	follow_offset = offset
 	level = int(data.get("level", level))
-	max_health = float(data["health"])
-	health = max_health
+	max_health = float(data.get("max_health", data["health"]))
+	health = clampf(float(data["health"]), 1.0, max_health)
 	move_speed = float(data["speed"])
 	speed_rating = float(data.get("speed_rating", speed_rating))
 	defense = float(data.get("defense", defense))

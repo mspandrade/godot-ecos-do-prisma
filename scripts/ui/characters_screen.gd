@@ -62,6 +62,11 @@ func _add_companion_row(companion_id: String, data: Dictionary, summary: Diction
 		float(data.get("speed_rating", 0.0)),
 		float(data.get("range", 0.0))
 	]
+	var trait_text := []
+	for trait_id in data.get("traits", []):
+		trait_text.append(GameData.get_trait_effect_text(str(trait_id)))
+	if not trait_text.is_empty():
+		stats.text += " | %s" % ", ".join(trait_text)
 	var button := Button.new()
 	button.text = "Remover do esquadrao" if in_squad else "Adicionar ao esquadrao"
 	var state := str(data.get("state", "disponivel"))

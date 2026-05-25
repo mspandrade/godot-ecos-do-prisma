@@ -18,6 +18,8 @@ var flee_pending := false
 var flee_elapsed := 0.0
 var combat_equipment_rewards := []
 var kill_count := 0
+var boss_kill_count := 0
+var resource_count := 0
 var bestiary_kills := {}
 
 @onready var player: Player = $Player
@@ -67,7 +69,10 @@ func _process(delta: float) -> void:
 	if run_finished:
 		return
 	if elapsed >= mission_duration:
-		_finish_run("vitoria")
+		_finish_run(_mission_timeout_result())
+
+func _mission_timeout_result() -> String:
+	return "vitoria" if str(mission_profile.get("objective_type", "survive")) == "survive" else "derrota"
 
 func _process_flee(delta: float) -> void:
 	if not flee_pending:
@@ -106,8 +111,10 @@ func _fire_projectile(pos: Vector2, dir: Vector2, damage: float, speed: float, p
 func _recycle_projectile(projectile: Projectile) -> void:
 	projectile.deactivate()
 
-func _drop_orb(pos: Vector2, xp_value: int, coin_value: int, enemy_type: String = "") -> void:
+func _drop_orb(pos: Vector2, xp_value: int, coin_value: int, enemy_type: String = "", is_boss: bool = false) -> void:
 	kill_count += 1
+	if is_boss:
+		boss_kill_count += 1
 	if not enemy_type.is_empty():
 		bestiary_kills[enemy_type] = int(bestiary_kills.get(enemy_type, 0)) + 1
 	_update_objective_hud()
@@ -117,9 +124,17 @@ func _drop_orb(pos: Vector2, xp_value: int, coin_value: int, enemy_type: String 
 	_roll_combat_equipment_drop(xp_value, coin_value)
 	if str(mission_profile.get("objective_type", "survive")) == "kill_count" and kill_count >= int(mission_profile.get("target_kills", 0)):
 		_finish_run("vitoria")
+	elif str(mission_profile.get("objective_type", "survive")) == "boss_kill" and boss_kill_count >= int(mission_profile.get("target_bosses", 1)):
+		_finish_run("vitoria")
 
 func _update_objective_hud() -> void:
-	hud.call("set_objective", str(mission_profile.get("objective_type", "survive")), kill_count, int(mission_profile.get("target_kills", 0)))
+	var objective_type := str(mission_profile.get("objective_type", "survive"))
+	if objective_type == "boss_kill":
+		hud.call("set_objective", objective_type, boss_kill_count, int(mission_profile.get("target_bosses", 1)))
+	elif objective_type == "collect_resources":
+		hud.call("set_objective", objective_type, resource_count, int(mission_profile.get("target_resources", 1)))
+	else:
+		hud.call("set_objective", objective_type, kill_count, int(mission_profile.get("target_kills", 0)))
 
 func _roll_combat_equipment_drop(xp_value: int, coin_value: int) -> void:
 	var chance: float = minf(0.08, 0.001 + xp_value * 0.0015 + coin_value * 0.0004)
@@ -134,7 +149,14 @@ func _recycle_orb(orb: XPOrb) -> void:
 
 func _on_orb_collected(value: int) -> void:
 	companion_manager.distribute_xp(value)
-	if run_state.add_xp(value):
+	var leveled_up := run_state.add_xp(value)
+	if str(mission_profile.get("objective_type", "survive")) == "collect_resources":
+		resource_count += 1
+		_update_objective_hud()
+		if resource_count >= int(mission_profile.get("target_resources", 1)):
+			_finish_run("vitoria")
+			return
+	if leveled_up:
 		get_tree().paused = true
 		upgrades.request_choices()
 

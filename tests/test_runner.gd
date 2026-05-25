@@ -55,13 +55,17 @@ func _init() -> void:
 	_test_mission_readiness_uses_squad_and_unlocks()
 	_test_fast_travel_zone_unlocks()
 	_test_selected_mission_combat_profile()
+	_test_resource_collection_mission_profile()
 	_test_mission_victory_rewards_progression()
+	_test_optional_boss_mission_progression()
 	_test_late_game_mission_progression()
 	_test_demon_king_final_completion()
 	_test_persistent_companion_upgrade_choice()
 	_test_flee_does_not_complete_mission()
 	_test_enemy_spawner_accepts_mission_profile()
 	_test_companion_run_results_update_roster()
+	_test_wounded_companion_starts_next_mission_injured()
+	_test_infirmary_treats_wounded_companion()
 	_test_dead_companion_resurrection_flow()
 	_test_blacksmith_equipment_flow()
 	_test_heavy_equipment_speed_penalty()
@@ -525,6 +529,10 @@ func _test_fast_travel_zone_unlocks() -> void:
 	_assert_eq(data.get_selected_travel_zone(), "initial_forest", "Initial travel zone is selected")
 	_assert_true(not data.select_travel_zone("wolf_cave"), "Locked travel zone cannot be selected")
 	data.apply_mission_result("initial_forest_survival", "vitoria")
+	_assert_true(not data.select_travel_zone("wolf_cave"), "Unlocked zone still requires the guild portal for travel")
+	data.permanent_upgrades["guild_hall"] = 2
+	data.get_companion_roster()
+	_assert_true(data.is_fast_travel_unlocked(), "Guild level three unlocks the portal")
 	_assert_true(data.select_travel_zone("wolf_cave"), "Unlocked travel zone can be selected")
 	_assert_eq(data.get_selected_travel_zone(), "wolf_cave", "Travel zone selection is stored")
 	data.free()
@@ -548,6 +556,16 @@ func _test_selected_mission_combat_profile() -> void:
 	_assert_true((cave["enemy_sprites"] as Array).has("bat_purple"), "Mission combat profile carries zone enemy sprites")
 	data.free()
 
+func _test_resource_collection_mission_profile() -> void:
+	var data: Node = GameDataScript.new()
+	_assert_true(data.select_mission("initial_forest_gathering"), "Resource contract is available in the initial zone")
+	var profile: Dictionary = data.get_selected_mission_combat_profile()
+	_assert_eq(profile["objective_type"], "collect_resources", "Resource contract uses collection objective")
+	_assert_eq(profile["target_resources"], 45, "Resource contract exposes required pickup count")
+	var result: Dictionary = data.apply_mission_result("initial_forest_gathering", "vitoria")
+	_assert_true((result["material_rewards"] as Array).has("Ervas da Floresta x4"), "Resource contract grants extra regional materials")
+	data.free()
+
 func _test_mission_victory_rewards_progression() -> void:
 	var data: Node = GameDataScript.new()
 	data.recruitment["reroll_count"] = 2
@@ -559,11 +577,26 @@ func _test_mission_victory_rewards_progression() -> void:
 	_assert_eq(data.companion_roster["c_warrior_001"]["level"], 2, "Mission XP can level active companions")
 	_assert_eq(data.companion_roster["c_warrior_001"]["pending_upgrades"], 1, "Mission level up creates pending companion upgrade")
 	_assert_true(summary["leveled_companions"].has("Bruna"), "Mission result reports companions that leveled")
+	_assert_true((summary["unlocked_achievements"] as Array).has("Primeiro Contrato"), "Mission result reports newly unlocked achievement")
+	_assert_true((summary["material_rewards"] as Array).has("Ervas da Floresta x2"), "Mission result reports zone material reward")
+	_assert_eq(data.get_materials()["forest_herbs"], 2, "Mission victory stores zone materials")
 	_assert_true(data.guild["unlocked_zones"].has("wolf_cave"), "Completing initial mission unlocks wolf cave")
 	_assert_true(summary["unlocked_zone_names"].has("Caverna dos Lobos"), "Mission result reports unlocked zone name")
 	_assert_eq(data.get_equipment_inventory().size(), 1, "Mission victory can award equipment")
 	_assert_eq((summary["equipment_rewards"] as Array).size(), 1, "Mission result reports equipment reward")
 	_assert_eq(data.recruitment["reroll_count"], 0, "Mission return resets recruitment reroll cost")
+	data.free()
+
+func _test_optional_boss_mission_progression() -> void:
+	var data: Node = GameDataScript.new()
+	data.guild["unlocked_zones"] = ["initial_forest", "wolf_cave"]
+	_assert_true(data.select_mission("wolf_cave_alpha_hunt"), "Optional boss mission is available in unlocked zone")
+	var profile: Dictionary = data.get_selected_mission_combat_profile()
+	_assert_eq(profile["objective_type"], "boss_kill", "Optional boss mission uses boss objective")
+	_assert_eq(profile["target_bosses"], 1, "Optional boss mission targets one boss")
+	var summary: Dictionary = data.apply_mission_result("wolf_cave_alpha_hunt", "vitoria")
+	_assert_true(bool(data.get_achievements().get("first_boss", false)), "Completing a boss mission unlocks boss achievement")
+	_assert_true((summary["unlocked_achievements"] as Array).has("Cacador de Alfas"), "Boss mission result reports boss achievement")
 	data.free()
 
 func _test_late_game_mission_progression() -> void:
@@ -572,8 +605,16 @@ func _test_late_game_mission_progression() -> void:
 	var locked_readiness: Dictionary = data.get_mission_readiness("demon_gate_assault")
 	_assert_true(not bool(locked_readiness["unlocked"]), "Demon gate starts locked")
 	var ancient_summary: Dictionary = data.apply_mission_result("ancient_ruins_contract", "vitoria")
-	_assert_true(data.guild["unlocked_zones"].has("demon_gate"), "Completing ancient ruins unlocks demon gate")
-	_assert_true((ancient_summary["unlocked_zone_names"] as Array).has("Portao Demoniaco"), "Ancient ruins reports demon gate unlock")
+	_assert_true(data.guild["unlocked_zones"].has("poison_swamp"), "Completing ancient ruins unlocks poison swamp")
+	_assert_true((ancient_summary["unlocked_zone_names"] as Array).has("Pantano Venenoso"), "Ancient ruins reports poison swamp unlock")
+	_assert_true(data.select_mission("poison_swamp_purge"), "Unlocked poison swamp mission can be selected")
+	var swamp_summary: Dictionary = data.apply_mission_result("poison_swamp_purge", "vitoria")
+	_assert_true(data.guild["unlocked_zones"].has("cursed_graveyard"), "Completing poison swamp unlocks cursed graveyard")
+	_assert_true((swamp_summary["unlocked_zone_names"] as Array).has("Cemiterio Maldito"), "Poison swamp reports cursed graveyard unlock")
+	_assert_true(data.select_mission("cursed_graveyard_hunt"), "Unlocked cursed graveyard mission can be selected")
+	var graveyard_summary: Dictionary = data.apply_mission_result("cursed_graveyard_hunt", "vitoria")
+	_assert_true(data.guild["unlocked_zones"].has("demon_gate"), "Completing cursed graveyard unlocks demon gate")
+	_assert_true((graveyard_summary["unlocked_zone_names"] as Array).has("Portao Demoniaco"), "Cursed graveyard reports demon gate unlock")
 	_assert_true(data.select_mission("demon_gate_assault"), "Unlocked demon gate mission can be selected")
 	var gate_profile: Dictionary = data.get_selected_mission_combat_profile()
 	_assert_eq(gate_profile["mission_id"], "demon_gate_assault", "Demon gate combat profile is selectable")
@@ -585,16 +626,18 @@ func _test_late_game_mission_progression() -> void:
 
 func _test_demon_king_final_completion() -> void:
 	var data: Node = GameDataScript.new()
-	data.guild["unlocked_zones"] = ["initial_forest", "wolf_cave", "ancient_ruins", "demon_gate", "demon_keep"]
+	data.guild["unlocked_zones"] = ["initial_forest", "wolf_cave", "ancient_ruins", "poison_swamp", "cursed_graveyard", "demon_gate", "demon_keep"]
 	var vanguard_summary: Dictionary = data.apply_mission_result("demon_king_vanguard", "vitoria")
 	_assert_true(data.guild["unlocked_zones"].has("demon_throne"), "Vanguard unlocks demon throne")
 	_assert_true((vanguard_summary["unlocked_zone_names"] as Array).has("Trono do Rei Demonio"), "Vanguard reports demon throne unlock")
 	_assert_true(data.select_mission("demon_king_final"), "Final Demon King mission can be selected after unlock")
 	var final_profile: Dictionary = data.get_selected_mission_combat_profile()
-	_assert_eq(final_profile["target_kills"], 450, "Final mission exposes final kill target")
+	_assert_eq(final_profile["objective_type"], "boss_kill", "Final mission uses boss-kill objective")
+	_assert_eq(final_profile["target_bosses"], 1, "Final mission exposes Demon King boss target")
 	var final_summary: Dictionary = data.apply_mission_result("demon_king_final", "vitoria")
 	_assert_true(bool(data.guild["campaign_completed"]), "Completing final mission marks campaign complete")
 	_assert_true(bool(final_summary["campaign_completed"]), "Final mission result reports campaign completion")
+	_assert_true((final_summary["unlocked_achievements"] as Array).has("Juramento Cumprido"), "Final result reports campaign achievement")
 	data.free()
 
 func _test_persistent_companion_upgrade_choice() -> void:
@@ -657,6 +700,36 @@ func _test_companion_run_results_update_roster() -> void:
 	_assert_eq(companion["state"], "ferido", "Fallen companion returns as wounded")
 	_assert_float_eq(companion["current_health"], 16.8, "Wounded companion returns with partial health")
 	_assert_true(summary["wounded_companions"].has("Bruna"), "Run result reports wounded companions")
+	data.free()
+
+func _test_wounded_companion_starts_next_mission_injured() -> void:
+	var data: Node = GameDataScript.new()
+	var roster: Dictionary = data.get_companion_roster()
+	roster["c_warrior_001"]["state"] = "ferido"
+	roster["c_warrior_001"]["max_health"] = 40.0
+	roster["c_warrior_001"]["current_health"] = 14.0
+	var definitions: Array = data.get_active_companion_defs()
+	var warrior: Dictionary = definitions[0]
+	_assert_float_eq(float(warrior["health"]), float(warrior["max_health"]) * 0.35, "Wounded companion begins combat at persistent health ratio")
+	var companion: Node = CompanionScript.new()
+	companion.setup(warrior, null, Vector2.ZERO)
+	_assert_true(companion.health < companion.max_health, "Runtime companion keeps wounded starting health")
+	companion.free()
+	data.free()
+
+func _test_infirmary_treats_wounded_companion() -> void:
+	var data: Node = GameDataScript.new()
+	data.coins = 1000
+	data.apply_companion_run_results([{"id": "c_warrior_001", "max_health": 40.0, "state": "ferido"}])
+	_assert_true(not data.treat_companion("c_warrior_001"), "Treatment is locked before infirmary unlock")
+	_assert_true(data.buy_permanent_upgrade("guild_hall"), "Guild hall upgrade unlocks infirmary")
+	_assert_true((data.guild["unlocked_structures"] as Array).has("warehouse"), "Guild hall upgrade unlocks warehouse")
+	var cost: int = data.get_treatment_cost("c_warrior_001")
+	_assert_true(data.treat_companion("c_warrior_001"), "Infirmary treats wounded companion")
+	var companion: Dictionary = data.get_companion_roster()["c_warrior_001"]
+	_assert_eq(data.coins, 1000 - 220 - cost, "Treatment spends coins")
+	_assert_eq(companion["state"], "disponivel", "Treatment restores available state")
+	_assert_float_eq(float(companion["current_health"]), float(companion["max_health"]), "Treatment restores full persistent health")
 	data.free()
 
 func _test_dead_companion_resurrection_flow() -> void:
@@ -736,8 +809,11 @@ func _test_blacksmith_equipment_flow() -> void:
 func _test_heavy_equipment_speed_penalty() -> void:
 	var data: Node = GameDataScript.new()
 	data.add_coins(500)
+	_assert_true(not data.craft_equipment("tower_shield"), "Heavy equipment requires regional material")
+	data.materials = {"cursed_bone": 1}
 	var crafted: bool = data.craft_equipment("tower_shield")
 	_assert_true(crafted, "Heavy equipment can be crafted")
+	_assert_eq(data.get_materials()["cursed_bone"], 0, "Crafting heavy equipment consumes required material")
 	var item_uid: String = str(data.get_equipment_inventory()[0]["uid"])
 	var roster: Dictionary = data.get_companion_roster()
 	var base_speed := float(roster["c_warrior_001"]["speed_rating"])
@@ -784,6 +860,13 @@ func _test_recruitment_hire_adds_companion() -> void:
 	_assert_true(hired, "Recruitment hire succeeds when coins and capacity allow")
 	_assert_eq(data.get_companion_roster().size(), before_count + 1, "Hiring adds companion to roster")
 	_assert_eq(data.coins, 640, "Hiring spends candidate cost")
+	var hired_companion := {}
+	for companion in data.get_companion_roster().values():
+		if str(companion.get("name", "")) == "Nia":
+			hired_companion = companion
+			break
+	_assert_float_eq(float(hired_companion["ability_power"]), 0.95, "Recruit trait applies a persistent attribute bonus")
+	_assert_true(data.get_trait_effect_text("focada").contains("+20%"), "Recruit trait exposes its effect for UI comparison")
 	_assert_eq(data.get_recruitment_queue().size(), 3, "Hiring refills recruitment queue")
 	data.free()
 

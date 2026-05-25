@@ -17,6 +17,8 @@ func _ready() -> void:
 	%LeaderButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/LeaderScreen.tscn"))
 	%RecruitmentButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/RecruitmentScene.tscn"))
 	%TrainingButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/TrainingScreen.tscn"))
+	%InfirmaryButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/InfirmaryScreen.tscn"))
+	%WarehouseButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/WarehouseScreen.tscn"))
 	%UpgradesButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/UpgradesScreen.tscn"))
 	%CodexButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/CodexScreen.tscn"))
 	%GraveyardButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GraveyardScene.tscn"))
@@ -73,6 +75,12 @@ func _refresh() -> void:
 	var training_unlocked: bool = (GameData.guild.get("unlocked_structures", []) as Array).has("training_field")
 	%TrainingButton.disabled = not training_unlocked
 	%TrainingButton.text = "Treinamento" if training_unlocked else "Treinamento bloqueado"
+	var infirmary_unlocked: bool = (GameData.guild.get("unlocked_structures", []) as Array).has("infirmary")
+	%InfirmaryButton.disabled = not infirmary_unlocked
+	%InfirmaryButton.text = "Enfermaria" if infirmary_unlocked else "Enfermaria bloqueada"
+	var warehouse_unlocked: bool = (GameData.guild.get("unlocked_structures", []) as Array).has("warehouse")
+	%WarehouseButton.disabled = not warehouse_unlocked
+	%WarehouseButton.text = "Armazem" if warehouse_unlocked else "Armazem bloqueado"
 
 func _show_save_feedback(message: String) -> void:
 	save_label.text = message

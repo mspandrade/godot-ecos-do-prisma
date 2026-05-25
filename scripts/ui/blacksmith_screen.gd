@@ -13,6 +13,7 @@ func _ready() -> void:
 	GameData.coins_changed.connect(func(_coins: int): _refresh())
 	GameData.companion_roster_changed.connect(_refresh)
 	GameData.equipment_changed.connect(_refresh)
+	GameData.materials_changed.connect(_refresh)
 	_pick_default_companion()
 	_refresh()
 
@@ -62,11 +63,21 @@ func _refresh_craft_list() -> void:
 		title.text = "%s | %s" % [str(def.get("name", equipment_id)), str(def.get("slot", ""))]
 		title.add_theme_font_size_override("font_size", 17)
 		var details := Label.new()
-		details.text = "%s | %d moedas" % [str(def.get("effect", "")), int(def.get("cost", 0))]
+		var material_text := GameData.get_equipment_material_cost_text(str(equipment_id))
+		details.text = "%s | %d moedas%s" % [
+			str(def.get("effect", "")),
+			int(def.get("cost", 0)),
+			" | %s" % material_text if not material_text.is_empty() else ""
+		]
 		var button := Button.new()
 		var cost := int(def.get("cost", 0))
-		button.text = "Forjar - %d moedas" % cost if GameData.coins >= cost else "Faltam %d moedas" % (cost - GameData.coins)
-		button.disabled = GameData.coins < cost
+		if GameData.coins < cost:
+			button.text = "Faltam %d moedas" % (cost - GameData.coins)
+		elif not GameData.can_craft_equipment(str(equipment_id)):
+			button.text = "Materiais insuficientes"
+		else:
+			button.text = "Forjar - %d moedas" % cost
+		button.disabled = not GameData.can_craft_equipment(str(equipment_id))
 		button.pressed.connect(_craft.bind(str(equipment_id)))
 		row.add_child(title)
 		row.add_child(details)

@@ -46,11 +46,11 @@ anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = 72.0
-offset_top = -296.0
+offset_top = -338.0
 offset_right = 760.0
-offset_bottom = 296.0
+offset_bottom = 338.0
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="MenuBox"]
 layout_mode = 2
@@ -145,6 +145,18 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(320, 44)
 layout_mode = 2
 text = "Treinamento"
+
+[node name="InfirmaryButton" type="Button" parent="MenuBox/FacilityGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+text = "Enfermaria"
+
+[node name="WarehouseButton" type="Button" parent="MenuBox/FacilityGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+text = "Armazem"
 
 [node name="UpgradesButton" type="Button" parent="MenuBox/FacilityGrid"]
 unique_name_in_owner = true

@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-24, after mission objective card clarity
+Last updated: 2026-05-24, after recruit trait effects and expanded mission briefing
 
 ## Current Goal
 
@@ -353,6 +353,102 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Survival missions show the timer objective.
 - Kill-count missions show the target number of enemy defeats.
 
+### Real Wounded Companion Penalty
+
+- Persistent companion health now influences the next combat spawn.
+- Companions returning `ferido` start their next mission with reduced health instead of being silently restored to full health.
+- Runtime companions receive both maximum and current starting health from the persistent squad definition.
+- Added regression coverage for wounded starting-health carryover.
+
+### Expanded Mid/Late-Game Zone Chain
+
+- Added `Pantano Venenoso` mission between ancient ruins and the demonic front.
+- Added `Cemiterio Maldito` mission before access to `Portao Demoniaco`.
+- Both new missions define their own kill targets, durations, combat difficulty, rewards, reputation and visual enemy pools.
+- Progression now follows the planned route from ruins through swamp and graveyard before the Demon King fortress.
+- Added regression coverage for the expanded unlock chain.
+
+### Boss-Kill Final Mission Objective
+
+- The final Demon King mission now uses a boss-kill objective instead of a generic kill count.
+- Enemy kill events now identify boss kills for objective tracking.
+- HUD and mission cards display boss objective progress.
+- Timer completion only wins survival contracts; unfinished kill-count or boss contracts now fail on timeout.
+- Added regression coverage for the final mission boss target.
+
+### Infirmary Recovery Facility
+
+- Added `Enfermaria` as a guild facility unlocked after the first guild hall improvement.
+- Added a dedicated infirmary screen listing wounded companions and paid treatments.
+- Treatment restores a wounded companion to `disponivel` with full persistent health.
+- This creates a strategic alternative to entering another mission while carrying the wound penalty.
+- Added regression coverage for locked treatment, unlock, cost and restored health.
+
+### Optional Alpha Boss Mission
+
+- Added `Cacada ao Alfa da Caverna` as an optional boss contract in the Wolf Cave region.
+- The new contract gives its own rewards and does not block the main progression path.
+- Added `Cacador de Alfas` achievement for completing a boss contract.
+- Added regression coverage for selecting the optional mission, its boss target and achievement unlock.
+
+### Mission Achievement Result Feedback
+
+- Mission result summaries now include achievements unlocked by that victory.
+- The result popup shows newly earned milestones immediately after combat.
+- First contract, first boss and campaign completion achievements are surfaced through this flow.
+- Added regression coverage for normal, boss and final-campaign result feedback.
+
+### Zone Materials And Warehouse
+
+- Added persistent material inventory to `GameData`.
+- Missions now reward region-specific materials such as herbs, fangs, relics, venom, cursed bones and demonic components.
+- Mission result popup reports acquired materials.
+- Added `Armazem` as a guild facility unlocked with the first hall improvement.
+- Added a warehouse screen that lists stored materials and equipment totals.
+- Added regression coverage for material rewards and warehouse unlock.
+
+### Material-Based Forging
+
+- Advanced heavy equipment recipes now require region materials in addition to coins.
+- `Escudo Torre` consumes cursed bone and `Placas Pesadas` consumes demonic embers.
+- Blacksmith crafting rows display material requirements and disable crafting when ingredients are missing.
+- Added regression coverage for blocked crafting and material consumption.
+
+### Guild Facility Layout Fit
+
+- Expanded the guild content area and tightened spacing so the added Enfermaria and Armazem facility buttons fit the entrance screen layout.
+
+### Mission Reward Preview Clarity
+
+- Mission cards now preview reputation and regional material rewards before a contract begins.
+- This makes material-based forging decisions visible before committing the squad to combat.
+
+### Progressive Portal Travel
+
+- Fast travel is now unlocked by the `Portal` structure when the guild reaches level 3, matching the development plan.
+- Discovering a new zone no longer grants immediate travel before the Portal is available.
+- The mission board marks discovered-but-unreachable regions with their Portal requirement.
+- Added regression coverage for Portal gating and guild-level unlock.
+
+### Resource Collection Contract
+
+- Added `Coleta de Ervas na Floresta` as an optional early-game contract.
+- Added the `collect_resources` objective type: picked-up combat orbs advance a live `Suprimentos` HUD counter, and the mission wins when the target is collected.
+- The collection contract grants a larger herb reward for the warehouse and crafting loop.
+- Added regression coverage for mission availability, objective target and material reward.
+
+### Mechanical Recruit Traits
+
+- Recruitment traits now apply persistent stat effects when a companion is hired, instead of being decorative text.
+- Traits cover health, attack, defense, range, luck, cooldown and ability-power specializations.
+- Recruitment and squad screens now state each trait effect so the player can compare candidates with intent.
+- Added regression coverage for a trait-driven recruited companion stat bonus and its UI description source.
+
+### Expanded Mission Briefing
+
+- Mission cards now list their predicted enemy groups alongside risk, mobility, rewards and objective.
+- This completes the plan's pre-deployment visibility requirement for principal enemies.
+
 ## Current State
 
 - Default roster has six companions.
@@ -384,12 +480,25 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Achievement milestones now track long-term guild progress and appear in the Codex.
 - Heavy equipment now creates real speed tradeoffs for mission risk and fleeing.
 - Settings are now a real persisted screen reachable from guild and main menu.
-- Mission board now supports fast travel between unlocked regions.
+- Mission board now supports fast travel between unlocked regions once the level-3 Portal is available.
 - More campaign and guild milestones now unlock through normal play.
 - Enemy visuals now vary by mission/zone instead of only by wave number.
 - Reputation is now a real mission reward and visible guild progress metric.
 - Old settings placeholder UI has been removed from guild/main menu scenes.
 - Mission cards clearly show whether a contract is survival or kill-count.
+- Wounded companion state now has a real next-mission health penalty.
+- Campaign progression now includes the planned swamp and cursed graveyard regions.
+- The final mission now culminates in defeating a boss rather than filling an ordinary kill quota.
+- The guild now has a recovery loop for companions returning wounded.
+- Unlocked regions can now offer optional boss content outside the main campaign chain.
+- Mission victory screens now visibly celebrate newly unlocked milestones.
+- Zone-specific materials now persist and can be reviewed in the guild warehouse.
+- Regional materials now feed equipment crafting choices in the blacksmith.
+- The expanded facility grid is accommodated on the guild entry screen.
+- Mission cards show reputation and regional materials before deployment.
+- The first zone now offers a resource-collection contract in addition to survival.
+- Newly recruited companions now carry meaningful trait bonuses shown in management screens.
+- Mission selection now previews expected opposition before deployment.
 - The application start scene is now the guild scene.
 - Party editing now allows removing companions, including clearing the party completely.
 - Combat HUD now has a flee action. Flee takes 5 seconds to prepare, preserves companion run progress and applies a coin penalty based on squad mobility.
@@ -402,12 +511,15 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 
 - Add richer facility pages as systems mature.
 - Add richer long-term progression polish.
-- Add more late-game polish and balance tuning.
+- Add remaining specialized contract types, such as escort or defense, only if their combat interactions can be made readable.
+- Add final balance checks and remaining presentation polish.
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 245 tests passed after mission objective card clarity.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> scene booted cleanly after mission objective card clarity.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 280 tests passed after recruit trait effects.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after trait and objective expansion.
+- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after progression updates.
+- Known issue reproduced: `--check-only --script` on the edited Control UI scripts also triggers the existing Godot 4.6.2 headless signal-11 crash on this machine; validation therefore relies on the stable unit-test and scene-boot paths above.
 - Known issue reproduced: direct headless launch of `BlacksmithScreen.tscn` crashes with the same Godot 4.6.2 UI-only scene crash pattern.
 - Known issue: direct headless launch of UI-only scenes still crashes Godot 4.6.2 on this machine; `GraveyardScene.tscn` hit the same engine crash pattern as the older UI scenes.
 - Note: Direct headless runs of UI-only scenes crash Godot 4.6.2 on this machine, including the existing `MainMenu`, `CharactersScreen` and `UpgradesScreen`; use editor/GUI verification for UI scene rendering.
@@ -423,6 +535,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scenes/ui/TrainingScreen.tscn`
 - `scenes/ui/CodexScreen.tscn`
 - `scenes/ui/SettingsScreen.tscn`
+- `scenes/ui/InfirmaryScreen.tscn`
+- `scenes/ui/WarehouseScreen.tscn`
 - `scenes/ui/MissionSelect.tscn`
 - `scenes/ui/CharactersScreen.tscn`
 - `scenes/ui/HUD.tscn`
@@ -443,6 +557,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/ui/training_screen.gd`
 - `scripts/ui/codex_screen.gd`
 - `scripts/ui/settings_screen.gd`
+- `scripts/ui/infirmary_screen.gd`
+- `scripts/ui/warehouse_screen.gd`
 - `scripts/ui/hud.gd`
 - `scripts/ui/mission_select.gd`
 - `scripts/ui/recruitment_scene.gd`

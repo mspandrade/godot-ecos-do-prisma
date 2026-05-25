@@ -45,6 +45,12 @@ func _format_outcome(result_reason: String, mission_result: Dictionary, companio
 			var equipment_rewards: Array = mission_result.get("equipment_rewards", [])
 			if equipment_rewards.size() > 0:
 				lines.append("Equipamento: %s" % ", ".join(equipment_rewards))
+			var material_rewards: Array = mission_result.get("material_rewards", [])
+			if material_rewards.size() > 0:
+				lines.append("Materiais: %s" % ", ".join(material_rewards))
+			var unlocked_achievements: Array = mission_result.get("unlocked_achievements", [])
+			if unlocked_achievements.size() > 0:
+				lines.append("Marcos: %s" % ", ".join(unlocked_achievements))
 			if bool(mission_result.get("campaign_completed", false)):
 				lines.append(str(mission_result.get("campaign_completion_name", "Campanha concluida.")))
 		"fuga":
