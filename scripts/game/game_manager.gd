@@ -16,7 +16,7 @@ var mission_duration := 20.0 * 60.0
 var run_finished := false
 var flee_pending := false
 var flee_elapsed := 0.0
-var combat_equipment_rewards := []
+var combat_equipment_candidates := []
 var kill_count := 0
 var boss_kill_count := 0
 var resource_count := 0
@@ -121,7 +121,6 @@ func _drop_orb(pos: Vector2, xp_value: int, coin_value: int, enemy_type: String 
 	var orb: XPOrb = orb_pool.acquire()
 	if orb:
 		orb.drop(pos, xp_value, coin_value)
-	_roll_combat_equipment_drop(xp_value, coin_value)
 	if str(mission_profile.get("objective_type", "survive")) == "kill_count" and kill_count >= int(mission_profile.get("target_kills", 0)):
 		_finish_run("vitoria")
 	elif str(mission_profile.get("objective_type", "survive")) == "boss_kill" and boss_kill_count >= int(mission_profile.get("target_bosses", 1)):
@@ -140,16 +139,17 @@ func _roll_combat_equipment_drop(xp_value: int, coin_value: int) -> void:
 	var chance: float = minf(0.08, 0.001 + xp_value * 0.0015 + coin_value * 0.0004)
 	if randf() > chance:
 		return
-	var item_name := GameData.award_random_equipment(int(mission_profile.get("recommended_level", 1)))
-	if not item_name.is_empty():
-		combat_equipment_rewards.append(item_name)
+	var candidate := GameData.roll_random_equipment_candidate(int(mission_profile.get("recommended_level", 1)))
+	if not candidate.is_empty():
+		combat_equipment_candidates.append(candidate)
 
 func _recycle_orb(orb: XPOrb) -> void:
 	orb.deactivate()
 
-func _on_orb_collected(value: int) -> void:
+func _on_orb_collected(value: int, coin_value: int) -> void:
 	companion_manager.distribute_xp(value)
 	var leveled_up := run_state.add_xp(value)
+	_roll_combat_equipment_drop(value, coin_value)
 	if str(mission_profile.get("objective_type", "survive")) == "collect_resources":
 		resource_count += 1
 		_update_objective_hud()
@@ -220,9 +220,11 @@ func _finish_run(result_reason := "derrota", coins_override := -1) -> void:
 	if not bestiary_kills.is_empty():
 		GameData.add_bestiary_kills(bestiary_kills)
 	var mission_result := GameData.apply_mission_result(str(mission_profile.get("mission_id", "")), result_reason)
-	if not combat_equipment_rewards.is_empty():
+	if result_reason in ["vitoria", "fuga"] and not combat_equipment_candidates.is_empty():
 		if not mission_result.has("equipment_rewards"):
 			mission_result["equipment_rewards"] = []
-		for item_name in combat_equipment_rewards:
-			mission_result["equipment_rewards"].append(item_name)
+		for candidate in combat_equipment_candidates:
+			var item_name := GameData.award_equipment_candidate(candidate)
+			if not item_name.is_empty():
+				mission_result["equipment_rewards"].append(item_name)
 	game_over.call("show_results", elapsed, run_state.level, awarded_coins, result_reason, run_state.coins, mission_result, companion_result)

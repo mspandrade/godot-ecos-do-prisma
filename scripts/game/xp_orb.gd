@@ -1,7 +1,7 @@
 extends Node2D
 class_name XPOrb
 
-signal collected(value: int)
+signal collected(value: int, coin_value: int)
 signal recycled(orb: XPOrb)
 
 var value := 1
@@ -50,7 +50,7 @@ func _collect() -> void:
 	if not active:
 		return
 	active = false
-	collected.emit(value)
+	collected.emit(value, coin_value)
 	if coin_value > 0:
 		var run_state := get_tree().get_first_node_in_group("run_state")
 		if run_state:

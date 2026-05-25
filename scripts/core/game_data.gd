@@ -506,7 +506,8 @@ var equipment_defs := {
 		"cost": 210,
 		"effect": "+4 defesa, -0.7 mobilidade, -10 velocidade",
 		"bonuses": {"defense": 4.0, "speed_rating": -0.7, "move_speed": -10.0},
-		"materials": {"cursed_bone": 1}
+		"materials": {"cursed_bone": 1},
+		"drop_min_level": 7
 	},
 	"heavy_plate": {
 		"name": "Placas Pesadas",
@@ -514,7 +515,8 @@ var equipment_defs := {
 		"cost": 260,
 		"effect": "+22 vida, +2 defesa, -1.0 mobilidade, -14 velocidade",
 		"bonuses": {"max_health": 22.0, "defense": 2.0, "speed_rating": -1.0, "move_speed": -14.0},
-		"materials": {"demon_ember": 2}
+		"materials": {"demon_ember": 2},
+		"drop_min_level": 8
 	}
 }
 
@@ -536,12 +538,14 @@ var trait_defs := {
 	"leal": {"name": "Leal", "effect": "+3 vida", "bonuses": {"max_health": 3.0}},
 	"corajoso": {"name": "Corajoso", "effect": "+0.6 ataque", "bonuses": {"attack": 0.6}},
 	"cuidadoso": {"name": "Cuidadoso", "effect": "+1.25 defesa", "bonuses": {"defense": 1.25}},
+	"cuidadosa": {"name": "Cuidadosa", "effect": "+1.25 defesa", "bonuses": {"defense": 1.25}},
 	"impulsivo": {"name": "Impulsivo", "effect": "+1 ataque, -6% recarga", "bonuses": {"attack": 1.0, "cooldown_multiplier": 0.94}},
 	"observador": {"name": "Observador", "effect": "+32 alcance", "bonuses": {"range": 32.0}},
 	"teimoso": {"name": "Teimoso", "effect": "+8 vida, +0.5 defesa", "bonuses": {"max_health": 8.0, "defense": 0.5}},
-	"sortudo": {"name": "Sortudo", "effect": "+10% sorte", "bonuses": {"luck": 0.1}},
+	"sortudo": {"name": "Sortudo", "effect": "+10% critico", "bonuses": {"crit": 0.1}},
 	"disciplinado": {"name": "Disciplinado", "effect": "-10% recarga", "bonuses": {"cooldown_multiplier": 0.9}},
-	"focada": {"name": "Focada", "effect": "+20% poder de habilidade", "bonuses": {"ability_power": 0.2}}
+	"focada": {"name": "Focada", "effect": "+20% poder de habilidade", "bonuses": {"ability_power": 0.2}},
+	"curiosa": {"name": "Curiosa", "effect": "+20% poder de habilidade", "bonuses": {"ability_power": 0.2}}
 }
 
 func _ready() -> void:
@@ -1072,11 +1076,23 @@ func craft_equipment(equipment_id: String) -> bool:
 
 func award_random_equipment(recommended_level: int = 1) -> String:
 	_ensure_guild_defaults()
-	var ids := equipment_defs.keys()
+	return award_equipment_candidate(roll_random_equipment_candidate(recommended_level))
+
+func roll_random_equipment_candidate(recommended_level: int = 1) -> Dictionary:
+	var ids := _drop_equipment_ids(recommended_level)
 	if ids.is_empty():
+		return {}
+	return {
+		"equipment_id": str(ids.pick_random()),
+		"rarity": _roll_mission_equipment_rarity(recommended_level)
+	}
+
+func award_equipment_candidate(candidate: Dictionary) -> String:
+	_ensure_guild_defaults()
+	var equipment_id := str(candidate.get("equipment_id", ""))
+	if not equipment_defs.has(equipment_id):
 		return ""
-	var equipment_id := str(ids.pick_random())
-	var item_name := _add_equipment_reward(equipment_id, _roll_mission_equipment_rarity(recommended_level))
+	var item_name := _add_equipment_reward(equipment_id, str(candidate.get("rarity", "comum")))
 	_unlock_achievement("first_equipment")
 	save_data()
 	equipment_changed.emit()
@@ -1740,6 +1756,7 @@ func _set_bus_volume(bus_name: String, linear_value: float) -> void:
 	AudioServer.set_bus_volume_db(index, linear_to_db(maxf(volume, 0.0001)))
 
 func _ensure_guild_defaults() -> void:
+	var needs_trait_migration := not companion_roster.is_empty() and int(guild.get("trait_effects_revision", 0)) < 1
 	if guild.is_empty():
 		guild = {
 			"name": "Guilda Falida",
@@ -1760,6 +1777,9 @@ func _ensure_guild_defaults() -> void:
 		companion_roster = _default_companion_roster()
 		if active_squad.is_empty():
 			active_squad = ["c_warrior_001", "c_archer_001", "c_cleric_001"]
+	if needs_trait_migration:
+		_migrate_legacy_trait_effects()
+	guild["trait_effects_revision"] = 1
 	for companion_id in companion_roster.keys():
 		var companion_data: Dictionary = companion_roster[companion_id]
 		if not companion_data.has("pending_upgrades"):
@@ -1794,6 +1814,19 @@ func _ensure_guild_defaults() -> void:
 		selected_travel_zone = str(missions[selected_mission_id].get("zone", "initial_forest"))
 	if not is_fast_travel_unlocked() and selected_travel_zone != "initial_forest":
 		selected_travel_zone = "initial_forest"
+
+func _migrate_legacy_trait_effects() -> void:
+	for companion_id in companion_roster.keys():
+		var data: Dictionary = companion_roster[companion_id]
+		var traits: Array = data.get("traits", [])
+		if traits.has("cuidadosa"):
+			data["defense"] = float(data.get("defense", 0.0)) + 1.25
+		if traits.has("curiosa"):
+			data["ability_power"] = float(data.get("ability_power", 0.0)) + 0.2
+		if traits.has("sortudo"):
+			data["luck"] = maxf(0.0, float(data.get("luck", 0.0)) - 0.1)
+			data["crit"] = float(data.get("crit", 0.0)) + 0.1
+		companion_roster[companion_id] = data
 
 func _default_guild_value(key: String) -> Variant:
 	match key:
@@ -1833,7 +1866,6 @@ func _refresh_guild_upgrade_effects() -> void:
 	if hall_level >= 2:
 		structures.append("graveyard")
 		structures.append("portal")
-	if hall_level >= 3:
 		structures.append("blacksmith")
 	guild["unlocked_structures"] = structures
 
@@ -1869,13 +1901,21 @@ func _roll_mission_equipment_reward(mission: Dictionary, summary: Dictionary) ->
 	var chance := float(mission.get("equipment_reward_chance", 0.0))
 	if chance <= 0.0 or randf() > chance:
 		return
-	var ids := equipment_defs.keys()
+	var ids := _drop_equipment_ids(int(mission.get("recommended_level", 1)))
 	if ids.is_empty():
 		return
 	var equipment_id := str(ids.pick_random())
 	var item_name := _add_equipment_reward(equipment_id, _roll_mission_equipment_rarity(int(mission.get("recommended_level", 1))))
 	if not item_name.is_empty():
 		summary["equipment_rewards"].append(item_name)
+
+func _drop_equipment_ids(recommended_level: int) -> Array:
+	var result := []
+	for equipment_id in equipment_defs.keys():
+		var definition: Dictionary = equipment_defs[equipment_id]
+		if recommended_level >= int(definition.get("drop_min_level", 1)):
+			result.append(equipment_id)
+	return result
 
 func _apply_equipment_bonus(data: Dictionary, def: Dictionary, item: Dictionary, direction: float) -> void:
 	var bonuses: Dictionary = def.get("bonuses", {})
@@ -2073,6 +2113,7 @@ func _build_combat_companion_def(companion_id: String, companion_data: Dictionar
 	result["range"] = float(companion_data.get("range", base["range"]))
 	result["cooldown"] = float(companion_data.get("cooldown", base["cooldown"]))
 	result["ability_power"] = float(companion_data.get("ability_power", base.get("ability_power", 1.0)))
+	result["crit"] = float(companion_data.get("crit", base.get("crit", 0.0)))
 	return result
 
 func _rarity_multiplier(rarity: String) -> float:

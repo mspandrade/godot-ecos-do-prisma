@@ -4,6 +4,7 @@ const RunStateScript := preload("res://scripts/core/run_state.gd")
 const UpgradeManagerScript := preload("res://scripts/game/upgrade_manager.gd")
 const GameDataScript := preload("res://scripts/core/game_data.gd")
 const CompanionScript := preload("res://scripts/game/companion.gd")
+const CompanionScene := preload("res://scenes/Companion.tscn")
 const CompanionManagerScript := preload("res://scripts/game/companion_manager.gd")
 const EnemySpawnerScript := preload("res://scripts/game/enemy_spawner.gd")
 const ScenePoolScript := preload("res://scripts/core/scene_pool.gd")
@@ -486,6 +487,16 @@ func _test_default_guild_squad_summary() -> void:
 	_assert_eq(summary["speed_label"], "Equilibrado", "Default squad speed gets a readable label")
 	_assert_eq(combat_defs.size(), 3, "Combat companion defs come from active squad")
 	_assert_eq(combat_defs[0]["id"], "c_warrior_001", "Combat companion keeps persistent roster id")
+	var roster: Dictionary = data.get_companion_roster()
+	_assert_true(float(roster["c_cleric_001"]["defense"]) > 2.0, "Initial cuidadosa trait grants defense")
+	_assert_true(float(roster["c_mage_001"]["ability_power"]) > 0.75, "Initial curiosa trait grants ability power")
+	var lucky: Dictionary = data._make_companion_data("lucky_test", "Sorte", "archer", "comum", ["sortudo"])
+	var lucky_combat: Dictionary = data._build_combat_companion_def("lucky_test", lucky)
+	_assert_float_eq(float(lucky_combat["crit"]), float(lucky["crit"]), "Critical trait is passed into combat definition")
+	var runtime: Node = CompanionScript.new()
+	runtime.crit_chance = 1.0
+	_assert_float_eq(float(runtime._damage_with_critical(10.0)), 17.5, "Runtime attack resolves guaranteed critical damage")
+	runtime.free()
 	data.free()
 
 func _test_squad_can_be_emptied() -> void:
@@ -533,6 +544,7 @@ func _test_fast_travel_zone_unlocks() -> void:
 	data.permanent_upgrades["guild_hall"] = 2
 	data.get_companion_roster()
 	_assert_true(data.is_fast_travel_unlocked(), "Guild level three unlocks the portal")
+	_assert_true((data.guild["unlocked_structures"] as Array).has("blacksmith"), "Guild level three unlocks the blacksmith")
 	_assert_true(data.select_travel_zone("wolf_cave"), "Unlocked travel zone can be selected")
 	_assert_eq(data.get_selected_travel_zone(), "wolf_cave", "Travel zone selection is stored")
 	data.free()
@@ -711,10 +723,22 @@ func _test_wounded_companion_starts_next_mission_injured() -> void:
 	var definitions: Array = data.get_active_companion_defs()
 	var warrior: Dictionary = definitions[0]
 	_assert_float_eq(float(warrior["health"]), float(warrior["max_health"]) * 0.35, "Wounded companion begins combat at persistent health ratio")
-	var companion: Node = CompanionScript.new()
-	companion.setup(warrior, null, Vector2.ZERO)
+	var player := Node2D.new()
+	root.add_child(player)
+	var companion: Node = CompanionScene.instantiate()
+	root.add_child(companion)
+	companion.body = companion.get_node("Body")
+	companion.animation_player = companion.get_node("AnimationPlayer")
+	companion.setup(warrior, player, Vector2.ZERO)
 	_assert_true(companion.health < companion.max_health, "Runtime companion keeps wounded starting health")
+	var manager: Node = CompanionManagerScript.new()
+	manager.uses_persistent_squad = true
+	manager._recruit_companion(companion)
+	_assert_true(companion.health < companion.max_health, "Persistent squad recruitment preserves wound penalty")
+	manager.recruited_companions.clear()
+	manager.free()
 	companion.free()
+	player.free()
 	data.free()
 
 func _test_infirmary_treats_wounded_companion() -> void:
@@ -829,6 +853,14 @@ func _test_heavy_equipment_speed_penalty() -> void:
 	data.free()
 
 func _test_random_equipment_award() -> void:
+	var pending_data: Node = GameDataScript.new()
+	var candidate: Dictionary = pending_data.roll_random_equipment_candidate(1)
+	_assert_true(not candidate.is_empty(), "Collected equipment drop creates a candidate")
+	_assert_true(not str(candidate.get("equipment_id", "")) in ["tower_shield", "heavy_plate"], "Early drops cannot bypass regional equipment materials")
+	_assert_eq(pending_data.get_equipment_inventory().size(), 0, "Loot candidate is not stored before extraction")
+	_assert_true(not pending_data.award_equipment_candidate(candidate).is_empty(), "Extracted candidate becomes equipment")
+	_assert_eq(pending_data.get_equipment_inventory().size(), 1, "Extracted equipment reaches inventory")
+	pending_data.free()
 	var data: Node = GameDataScript.new()
 	var item_name: String = data.award_random_equipment(4)
 	_assert_true(not item_name.is_empty(), "Random equipment award returns display name")

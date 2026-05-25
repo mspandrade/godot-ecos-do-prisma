@@ -24,6 +24,7 @@ var attack_range := 115.0
 var attack_cooldown := 1.35
 var attack_timer := 0.0
 var ability_power := 1.0
+var crit_chance := 0.0
 var follow_offset := Vector2.ZERO
 var player: Node2D
 var contact_tick := 0.0
@@ -68,6 +69,7 @@ func setup(data: Dictionary, p_player: Node2D, offset: Vector2) -> void:
 	attack_cooldown = float(data["cooldown"])
 	attack_timer = randf_range(0.12, 0.45)
 	ability_power = float(data.get("ability_power", 1.0))
+	crit_chance = float(data.get("crit", 0.0))
 	scale = Vector2.ONE
 	base_collision_layer = collision_layer
 	base_collision_mask = collision_mask
@@ -316,14 +318,15 @@ func _die() -> void:
 	health_changed.emit(self, health, max_health)
 	state_changed.emit(self, state, 0.0)
 
-func recruit(new_offset: Vector2) -> void:
+func recruit(new_offset: Vector2, restore_health: bool = true) -> void:
 	if is_recruited or is_down or state == "morto":
 		return
 	is_recruited = true
 	state = "em_missao"
 	downed_time_remaining = downed_duration
 	follow_offset = new_offset
-	health = max_health
+	if restore_health:
+		health = max_health
 	_snap_to_formation()
 	body.modulate = Color.WHITE
 	animation_player.play("idle")
@@ -355,7 +358,7 @@ func _tank_attack() -> void:
 	if not enemy:
 		_flash(player.global_position, Color(0.55, 0.75, 0.95, 0.22), 72.0)
 		return
-	enemy.take_damage(attack_damage)
+	enemy.take_damage(_damage_with_critical(attack_damage))
 	enemy.apply_knockback(global_position.direction_to(enemy.global_position), 220.0 * ability_power)
 	for nearby in get_tree().get_nodes_in_group("enemies"):
 		if nearby != enemy and nearby.is_active and nearby.global_position.distance_to(global_position) <= 130.0:
@@ -381,7 +384,7 @@ func _process_shield_charge(delta: float) -> void:
 func _damage_charge_contacts() -> void:
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if enemy.is_active and enemy.global_position.distance_to(global_position) < 58.0:
-			enemy.take_damage(attack_damage)
+			enemy.take_damage(_damage_with_critical(attack_damage))
 			enemy.apply_knockback(global_position.direction_to(enemy.global_position), 280.0 * ability_power)
 			_flash(enemy.global_position, Color(0.55, 0.75, 1.0, 0.5), 24.0)
 
@@ -392,7 +395,7 @@ func _mage_attack() -> void:
 	var radius := 92.0 + level * 3.0
 	for target in get_tree().get_nodes_in_group("enemies"):
 		if target.is_active and target.global_position.distance_to(enemy.global_position) <= radius:
-			target.take_damage(attack_damage * 0.75)
+			target.take_damage(_damage_with_critical(attack_damage * 0.75))
 			target.apply_burn(attack_damage * 0.45 * ability_power, 2.5)
 	_flash_line(global_position, enemy.global_position, Color(0.8, 0.35, 1.0, 0.8), 5.0)
 	_flash(enemy.global_position, Color(0.75, 0.35, 1.0, 0.35), radius)
@@ -401,7 +404,7 @@ func _archer_attack() -> void:
 	var enemy := _nearest_enemy(attack_range)
 	if not enemy:
 		return
-	enemy.take_damage(attack_damage * 1.35)
+	enemy.take_damage(_damage_with_critical(attack_damage * 1.35))
 	_flash_line(global_position, enemy.global_position, Color(1.0, 0.86, 0.32, 0.85), 3.0)
 	_flash(enemy.global_position, Color(0.9, 0.8, 0.35, 0.55), 16.0)
 
@@ -411,7 +414,7 @@ func _assassin_attack() -> void:
 		return
 	var direction := global_position.direction_to(enemy.global_position)
 	var crit_bonus: float = 1.0 + minf(0.75, ability_power * 0.28)
-	enemy.take_damage(attack_damage * crit_bonus)
+	enemy.take_damage(_damage_with_critical(attack_damage * crit_bonus))
 	enemy.apply_knockback(direction, 140.0)
 	global_position = enemy.global_position - direction * 42.0
 	_flash_line(global_position, enemy.global_position, Color(0.95, 0.25, 0.48, 0.8), 4.0)
@@ -427,6 +430,9 @@ func _cleric_heal() -> void:
 		return
 	if _heal_companion_targets(get_tree().get_nodes_in_group("companions")):
 		_flash(player.global_position, Color(0.95, 1.0, 0.55, 0.26), attack_range)
+
+func _damage_with_critical(base_damage: float) -> float:
+	return base_damage * 1.75 if randf() < clampf(crit_chance, 0.0, 1.0) else base_damage
 
 func _heal_companion_targets(targets: Array) -> bool:
 	var healed_any := false

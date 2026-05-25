@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-24, after recruit trait effects and expanded mission briefing
+Last updated: 2026-05-25, after wound flow, extraction economy and trait runtime fixes
 
 ## Current Goal
 
@@ -499,6 +499,11 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - The first zone now offers a resource-collection contract in addition to survival.
 - Newly recruited companions now carry meaningful trait bonuses shown in management screens.
 - Mission selection now previews expected opposition before deployment.
+- Wounded persistent companions now enter combat with their saved partial health instead of being silently healed when placed in formation.
+- Dropped combat equipment is now rolled on orb collection and only committed after victory or successful flee extraction; defeat loses pending loot.
+- Material-gated heavy equipment is excluded from early mission and combat drop pools until the intended mission tier.
+- The initial `cuidadosa` and `curiosa` traits now grant real bonuses, while `sortudo` grants runtime critical chance; old rosters migrate once.
+- The Ferreiro now unlocks at guild level 3, matching the Portal milestone described in the plan.
 - The application start scene is now the guild scene.
 - Party editing now allows removing companions, including clearing the party completely.
 - Combat HUD now has a flee action. Flee takes 5 seconds to prepare, preserves companion run progress and applies a coin penalty based on squad mobility.
@@ -516,9 +521,9 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 280 tests passed after recruit trait effects.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after trait and objective expansion.
-- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after progression updates.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 291 tests passed after wound, extraction, trait runtime and facility-unlock fixes.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after extraction and critical-hit changes.
+- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after facility-unlock alignment.
 - Known issue reproduced: `--check-only --script` on the edited Control UI scripts also triggers the existing Godot 4.6.2 headless signal-11 crash on this machine; validation therefore relies on the stable unit-test and scene-boot paths above.
 - Known issue reproduced: direct headless launch of `BlacksmithScreen.tscn` crashes with the same Godot 4.6.2 UI-only scene crash pattern.
 - Known issue: direct headless launch of UI-only scenes still crashes Godot 4.6.2 on this machine; `GraveyardScene.tscn` hit the same engine crash pattern as the older UI scenes.
@@ -543,6 +548,7 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/core/game_data.gd`
 - `scripts/game/companion.gd`
 - `scripts/game/companion_manager.gd`
+- `scripts/game/xp_orb.gd`
 - `scripts/game/enemy.gd`
 - `scripts/game/enemy_spawner.gd`
 - `scripts/game/game_manager.gd`

@@ -84,7 +84,7 @@ func _on_companion_leveled(companion: Node, choices: Array) -> void:
 func _recruit_companion(companion: Node) -> void:
 	var slot := recruited_companions.size()
 	var offset: Vector2 = offsets[min(slot, offsets.size() - 1)]
-	companion.recruit(offset)
+	companion.recruit(offset, not uses_persistent_squad)
 	recruited_companions.append(companion)
 	companion_recruited.emit(companion)
 

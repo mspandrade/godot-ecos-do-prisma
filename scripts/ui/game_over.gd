@@ -55,6 +55,9 @@ func _format_outcome(result_reason: String, mission_result: Dictionary, companio
 				lines.append(str(mission_result.get("campaign_completion_name", "Campanha concluida.")))
 		"fuga":
 			lines.append("Missao incompleta. O esquadrao voltou para a guilda.")
+			var extracted_equipment: Array = mission_result.get("equipment_rewards", [])
+			if extracted_equipment.size() > 0:
+				lines.append("Equipamento recuperado: %s" % ", ".join(extracted_equipment))
 		_:
 			lines.append("Missao fracassada. O esquadrao voltou para a guilda.")
 	if bool(mission_result.get("reroll_reset", false)):
