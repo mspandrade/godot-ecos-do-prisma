@@ -7,7 +7,7 @@ var buttons: Array[Button] = []
 
 func bind(manager: Node) -> void:
 	companion_manager = manager
-	buttons = [%ChoiceA, %ChoiceB, %ChoiceC]
+	buttons = [%ChoiceA, %ChoiceB, %ChoiceC, %ChoiceD, %ChoiceE]
 	for i in range(buttons.size()):
 		buttons[i].pressed.connect(_choose.bind(i))
 

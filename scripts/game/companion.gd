@@ -25,6 +25,7 @@ var attack_cooldown := 1.35
 var attack_timer := 0.0
 var ability_power := 1.0
 var crit_chance := 0.0
+var luck := 0.0
 var follow_offset := Vector2.ZERO
 var player: Node2D
 var contact_tick := 0.0
@@ -70,6 +71,7 @@ func setup(data: Dictionary, p_player: Node2D, offset: Vector2) -> void:
 	attack_timer = randf_range(0.12, 0.45)
 	ability_power = float(data.get("ability_power", 1.0))
 	crit_chance = float(data.get("crit", 0.0))
+	luck = float(data.get("luck", 0.0))
 	scale = Vector2.ONE
 	base_collision_layer = collision_layer
 	base_collision_mask = collision_mask
@@ -210,8 +212,35 @@ func get_upgrade_choices() -> Array:
 		choices.append({"id": "ability", "name": "Inspiracao", "desc": "+15% forca do buff"})
 	elif class_type != "cleric":
 		choices.append({"id": "ability", "name": "Tecnica", "desc": "+15% efeito especial"})
-	choices.shuffle()
-	return choices.slice(0, 3)
+	var offered: Array = choices.slice(0, 3)
+	var milestone_choice := _milestone_choice()
+	if not milestone_choice.is_empty():
+		offered[2] = milestone_choice
+	if rarity == "incomum" and level >= 5:
+		offered[1] = {"id": "crit", "name": "Precisao", "desc": "+4% chance critica"}
+	elif rarity == "raro":
+		offered.append({"id": "crit", "name": "Precisao", "desc": "+4% chance critica"} if level >= 5 else {"id": "ability", "name": "Talento", "desc": "+15% efeito especial"})
+	elif rarity == "epico":
+		offered.append({"id": "crit", "name": "Precisao Epica", "desc": "+6% chance critica"})
+		if level >= 5:
+			offered[1] = {"id": "luck", "name": "Fortuna", "desc": "+6% sorte"}
+	elif rarity == "lendario":
+		offered.append({"id": "crit", "name": "Precisao Lendaria", "desc": "+6% chance critica"})
+		offered.append({"id": "luck", "name": "Destino", "desc": "+8% sorte"})
+		if level >= 5:
+			offered[1] = {"id": "ability", "name": "Dom Lendario", "desc": "+15% efeito especial"}
+	return offered
+
+func _milestone_choice() -> Dictionary:
+	if level >= 20:
+		return {"id": "ultimate", "name": "Habilidade Definitiva", "desc": "+40% habilidade e -10% recarga"}
+	if level >= 15:
+		return {"id": "advanced_power", "name": "Poder Avancado", "desc": "+30% habilidade e +4% critico"}
+	if level >= 10:
+		return {"id": "specialization", "name": "Especializacao", "desc": "+18% ataque e +1 defesa"}
+	if level >= 5:
+		return {"id": "ability", "name": "Poder de Classe", "desc": "+15% efeito especial"}
+	return {}
 
 func apply_upgrade(upgrade_id: String) -> void:
 	if is_down or not is_recruited:
@@ -231,6 +260,19 @@ func apply_upgrade(upgrade_id: String) -> void:
 			speed_rating += 0.35
 		"ability":
 			ability_power *= 1.15
+		"crit":
+			crit_chance += 0.06 if rarity in ["epico", "lendario"] else 0.04
+		"luck":
+			luck += 0.08 if rarity == "lendario" else 0.06
+		"specialization":
+			attack_damage *= 1.18
+			defense += 1.0
+		"advanced_power":
+			ability_power *= 1.3
+			crit_chance += 0.04
+		"ultimate":
+			ability_power *= 1.4
+			attack_cooldown *= 0.9
 
 func _use_class_action() -> void:
 	play_attack_animation()

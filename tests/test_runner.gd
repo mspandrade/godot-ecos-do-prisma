@@ -174,6 +174,13 @@ func _test_companion_level_and_upgrades() -> void:
 	_assert_float_eq(companion.move_speed, 210.0, "Companion speed upgrade applies to movement")
 	_assert_float_eq(companion.speed_rating, 5.35, "Companion speed upgrade applies to squad rating")
 	_assert_float_eq(companion.ability_power, 1.15, "Companion ability upgrade applies")
+	companion.rarity = "lendario"
+	companion.level = 20
+	var legendary_choices: Array = companion.get_upgrade_choices()
+	_assert_eq(legendary_choices.size(), 5, "Legendary runtime companion receives five choices")
+	_assert_true(legendary_choices.any(func(choice: Dictionary): return str(choice["id"]) == "ultimate"), "Runtime level twenty exposes ultimate power")
+	companion.apply_upgrade("ultimate")
+	_assert_float_eq(companion.ability_power, 1.61, "Runtime ultimate improves ability power")
 	companion.take_damage(40.0)
 	_assert_eq(companion.health, 0.0, "Companion can fall after taking lethal damage")
 	_assert_true(companion.is_down, "Companion enters downed state after falling")
@@ -484,6 +491,7 @@ func _test_default_guild_squad_summary() -> void:
 	var combat_defs: Array = data.get_active_companion_defs()
 	_assert_eq(summary["size"], 3, "Default guild starts with three active companions")
 	_assert_float_eq(summary["average_speed"], 6.0, "Default squad speed average uses companion ratings")
+	_assert_true(float(summary["average_luck"]) > 0.0, "Default squad exposes average luck for rewards")
 	_assert_eq(summary["speed_label"], "Equilibrado", "Default squad speed gets a readable label")
 	_assert_eq(combat_defs.size(), 3, "Combat companion defs come from active squad")
 	_assert_eq(combat_defs[0]["id"], "c_warrior_001", "Combat companion keeps persistent roster id")
@@ -492,7 +500,9 @@ func _test_default_guild_squad_summary() -> void:
 	_assert_true(float(roster["c_mage_001"]["ability_power"]) > 0.75, "Initial curiosa trait grants ability power")
 	var lucky: Dictionary = data._make_companion_data("lucky_test", "Sorte", "archer", "comum", ["sortudo"])
 	var lucky_combat: Dictionary = data._build_combat_companion_def("lucky_test", lucky)
-	_assert_float_eq(float(lucky_combat["crit"]), float(lucky["crit"]), "Critical trait is passed into combat definition")
+	_assert_true(float(lucky["luck"]) > float(roster["c_archer_001"]["luck"]), "Sortudo trait grants luck")
+	_assert_float_eq(float(lucky_combat["crit"]), float(lucky["crit"]), "Class critical chance is passed into combat definition")
+	_assert_true(data.get_lucky_reward_chance(0.5) > 0.5, "Squad luck improves equipment reward chance")
 	var runtime: Node = CompanionScript.new()
 	runtime.crit_chance = 1.0
 	_assert_float_eq(float(runtime._damage_with_critical(10.0)), 17.5, "Runtime attack resolves guaranteed critical damage")
@@ -523,6 +533,7 @@ func _test_mission_readiness_uses_squad_and_unlocks() -> void:
 	var initial: Dictionary = data.get_mission_readiness("initial_forest_survival")
 	_assert_true(initial["can_start"], "Initial mission can start with default squad")
 	_assert_eq(initial["risk"], "Baixo", "Initial mission starts with low risk")
+	_assert_true(float(initial["average_luck"]) > 0.0, "Mission readiness exposes squad luck")
 	var locked: Dictionary = data.get_mission_readiness("wolf_cave_scout")
 	_assert_true(not locked["unlocked"], "Locked mission reports locked state")
 	_assert_true(not data.select_mission("wolf_cave_scout"), "Cannot select locked mission")
@@ -664,6 +675,26 @@ func _test_persistent_companion_upgrade_choice() -> void:
 	_assert_true(data.apply_companion_pending_upgrade("c_warrior_001", "damage"), "Pending companion upgrade can be applied")
 	_assert_float_eq(float(data.companion_roster["c_warrior_001"]["attack"]), before_attack * 1.12, "Persistent companion damage upgrade changes roster stat")
 	_assert_eq(data.companion_roster["c_warrior_001"]["pending_upgrades"], 0, "Applying persistent companion upgrade spends pending point")
+	var rare: Dictionary = data._make_companion_data("rare_upgrade", "Rara", "assassin", "raro", [])
+	rare["level"] = 5
+	rare["pending_upgrades"] = 1
+	data.companion_roster["rare_upgrade"] = rare
+	var rare_choices: Array = data.get_companion_upgrade_choices("rare_upgrade")
+	_assert_eq(rare_choices.size(), 4, "Rare companion receives four level-up choices")
+	_assert_true(rare_choices.any(func(choice: Dictionary): return str(choice["id"]) == "crit"), "Rare level-five choice includes critical progression")
+	var rare_crit := float(rare["crit"])
+	_assert_true(data.apply_companion_pending_upgrade("rare_upgrade", "crit"), "Rare companion can select critical progression")
+	_assert_float_eq(float(data.companion_roster["rare_upgrade"]["crit"]), rare_crit + 0.04, "Critical progression changes persistent stat")
+	var legendary: Dictionary = data._make_companion_data("legend_upgrade", "Lenda", "mage", "lendario", [])
+	legendary["level"] = 20
+	legendary["pending_upgrades"] = 1
+	data.companion_roster["legend_upgrade"] = legendary
+	var legend_choices: Array = data.get_companion_upgrade_choices("legend_upgrade")
+	_assert_eq(legend_choices.size(), 5, "Legendary companion receives five level-up choices")
+	_assert_true(legend_choices.any(func(choice: Dictionary): return str(choice["id"]) == "ultimate"), "Level twenty exposes ultimate milestone power")
+	var before_power := float(legendary["ability_power"])
+	_assert_true(data.apply_companion_pending_upgrade("legend_upgrade", "ultimate"), "Ultimate milestone power can be selected")
+	_assert_float_eq(float(data.companion_roster["legend_upgrade"]["ability_power"]), before_power * 1.4, "Ultimate improves persistent ability power")
 	data.free()
 
 func _test_flee_does_not_complete_mission() -> void:
@@ -702,6 +733,8 @@ func _test_companion_run_results_update_roster() -> void:
 			"range": 170.0,
 			"cooldown": 1.1,
 			"ability_power": 1.25,
+			"crit": 0.18,
+			"luck": 0.2,
 			"state": "ferido"
 		}
 	])
@@ -709,6 +742,8 @@ func _test_companion_run_results_update_roster() -> void:
 	_assert_eq(companion["level"], 3, "Run result persists companion level")
 	_assert_eq(companion["xp"], 4, "Run result persists companion XP remainder")
 	_assert_float_eq(companion["attack"], 7.5, "Run result persists chosen attribute upgrades")
+	_assert_float_eq(companion["crit"], 0.18, "Run result persists critical upgrades")
+	_assert_float_eq(companion["luck"], 0.2, "Run result persists luck upgrades")
 	_assert_eq(companion["state"], "ferido", "Fallen companion returns as wounded")
 	_assert_float_eq(companion["current_health"], 16.8, "Wounded companion returns with partial health")
 	_assert_true(summary["wounded_companions"].has("Bruna"), "Run result reports wounded companions")

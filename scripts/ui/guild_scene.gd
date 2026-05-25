@@ -54,7 +54,7 @@ func _refresh() -> void:
 		int(summary["max_size"]),
 		float(summary["average_level"])
 	]
-	mobility_label.text = "Velocidade %.1f - %s" % [float(summary["average_speed"]), str(summary["speed_label"])]
+	mobility_label.text = "Velocidade %.1f - %s | Sorte %.0f%%" % [float(summary["average_speed"]), str(summary["speed_label"]), float(summary["average_luck"]) * 100.0]
 	mission_label.text = "Missao: %s | Risco %s" % [
 		str(mission.get("name", "-")),
 		str(GameData.get_mission_readiness(str(mission["id"]))["risk"])

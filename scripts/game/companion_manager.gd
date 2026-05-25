@@ -74,6 +74,8 @@ func get_run_results() -> Array:
 			"range": companion.attack_range,
 			"cooldown": companion.attack_cooldown,
 			"ability_power": companion.ability_power,
+			"crit": companion.crit_chance,
+			"luck": companion.luck,
 			"state": companion.state if companion.is_down else "disponivel"
 		})
 	return results

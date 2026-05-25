@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-25, after wound flow, extraction economy and trait runtime fixes
+Last updated: 2026-05-25, after luck rewards and rarity-based companion evolution
 
 ## Current Goal
 
@@ -449,6 +449,20 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Mission cards now list their predicted enemy groups alongside risk, mobility, rewards and objective.
 - This completes the plan's pre-deployment visibility requirement for principal enemies.
 
+### Luck-Driven Rewards
+
+- Squad `luck` now modestly increases equipment chances from mission completion and collected combat orbs.
+- `Sortudo` increases luck as described in the plan, while class critical chance remains functional during attacks.
+- Guild, squad and mission preparation views now display the squad's average luck.
+
+### Rarity Evolution And Level Milestones
+
+- Persistent and in-run companion choices now vary in quality by rarity, not only in quantity.
+- High-rarity companions can improve critical chance and luck through level-up choices.
+- Levels 5, 10, 15 and 20 expose class power, specialization, advanced power and ultimate options.
+- The combat companion choice popup supports up to five legendary options.
+- Critical and luck choices selected in combat persist on return to the guild.
+
 ## Current State
 
 - Default roster has six companions.
@@ -502,7 +516,9 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Wounded persistent companions now enter combat with their saved partial health instead of being silently healed when placed in formation.
 - Dropped combat equipment is now rolled on orb collection and only committed after victory or successful flee extraction; defeat loses pending loot.
 - Material-gated heavy equipment is excluded from early mission and combat drop pools until the intended mission tier.
-- The initial `cuidadosa` and `curiosa` traits now grant real bonuses, while `sortudo` grants runtime critical chance; old rosters migrate once.
+- The initial `cuidadosa` and `curiosa` traits now grant real bonuses; `sortudo` raises squad luck and old rosters migrate once.
+- Squad luck now improves equipment reward/drop chances and is displayed during guild and mission preparation.
+- Companion rarity and level milestones now unlock real critical, luck and ultimate evolution choices.
 - The Ferreiro now unlocks at guild level 3, matching the Portal milestone described in the plan.
 - The application start scene is now the guild scene.
 - Party editing now allows removing companions, including clearing the party completely.
@@ -515,15 +531,15 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 ## Pending After This Slice
 
 - Add richer facility pages as systems mature.
-- Add richer long-term progression polish.
 - Add remaining specialized contract types, such as escort or defense, only if their combat interactions can be made readable.
 - Add final balance checks and remaining presentation polish.
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 291 tests passed after wound, extraction, trait runtime and facility-unlock fixes.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after extraction and critical-hit changes.
-- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after facility-unlock alignment.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 308 tests passed after luck rewards and rarity/milestone evolution.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after rarity choice changes.
+- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after strategic luck display changes.
+- Note: concurrent Godot headless validations can reproduce the existing Godot 4.6.2 signal-11 crash on this machine; the isolated validations above complete cleanly.
 - Known issue reproduced: `--check-only --script` on the edited Control UI scripts also triggers the existing Godot 4.6.2 headless signal-11 crash on this machine; validation therefore relies on the stable unit-test and scene-boot paths above.
 - Known issue reproduced: direct headless launch of `BlacksmithScreen.tscn` crashes with the same Godot 4.6.2 UI-only scene crash pattern.
 - Known issue: direct headless launch of UI-only scenes still crashes Godot 4.6.2 on this machine; `GraveyardScene.tscn` hit the same engine crash pattern as the older UI scenes.
@@ -545,6 +561,7 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scenes/ui/MissionSelect.tscn`
 - `scenes/ui/CharactersScreen.tscn`
 - `scenes/ui/HUD.tscn`
+- `scenes/ui/CompanionChoices.tscn`
 - `scripts/core/game_data.gd`
 - `scripts/game/companion.gd`
 - `scripts/game/companion_manager.gd`
@@ -555,6 +572,7 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/game/game_balance.gd`
 - `scripts/ui/guild_scene.gd`
 - `scripts/ui/mission_select.gd`
+- `scripts/ui/companion_choices.gd`
 - `scripts/ui/characters_screen.gd`
 - `scripts/ui/game_over.gd`
 - `scripts/ui/graveyard_scene.gd`

@@ -66,3 +66,17 @@ layout_mode = 2
 size_flags_horizontal = 3
 autowrap_mode = 2
 text = "C"
+
+[node name="ChoiceD" type="Button" parent="Panel/VBox/ChoicesRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 2
+text = "D"
+
+[node name="ChoiceE" type="Button" parent="Panel/VBox/ChoicesRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 2
+text = "E"

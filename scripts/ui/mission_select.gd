@@ -55,10 +55,11 @@ func _add_mission_row(mission: Dictionary) -> void:
 		str(readiness["risk"])
 	]
 	var squad := Label.new()
-	squad.text = "Seu esquadrao: Lv %.1f | Vel %.1f - %s" % [
+	squad.text = "Seu esquadrao: Lv %.1f | Vel %.1f - %s | Sorte %.0f%%" % [
 		float(readiness["average_level"]),
 		float(readiness["average_speed"]),
-		str(readiness["speed_label"])
+		str(readiness["speed_label"]),
+		float(readiness["average_luck"]) * 100.0
 	]
 	var enemies := Label.new()
 	enemies.text = "Inimigos previstos: %s" % ", ".join(mission.get("enemies", []))

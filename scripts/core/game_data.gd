@@ -542,7 +542,7 @@ var trait_defs := {
 	"impulsivo": {"name": "Impulsivo", "effect": "+1 ataque, -6% recarga", "bonuses": {"attack": 1.0, "cooldown_multiplier": 0.94}},
 	"observador": {"name": "Observador", "effect": "+32 alcance", "bonuses": {"range": 32.0}},
 	"teimoso": {"name": "Teimoso", "effect": "+8 vida, +0.5 defesa", "bonuses": {"max_health": 8.0, "defense": 0.5}},
-	"sortudo": {"name": "Sortudo", "effect": "+10% critico", "bonuses": {"crit": 0.1}},
+	"sortudo": {"name": "Sortudo", "effect": "+10% sorte", "bonuses": {"luck": 0.1}},
 	"disciplinado": {"name": "Disciplinado", "effect": "-10% recarga", "bonuses": {"cooldown_multiplier": 0.9}},
 	"focada": {"name": "Focada", "effect": "+20% poder de habilidade", "bonuses": {"ability_power": 0.2}},
 	"curiosa": {"name": "Curiosa", "effect": "+20% poder de habilidade", "bonuses": {"ability_power": 0.2}}
@@ -706,6 +706,8 @@ func apply_companion_run_results(results: Array) -> Dictionary:
 		data["range"] = maxf(0.0, float(result.get("range", data.get("range", 0.0))))
 		data["cooldown"] = maxf(0.1, float(result.get("cooldown", data.get("cooldown", 1.0))))
 		data["ability_power"] = maxf(0.0, float(result.get("ability_power", data.get("ability_power", 1.0))))
+		data["crit"] = maxf(0.0, float(result.get("crit", data.get("crit", 0.0))))
+		data["luck"] = maxf(0.0, float(result.get("luck", data.get("luck", 0.0))))
 		data["state"] = _normalized_return_state(returned_state)
 		if str(data["state"]) == "morto":
 			active_squad.erase(companion_id)
@@ -878,14 +880,26 @@ func get_companion_upgrade_choices(companion_id: String) -> Array:
 	var data: Dictionary = companion_roster[companion_id]
 	if int(data.get("pending_upgrades", 0)) <= 0 or str(data.get("state", "disponivel")) == "morto":
 		return []
-	var choices := _companion_upgrade_choices(str(data.get("class", "shield")))
+	var choices: Array = (_companion_upgrade_choices(str(data.get("class", "shield"))) as Array).slice(0, 3)
 	var rarity := str(data.get("rarity", "comum"))
-	var count := 3
-	if rarity in ["raro", "epico"]:
-		count = 4
+	var level := int(data.get("level", 1))
+	var milestone_choice := _companion_milestone_choice(level)
+	if not milestone_choice.is_empty():
+		choices[2] = milestone_choice
+	if rarity == "incomum" and level >= 5:
+		choices[1] = {"id": "crit", "name": "Precisao", "desc": "+4% chance critica"}
+	elif rarity == "raro":
+		choices.append({"id": "crit", "name": "Precisao", "desc": "+4% chance critica"} if level >= 5 else {"id": "ability", "name": "Talento", "desc": "+15% efeito especial"})
+	elif rarity == "epico":
+		choices.append({"id": "crit", "name": "Precisao Epica", "desc": "+6% chance critica"})
+		if level >= 5:
+			choices[1] = {"id": "luck", "name": "Fortuna", "desc": "+6% sorte"}
 	elif rarity == "lendario":
-		count = 5
-	return choices.slice(0, min(count, choices.size()))
+		choices.append({"id": "crit", "name": "Precisao Lendaria", "desc": "+6% chance critica"})
+		choices.append({"id": "luck", "name": "Destino", "desc": "+8% sorte"})
+		if level >= 5:
+			choices[1] = {"id": "ability", "name": "Dom Lendario", "desc": "+15% efeito especial"}
+	return choices
 
 func apply_companion_pending_upgrade(companion_id: String, upgrade_id: String) -> bool:
 	_ensure_guild_defaults()
@@ -1348,6 +1362,7 @@ func get_mission_readiness(mission_id: String = "") -> Dictionary:
 		"average_level": average_level,
 		"recommended_level": recommended_level,
 		"average_speed": average_speed,
+		"average_luck": float(squad["average_luck"]),
 		"speed_label": str(squad["speed_label"]),
 		"risk": risk,
 		"warnings": warnings,
@@ -1441,6 +1456,7 @@ func get_squad_summary() -> Dictionary:
 	_ensure_guild_defaults()
 	var total_level := 0.0
 	var total_speed := 0.0
+	var total_luck := 0.0
 	var count := 0
 	for companion_id in active_squad:
 		if not companion_roster.has(companion_id):
@@ -1450,14 +1466,17 @@ func get_squad_summary() -> Dictionary:
 			continue
 		total_level += float(data.get("level", 1))
 		total_speed += float(data.get("speed_rating", 0.0))
+		total_luck += float(data.get("luck", 0.0))
 		count += 1
 	var average_level := total_level / count if count > 0 else 0.0
 	var average_speed := total_speed / count if count > 0 else 0.0
+	var average_luck := total_luck / count if count > 0 else 0.0
 	return {
 		"size": count,
 		"max_size": MAX_SQUAD_SIZE,
 		"average_level": average_level,
 		"average_speed": average_speed,
+		"average_luck": average_luck,
 		"speed_label": classify_squad_speed(average_speed),
 		"mobility_warning": get_mobility_warning(average_speed)
 	}
@@ -1563,6 +1582,10 @@ func get_flee_coin_retention() -> float:
 		return 0.9
 	return 1.0
 
+func get_lucky_reward_chance(base_chance: float) -> float:
+	var average_luck := float(get_squad_summary()["average_luck"])
+	return clampf(base_chance * (1.0 + average_luck), 0.0, 1.0)
+
 func _apply_mission_victory_rewards(mission: Dictionary, summary: Dictionary) -> void:
 	var active_ids := _rewardable_active_companion_ids()
 	var xp_reward := int(round(int(mission.get("xp_reward", 0)) * get_mission_xp_multiplier()))
@@ -1653,6 +1676,17 @@ func _companion_upgrade_choices(class_type: String) -> Array:
 		]
 	return choices
 
+func _companion_milestone_choice(level: int) -> Dictionary:
+	if level >= 20:
+		return {"id": "ultimate", "name": "Habilidade Definitiva", "desc": "+40% habilidade e -10% recarga"}
+	if level >= 15:
+		return {"id": "advanced_power", "name": "Poder Avancado", "desc": "+30% habilidade e +4% critico"}
+	if level >= 10:
+		return {"id": "specialization", "name": "Especializacao", "desc": "+18% ataque e +1 defesa"}
+	if level >= 5:
+		return {"id": "ability", "name": "Poder de Classe", "desc": "+15% efeito especial"}
+	return {}
+
 func _apply_companion_upgrade_to_data(data: Dictionary, upgrade_id: String) -> bool:
 	match upgrade_id:
 		"damage":
@@ -1669,6 +1703,19 @@ func _apply_companion_upgrade_to_data(data: Dictionary, upgrade_id: String) -> b
 			data["speed_rating"] = float(data.get("speed_rating", 0.0)) + 0.35
 		"ability":
 			data["ability_power"] = float(data.get("ability_power", 1.0)) * 1.15
+		"crit":
+			data["crit"] = float(data.get("crit", 0.0)) + (0.06 if str(data.get("rarity", "comum")) in ["epico", "lendario"] else 0.04)
+		"luck":
+			data["luck"] = float(data.get("luck", 0.0)) + (0.08 if str(data.get("rarity", "comum")) == "lendario" else 0.06)
+		"specialization":
+			data["attack"] = float(data.get("attack", 0.0)) * 1.18
+			data["defense"] = float(data.get("defense", 0.0)) + 1.0
+		"advanced_power":
+			data["ability_power"] = float(data.get("ability_power", 1.0)) * 1.3
+			data["crit"] = float(data.get("crit", 0.0)) + 0.04
+		"ultimate":
+			data["ability_power"] = float(data.get("ability_power", 1.0)) * 1.4
+			data["cooldown"] = maxf(0.1, float(data.get("cooldown", 1.0)) * 0.9)
 		_:
 			return false
 	return true
@@ -1823,9 +1870,6 @@ func _migrate_legacy_trait_effects() -> void:
 			data["defense"] = float(data.get("defense", 0.0)) + 1.25
 		if traits.has("curiosa"):
 			data["ability_power"] = float(data.get("ability_power", 0.0)) + 0.2
-		if traits.has("sortudo"):
-			data["luck"] = maxf(0.0, float(data.get("luck", 0.0)) - 0.1)
-			data["crit"] = float(data.get("crit", 0.0)) + 0.1
 		companion_roster[companion_id] = data
 
 func _default_guild_value(key: String) -> Variant:
@@ -1898,7 +1942,7 @@ func _add_equipment_reward(equipment_id: String, rarity: String) -> String:
 	]
 
 func _roll_mission_equipment_reward(mission: Dictionary, summary: Dictionary) -> void:
-	var chance := float(mission.get("equipment_reward_chance", 0.0))
+	var chance := get_lucky_reward_chance(float(mission.get("equipment_reward_chance", 0.0)))
 	if chance <= 0.0 or randf() > chance:
 		return
 	var ids := _drop_equipment_ids(int(mission.get("recommended_level", 1)))

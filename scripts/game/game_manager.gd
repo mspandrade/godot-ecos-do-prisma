@@ -137,6 +137,7 @@ func _update_objective_hud() -> void:
 
 func _roll_combat_equipment_drop(xp_value: int, coin_value: int) -> void:
 	var chance: float = minf(0.08, 0.001 + xp_value * 0.0015 + coin_value * 0.0004)
+	chance = GameData.get_lucky_reward_chance(chance)
 	if randf() > chance:
 		return
 	var candidate := GameData.roll_random_equipment_candidate(int(mission_profile.get("recommended_level", 1)))

@@ -17,12 +17,13 @@ func _refresh() -> void:
 	_add_section_title("Esquadrao")
 	var summary := GameData.get_squad_summary()
 	var squad_label := Label.new()
-	squad_label.text = "%d/%d ativos | Level medio %.1f | Velocidade %.1f - %s" % [
+	squad_label.text = "%d/%d ativos | Level medio %.1f | Velocidade %.1f - %s | Sorte %.0f%%" % [
 		int(summary["size"]),
 		int(summary["max_size"]),
 		float(summary["average_level"]),
 		float(summary["average_speed"]),
-		str(summary["speed_label"])
+		str(summary["speed_label"]),
+		float(summary["average_luck"]) * 100.0
 	]
 	list.add_child(squad_label)
 	var warning := Label.new()
@@ -55,13 +56,16 @@ func _add_companion_row(companion_id: String, data: Dictionary, summary: Diction
 	if pending_upgrades > 0:
 		details.text += " | Melhorias pendentes: %d" % pending_upgrades
 	var stats := Label.new()
-	stats.text = "Vida %.0f | Ataque %.1f | Defesa %.1f | Vel %.1f | Alcance %.0f" % [
+	stats.text = "Vida %.0f | Ataque %.1f | Defesa %.1f | Vel %.1f | Alcance %.0f | Crit %.0f%% | Sorte %.0f%%" % [
 		float(data.get("max_health", 0.0)),
 		float(data.get("attack", 0.0)),
 		float(data.get("defense", 0.0)),
 		float(data.get("speed_rating", 0.0)),
-		float(data.get("range", 0.0))
+		float(data.get("range", 0.0)),
+		float(data.get("crit", 0.0)) * 100.0,
+		float(data.get("luck", 0.0)) * 100.0
 	]
+	stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var trait_text := []
 	for trait_id in data.get("traits", []):
 		trait_text.append(GameData.get_trait_effect_text(str(trait_id)))
