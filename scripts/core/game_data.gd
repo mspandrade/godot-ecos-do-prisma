@@ -119,6 +119,37 @@ var missions := {
 			"coin_multiplier": 1.1
 		}
 	},
+	"initial_forest_defense": {
+		"id": "initial_forest_defense",
+		"name": "Defesa do Marco da Floresta",
+		"zone": "initial_forest",
+		"zone_name": "Floresta Inicial",
+		"recommended_level": 2,
+		"coin_reward": 125,
+		"xp_reward": 48,
+		"reputation_reward": 5,
+		"material_rewards": {"forest_herbs": 3},
+		"equipment_reward_chance": 0.42,
+		"enemies": ["goblins", "slimes agressivos"],
+		"objective": "Proteger o marco da guilda ate a patrulha terminar.",
+		"risk": "Medio",
+		"unlocked": true,
+		"combat": {
+			"objective_type": "defense",
+			"target_defense_health": 160,
+			"duration_seconds": 150.0,
+			"completion_coin_reward": 125,
+			"wave_offset": 1,
+			"spawn_amount_bonus": 2,
+			"spawn_interval_multiplier": 0.9,
+			"boss_interval": 135.0,
+			"enemy_health_multiplier": 1.08,
+			"enemy_speed_multiplier": 1.04,
+			"enemy_damage_multiplier": 1.08,
+			"xp_multiplier": 1.12,
+			"coin_multiplier": 1.14
+		}
+	},
 	"wolf_cave_scout": {
 		"id": "wolf_cave_scout",
 		"name": "Batedores na Caverna dos Lobos",
@@ -1376,11 +1407,14 @@ func get_selected_mission_combat_profile() -> Dictionary:
 	var defaults := {
 		"mission_id": str(mission.get("id", selected_mission_id)),
 		"mission_name": str(mission.get("name", "")),
+		"zone_id": str(mission.get("zone", "initial_forest")),
+		"map_scene": get_zone_map_scene_path(str(mission.get("zone", "initial_forest"))),
 		"recommended_level": int(mission.get("recommended_level", 1)),
 		"objective_type": "survive",
 		"target_kills": 0,
 		"target_bosses": 0,
 		"target_resources": 0,
+		"target_defense_health": 0,
 		"duration_seconds": 180.0,
 		"completion_coin_reward": int(mission.get("coin_reward", 0)),
 		"wave_offset": 0,
@@ -1399,6 +1433,24 @@ func get_selected_mission_combat_profile() -> Dictionary:
 		if not profile.has(key):
 			profile[key] = defaults[key]
 	return profile
+
+func get_zone_map_scene_path(zone_id: String) -> String:
+	match zone_id:
+		"wolf_cave":
+			return "res://scenes/maps/WolfCaveMap.tscn"
+		"ancient_ruins":
+			return "res://scenes/maps/AncientRuinsMap.tscn"
+		"poison_swamp":
+			return "res://scenes/maps/PoisonSwampMap.tscn"
+		"cursed_graveyard":
+			return "res://scenes/maps/CursedGraveyardMap.tscn"
+		"demon_gate":
+			return "res://scenes/maps/DemonGateMap.tscn"
+		"demon_keep":
+			return "res://scenes/maps/DemonKeepMap.tscn"
+		"demon_throne":
+			return "res://scenes/maps/DemonThroneMap.tscn"
+	return "res://scenes/maps/InitialForestMap.tscn"
 
 func apply_mission_result(mission_id: String, result_reason: String) -> Dictionary:
 	_ensure_guild_defaults()

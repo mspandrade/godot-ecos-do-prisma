@@ -6,6 +6,7 @@ class_name GameManager
 @export var flee_channel_seconds := 5.0
 
 const ScenePoolScript := preload("res://scripts/core/scene_pool.gd")
+const DefenseObjectiveScript := preload("res://scripts/game/defense_objective.gd")
 
 var run_state := RunState.new()
 var projectile_pool := ScenePoolScript.new()
@@ -21,8 +22,10 @@ var kill_count := 0
 var boss_kill_count := 0
 var resource_count := 0
 var bestiary_kills := {}
+var defense_objective: Node
 
 @onready var player: Player = $Player
+@onready var map_container: Node2D = $MapContainer
 @onready var camera: CameraController = $Camera2D
 @onready var spawner: EnemySpawner = $EnemySpawner
 @onready var weapons: WeaponSystem = $WeaponSystem
@@ -43,6 +46,8 @@ func _ready() -> void:
 	player.setup(run_state)
 	camera.set_target(player)
 	mission_profile = GameData.get_selected_mission_combat_profile()
+	_load_mission_map()
+	_setup_defense_objective()
 	mission_duration = float(mission_profile.get("duration_seconds", mission_duration))
 	spawner.configure_mission(mission_profile)
 	spawner.setup(player)
@@ -59,6 +64,20 @@ func _ready() -> void:
 	level_choices.hide()
 	companion_choices.hide()
 
+func _load_mission_map() -> void:
+	for child in map_container.get_children():
+		child.queue_free()
+	var map_path := str(mission_profile.get("map_scene", ""))
+	if map_path.is_empty() or not ResourceLoader.exists(map_path):
+		$WorldFloor.visible = true
+		return
+	var packed_map := load(map_path) as PackedScene
+	if not packed_map:
+		$WorldFloor.visible = true
+		return
+	map_container.add_child(packed_map.instantiate())
+	$WorldFloor.visible = false
+
 func _process(delta: float) -> void:
 	if run_finished:
 		return
@@ -72,7 +91,19 @@ func _process(delta: float) -> void:
 		_finish_run(_mission_timeout_result())
 
 func _mission_timeout_result() -> String:
-	return "vitoria" if str(mission_profile.get("objective_type", "survive")) == "survive" else "derrota"
+	var objective_type := str(mission_profile.get("objective_type", "survive"))
+	return "vitoria" if objective_type in ["survive", "defense"] else "derrota"
+
+func _setup_defense_objective() -> void:
+	if str(mission_profile.get("objective_type", "survive")) != "defense":
+		return
+	defense_objective = DefenseObjectiveScript.new()
+	defense_objective.name = "DefenseObjective"
+	defense_objective.global_position = Vector2(220, 90)
+	add_child(defense_objective)
+	defense_objective.setup(float(mission_profile.get("target_defense_health", 160.0)))
+	defense_objective.health_changed.connect(func(current: float, maximum: float): _update_defense_objective_hud(current, maximum))
+	defense_objective.destroyed.connect(func(): _finish_run("derrota"))
 
 func _process_flee(delta: float) -> void:
 	if not flee_pending:
@@ -132,8 +163,13 @@ func _update_objective_hud() -> void:
 		hud.call("set_objective", objective_type, boss_kill_count, int(mission_profile.get("target_bosses", 1)))
 	elif objective_type == "collect_resources":
 		hud.call("set_objective", objective_type, resource_count, int(mission_profile.get("target_resources", 1)))
+	elif objective_type == "defense" and is_instance_valid(defense_objective):
+		_update_defense_objective_hud(defense_objective.health, defense_objective.max_health)
 	else:
 		hud.call("set_objective", objective_type, kill_count, int(mission_profile.get("target_kills", 0)))
+
+func _update_defense_objective_hud(current: float, maximum: float) -> void:
+	hud.call("set_objective", "defense", int(ceil(current)), int(ceil(maximum)))
 
 func _roll_combat_equipment_drop(xp_value: int, coin_value: int) -> void:
 	var chance: float = minf(0.08, 0.001 + xp_value * 0.0015 + coin_value * 0.0004)

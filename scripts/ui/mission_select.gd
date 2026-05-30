@@ -123,6 +123,8 @@ func _format_objective(combat: Dictionary) -> String:
 		return "derrotar %d chefe" % int(combat.get("target_bosses", 1))
 	if str(combat.get("objective_type", "survive")) == "collect_resources":
 		return "coletar %d suprimentos" % int(combat.get("target_resources", 1))
+	if str(combat.get("objective_type", "survive")) == "defense":
+		return "defender %d vida" % int(combat.get("target_defense_health", 1))
 	return "sobreviver ao timer"
 
 func _format_material_rewards(rewards: Dictionary) -> String:

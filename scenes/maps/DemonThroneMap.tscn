@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/zone_map.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/objects/back/castles/castle_back_03.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tiles/objects/_combined_sources/castle_02.png" id="3"]
+
+[node name="DemonThroneMap" type="Node2D"]
+script = ExtResource("1")
+ground_color = Color(0.12, 0.08, 0.11, 1)
+alternate_color = Color(0.19, 0.09, 0.14, 1)
+detail_color = Color(0.48, 0.1, 0.19, 1)
+ambient_color = Color(0.03, 0.02, 0.04, 1)
+accent_stride = 5
+
+[node name="ThroneBackdrop" type="Sprite2D" parent="."]
+position = Vector2(0, -520)
+texture = ExtResource("2")
+modulate = Color(0.82, 0.28, 0.38, 1)
+scale = Vector2(1.2, 1.2)
+z_index = 4
+
+[node name="PillarWest" type="Sprite2D" parent="."]
+position = Vector2(-700, -60)
+texture = ExtResource("3")
+modulate = Color(0.64, 0.2, 0.31, 1)
+z_index = 4
+
+[node name="PillarEast" type="Sprite2D" parent="."]
+position = Vector2(700, 100)
+texture = ExtResource("3")
+modulate = Color(0.64, 0.2, 0.31, 1)
+z_index = 4

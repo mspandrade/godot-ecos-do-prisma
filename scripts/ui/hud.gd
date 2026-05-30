@@ -92,6 +92,8 @@ func set_objective(objective_type: String, current: int, target: int) -> void:
 		objective_label.text = "Chefes: %d/%d" % [current, target]
 	elif objective_type == "collect_resources" and target > 0:
 		objective_label.text = "Suprimentos: %d/%d" % [current, target]
+	elif objective_type == "defense" and target > 0:
+		objective_label.text = "Defesa: %d/%d" % [current, target]
 	else:
 		objective_label.text = "Objetivo: sobreviver"
 

@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-25, after luck rewards and rarity-based companion evolution
+Last updated: 2026-05-30, after first defense contract implementation
 
 ## Current Goal
 
@@ -463,6 +463,22 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - The combat companion choice popup supports up to five legendary options.
 - Critical and luck choices selected in combat persist on return to the guild.
 
+### Dedicated Zone Map Scenes
+
+- Combat environments are now selected from the mission zone instead of always using the initial village floor.
+- Added separate editable scenes for Floresta Inicial, Caverna dos Lobos, Ruinas Antigas, Pantano Venenoso, Cemiterio Maldito, Portao Demoniaco, Fortaleza Demoniaca and Trono Demoniaco.
+- Missions in the same region intentionally share that region's map scene.
+- `Game.tscn` keeps the original embedded floor hidden as a fallback if a zone scene cannot be loaded.
+- Added regression coverage that routes every campaign zone to a loadable and instantiable map scene.
+
+### Defense Contract
+
+- Added `Defesa do Marco da Floresta` as an early specialized defense contract in the initial zone.
+- Defense missions spawn a protected ward objective in combat; enemies can target and damage it like a hero.
+- The mission succeeds if the timer ends while the ward survives, and fails immediately if the ward is destroyed.
+- HUD and mission board now display defense objective progress.
+- Added regression coverage for defense mission profile data and protected-objective damage/destruction behavior.
+
 ## Current State
 
 - Default roster has six companions.
@@ -513,6 +529,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - The first zone now offers a resource-collection contract in addition to survival.
 - Newly recruited companions now carry meaningful trait bonuses shown in management screens.
 - Mission selection now previews expected opposition before deployment.
+- Each campaign region now loads its own editable combat map scene.
+- The first specialized defense contract is playable in the initial zone.
 - Wounded persistent companions now enter combat with their saved partial health instead of being silently healed when placed in formation.
 - Dropped combat equipment is now rolled on orb collection and only committed after victory or successful flee extraction; defeat loses pending loot.
 - Material-gated heavy equipment is excluded from early mission and combat drop pools until the intended mission tier.
@@ -531,14 +549,15 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 ## Pending After This Slice
 
 - Add richer facility pages as systems mature.
-- Add remaining specialized contract types, such as escort or defense, only if their combat interactions can be made readable.
+- Add remaining specialized contract types, such as escort, only if their combat interactions can be made readable.
 - Add final balance checks and remaining presentation polish.
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 308 tests passed after luck rewards and rarity/milestone evolution.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after rarity choice changes.
-- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after strategic luck display changes.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 353 tests passed after defense contract implementation.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after defense objective integration.
+- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after defense contract integration.
+- Done: `git diff --check` -> no whitespace errors reported.
 - Note: concurrent Godot headless validations can reproduce the existing Godot 4.6.2 signal-11 crash on this machine; the isolated validations above complete cleanly.
 - Known issue reproduced: `--check-only --script` on the edited Control UI scripts also triggers the existing Godot 4.6.2 headless signal-11 crash on this machine; validation therefore relies on the stable unit-test and scene-boot paths above.
 - Known issue reproduced: direct headless launch of `BlacksmithScreen.tscn` crashes with the same Godot 4.6.2 UI-only scene crash pattern.
@@ -549,6 +568,15 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 
 - `IMPLEMENTATION_STATUS.md`
 - `project.godot`
+- `scenes/Game.tscn`
+- `scenes/maps/InitialForestMap.tscn`
+- `scenes/maps/WolfCaveMap.tscn`
+- `scenes/maps/AncientRuinsMap.tscn`
+- `scenes/maps/PoisonSwampMap.tscn`
+- `scenes/maps/CursedGraveyardMap.tscn`
+- `scenes/maps/DemonGateMap.tscn`
+- `scenes/maps/DemonKeepMap.tscn`
+- `scenes/maps/DemonThroneMap.tscn`
 - `scenes/ui/GuildScene.tscn`
 - `scenes/ui/GraveyardScene.tscn`
 - `scenes/ui/BlacksmithScreen.tscn`
@@ -570,6 +598,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/game/enemy_spawner.gd`
 - `scripts/game/game_manager.gd`
 - `scripts/game/game_balance.gd`
+- `scripts/game/zone_map.gd`
+- `scripts/game/defense_objective.gd`
 - `scripts/ui/guild_scene.gd`
 - `scripts/ui/mission_select.gd`
 - `scripts/ui/companion_choices.gd`

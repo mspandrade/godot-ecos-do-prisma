@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/zone_map.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/objects/back/castles/castle_back_01.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tiles/objects/obstacles/obstacle_02.png" id="3"]
+
+[node name="CursedGraveyardMap" type="Node2D"]
+script = ExtResource("1")
+ground_color = Color(0.2, 0.22, 0.23, 1)
+alternate_color = Color(0.25, 0.26, 0.27, 1)
+detail_color = Color(0.34, 0.32, 0.37, 1)
+ambient_color = Color(0.07, 0.07, 0.1, 1)
+accent_stride = 7
+
+[node name="Chapel" type="Sprite2D" parent="."]
+position = Vector2(-690, -260)
+texture = ExtResource("2")
+scale = Vector2(0.92, 0.92)
+modulate = Color(0.78, 0.8, 0.92, 1)
+z_index = 4
+
+[node name="TombEast" type="Sprite2D" parent="."]
+position = Vector2(650, 170)
+texture = ExtResource("3")
+modulate = Color(0.78, 0.8, 0.9, 1)
+z_index = 4
+
+[node name="TombSouth" type="Sprite2D" parent="."]
+position = Vector2(-290, 470)
+texture = ExtResource("3")
+modulate = Color(0.7, 0.72, 0.85, 1)
+z_index = 4

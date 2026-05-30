@@ -7,6 +7,7 @@ const CompanionScript := preload("res://scripts/game/companion.gd")
 const CompanionScene := preload("res://scenes/Companion.tscn")
 const CompanionManagerScript := preload("res://scripts/game/companion_manager.gd")
 const EnemySpawnerScript := preload("res://scripts/game/enemy_spawner.gd")
+const DefenseObjectiveScript := preload("res://scripts/game/defense_objective.gd")
 const ScenePoolScript := preload("res://scripts/core/scene_pool.gd")
 const PoolItemScript := preload("res://tests/pool_item.gd")
 
@@ -56,7 +57,9 @@ func _init() -> void:
 	_test_mission_readiness_uses_squad_and_unlocks()
 	_test_fast_travel_zone_unlocks()
 	_test_selected_mission_combat_profile()
+	_test_zone_map_scene_routing()
 	_test_resource_collection_mission_profile()
+	_test_defense_mission_profile()
 	_test_mission_victory_rewards_progression()
 	_test_optional_boss_mission_progression()
 	_test_late_game_mission_progression()
@@ -579,6 +582,33 @@ func _test_selected_mission_combat_profile() -> void:
 	_assert_true((cave["enemy_sprites"] as Array).has("bat_purple"), "Mission combat profile carries zone enemy sprites")
 	data.free()
 
+func _test_zone_map_scene_routing() -> void:
+	var data: Node = GameDataScript.new()
+	data.guild["unlocked_zones"] = ["initial_forest", "wolf_cave", "ancient_ruins", "poison_swamp", "cursed_graveyard", "demon_gate", "demon_keep", "demon_throne"]
+	var expected := {
+		"initial_forest_survival": "InitialForestMap.tscn",
+		"wolf_cave_scout": "WolfCaveMap.tscn",
+		"ancient_ruins_contract": "AncientRuinsMap.tscn",
+		"poison_swamp_purge": "PoisonSwampMap.tscn",
+		"cursed_graveyard_hunt": "CursedGraveyardMap.tscn",
+		"demon_gate_assault": "DemonGateMap.tscn",
+		"demon_king_vanguard": "DemonKeepMap.tscn",
+		"demon_king_final": "DemonThroneMap.tscn"
+	}
+	for mission_id in expected.keys():
+		_assert_true(data.select_mission(str(mission_id)), "Unlocked mission can select its map")
+		var profile: Dictionary = data.get_selected_mission_combat_profile()
+		var map_scene := str(profile["map_scene"])
+		_assert_true(map_scene.ends_with(str(expected[mission_id])), "Mission routes to its dedicated map scene")
+		_assert_true(ResourceLoader.exists(map_scene), "Dedicated map scene resource exists")
+		var packed_map := load(map_scene) as PackedScene
+		_assert_true(packed_map != null, "Dedicated map scene loads as a packed scene")
+		if packed_map:
+			var instance := packed_map.instantiate()
+			_assert_true(instance != null, "Dedicated map scene can be instantiated")
+			instance.free()
+	data.free()
+
 func _test_resource_collection_mission_profile() -> void:
 	var data: Node = GameDataScript.new()
 	_assert_true(data.select_mission("initial_forest_gathering"), "Resource contract is available in the initial zone")
@@ -587,6 +617,23 @@ func _test_resource_collection_mission_profile() -> void:
 	_assert_eq(profile["target_resources"], 45, "Resource contract exposes required pickup count")
 	var result: Dictionary = data.apply_mission_result("initial_forest_gathering", "vitoria")
 	_assert_true((result["material_rewards"] as Array).has("Ervas da Floresta x4"), "Resource contract grants extra regional materials")
+	data.free()
+
+func _test_defense_mission_profile() -> void:
+	var data: Node = GameDataScript.new()
+	_assert_true(data.select_mission("initial_forest_defense"), "Defense contract is available in the initial zone")
+	var profile: Dictionary = data.get_selected_mission_combat_profile()
+	_assert_eq(profile["objective_type"], "defense", "Defense contract uses defense objective")
+	_assert_eq(profile["target_defense_health"], 160, "Defense contract exposes objective health")
+	var objective: Node = DefenseObjectiveScript.new()
+	var destroyed := {"value": false}
+	objective.destroyed.connect(func(): destroyed["value"] = true)
+	objective.setup(40.0)
+	objective.take_damage(15.0)
+	_assert_eq(int(objective.health), 25, "Defense objective can take damage")
+	objective.take_damage(40.0)
+	_assert_true(bool(destroyed["value"]), "Defense objective emits destroyed when health reaches zero")
+	objective.free()
 	data.free()
 
 func _test_mission_victory_rewards_progression() -> void:

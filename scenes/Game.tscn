@@ -221,7 +221,10 @@ script = ExtResource("1")
 projectile_scene = ExtResource("8")
 xp_orb_scene = ExtResource("9")
 
+[node name="MapContainer" type="Node2D" parent="."]
+
 [node name="WorldFloor" type="Node2D" parent="." unique_id=75694263]
+visible = false
 y_sort_enabled = true
 
 [node name="TileMapLayer" type="TileMapLayer" parent="WorldFloor" unique_id=460717824]
