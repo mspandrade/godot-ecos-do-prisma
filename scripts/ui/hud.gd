@@ -140,7 +140,7 @@ func set_objective(objective_type: String, current: int, target: int) -> void:
 func set_flee_status(is_preparing: bool, seconds: float) -> void:
 	if is_preparing:
 		flee_button.disabled = true
-		flee_button.text = "Fuga %ds" % int(ceil(seconds))
+		flee_button.text = "Fuga: %ds" % int(ceil(seconds))
 	else:
 		flee_button.disabled = false
 		flee_button.text = "Fugir"

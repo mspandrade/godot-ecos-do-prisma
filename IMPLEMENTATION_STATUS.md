@@ -494,6 +494,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Gameplay HUD top row now has tighter fixed widths for health/XP blocks, shorter companion bars, clearer squad text and coins reparented into the top HUD so core run information no longer truncates off-screen.
 - Gameplay HUD now stacks XP under the player health block and uses compact labels (`M`, `Eq`, `Vel`, `C`) so timer, objective, pause and flee remain visible at 1228px-wide windows.
 - Gameplay HUD action buttons now live in a dedicated top-right `ActionBar` outside the information row, with reserved right margin and wider buttons so `Pausar`/`Fugir` do not force label truncation.
+- Flee preparation now displays an explicit countdown on the HUD button (`Fuga: 5s`, `Fuga: 4s`, etc.) while the action is channeling.
+- Guild entry summary now renders inside a dark summary panel built by `guild_scene.gd`, consolidating guild level/reputation, coins, morale, squad, mobility, roster, equipment and selected mission risk so the overview is visible again.
 
 ### Mission Board Detail Expansion
 

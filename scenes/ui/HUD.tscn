@@ -17,7 +17,7 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_left = 10.0
 offset_top = 10.0
-offset_right = -188.0
+offset_right = -236.0
 offset_bottom = 118.0
 theme_override_constants/separation = 4
 
@@ -83,7 +83,7 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -176.0
+offset_left = -224.0
 offset_top = 10.0
 offset_right = -10.0
 offset_bottom = 66.0
@@ -93,7 +93,7 @@ theme_override_constants/separation = 8
 [node name="PauseButton" type="Button" parent="ActionBar"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(82, 56)
+custom_minimum_size = Vector2(92, 56)
 text = "Pausar"
 text_overrun_behavior = 3
 clip_text = true
@@ -101,7 +101,7 @@ clip_text = true
 [node name="FleeButton" type="Button" parent="ActionBar"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(76, 56)
+custom_minimum_size = Vector2(114, 56)
 text = "Fugir"
 text_overrun_behavior = 3
 clip_text = true
