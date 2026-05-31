@@ -15,25 +15,31 @@ script = ExtResource("1")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 18.0
-offset_top = 14.0
-offset_right = -18.0
-offset_bottom = 92.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -188.0
+offset_bottom = 118.0
 theme_override_constants/separation = 4
 
 [node name="TopBar" type="HBoxContainer" parent="TopPanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="HealthColumn" type="VBoxContainer" parent="TopPanel/TopBar"]
 layout_mode = 2
-size_flags_horizontal = 3
+custom_minimum_size = Vector2(300, 0)
 theme_override_constants/separation = 2
 
 [node name="HealthBar" type="ProgressBar" parent="TopPanel/TopBar/HealthColumn"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 22)
+custom_minimum_size = Vector2(260, 22)
+show_percentage = false
+
+[node name="XPBar" type="ProgressBar" parent="TopPanel/TopBar/HealthColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(260, 12)
 show_percentage = false
 
 [node name="CompanionHealthList" type="VBoxContainer" parent="TopPanel/TopBar/HealthColumn"]
@@ -42,36 +48,63 @@ layout_mode = 2
 modulate = Color(1, 1, 1, 0.72)
 theme_override_constants/separation = 1
 
-[node name="XPBar" type="ProgressBar" parent="TopPanel/TopBar"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-show_percentage = false
-
 [node name="LevelLabel" type="Label" parent="TopPanel/TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
+custom_minimum_size = Vector2(44, 0)
 text = "Nv 1"
+text_overrun_behavior = 3
+
+[node name="SquadLabel" type="Label" parent="TopPanel/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(130, 0)
+text = "G Lv 1.0 | V 0.0 | C 0"
+text_overrun_behavior = 3
+clip_text = true
 
 [node name="TimerLabel" type="Label" parent="TopPanel/TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
+custom_minimum_size = Vector2(54, 0)
 text = "00:00"
+text_overrun_behavior = 3
 
 [node name="ObjectiveLabel" type="Label" parent="TopPanel/TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
+custom_minimum_size = Vector2(130, 0)
 text = "Objetivo: sobreviver"
+text_overrun_behavior = 3
+clip_text = true
 
-[node name="PauseButton" type="Button" parent="TopPanel/TopBar"]
+[node name="ActionBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -176.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 66.0
+grow_horizontal = 0
+theme_override_constants/separation = 8
+
+[node name="PauseButton" type="Button" parent="ActionBar"]
 unique_name_in_owner = true
 layout_mode = 2
+custom_minimum_size = Vector2(82, 56)
 text = "Pausar"
+text_overrun_behavior = 3
+clip_text = true
 
-[node name="FleeButton" type="Button" parent="TopPanel/TopBar"]
+[node name="FleeButton" type="Button" parent="ActionBar"]
 unique_name_in_owner = true
 layout_mode = 2
+custom_minimum_size = Vector2(76, 56)
 text = "Fugir"
+text_overrun_behavior = 3
+clip_text = true
 
 [node name="BottomInfo" type="VBoxContainer" parent="."]
 layout_mode = 1

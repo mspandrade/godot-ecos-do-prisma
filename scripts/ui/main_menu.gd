@@ -1,11 +1,15 @@
 extends Control
 
+const MedievalUI := preload("res://scripts/ui/components/medieval_ui.gd")
+
 @onready var coins_label: Label = %CoinsLabel
 @onready var character_label: Label = %CharacterLabel
 @onready var particles: CPUParticles2D = %Particles
 
 func _ready() -> void:
-	%PlayButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/Game.tscn"))
+	MedievalUI.apply_tree(self)
+	MedievalUI.transition_in(self)
+	%PlayButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GuildScene.tscn"))
 	%UpgradesButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/UpgradesScreen.tscn"))
 	%CharactersButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/CharactersScreen.tscn"))
 	%SettingsButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/SettingsScreen.tscn"))
@@ -19,5 +23,5 @@ func _process(delta: float) -> void:
 	%Background.position.y = cos(Time.get_ticks_msec() * 0.00025) * 10.0
 
 func _refresh(_coins: int) -> void:
-	coins_label.text = "Moedas: %d" % GameData.coins
-	character_label.text = "Personagem: %s" % GameData.characters[GameData.selected_character]["name"]
+	coins_label.text = "M Moedas: %d" % GameData.coins
+	character_label.text = "L Lider: %s" % GameData.characters[GameData.selected_character]["name"]

@@ -1,11 +1,17 @@
 extends Control
 
+const MedievalUI := preload("res://scripts/ui/components/medieval_ui.gd")
+
 @onready var list: VBoxContainer = %MissionList
 @onready var fast_travel_list: HBoxContainer = %FastTravelList
 @onready var title_label: Label = %TitleLabel
 @onready var travel_label: Label = %TravelLabel
 
 func _ready() -> void:
+	MedievalUI.apply_tree(self)
+	MedievalUI.transition_in(self)
+	for label in [title_label, travel_label]:
+		MedievalUI.apply_body_label(label)
 	%BackButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GuildScene.tscn"))
 	GameData.squad_changed.connect(func(_summary: Dictionary): _refresh())
 	GameData.mission_changed.connect(func(_mission_id: String): _refresh())
@@ -37,66 +43,65 @@ func _refresh_fast_travel(selected_zone: String) -> void:
 		if bool(zone.get("unlocked", false)) and not bool(zone.get("travel_available", false)):
 			button.text += " (Portal)"
 		button.disabled = not bool(zone.get("travel_available", false)) or zone_id == selected_zone
+		button.custom_minimum_size = Vector2(128, 44)
+		MedievalUI.apply_button(button)
 		button.pressed.connect(_select_travel_zone.bind(zone_id))
 		fast_travel_list.add_child(button)
 
 func _add_mission_row(mission: Dictionary) -> void:
 	var readiness := GameData.get_mission_readiness(str(mission["id"]))
 	var selected := str(mission["id"]) == str(GameData.get_selected_mission()["id"])
+	var card := PanelContainer.new()
+	MedievalUI.apply_panel(card, true)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var row := VBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 182)
+	row.custom_minimum_size = Vector2(0, 0)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 8)
 	var title := Label.new()
 	title.text = "%s%s" % [str(mission["name"]), "  Selecionada" if selected else ""]
 	title.add_theme_font_size_override("font_size", 18)
-	var meta := Label.new()
-	meta.text = "%s | Level recomendado %d | Risco %s" % [
-		str(mission["zone_name"]),
-		int(mission["recommended_level"]),
-		str(readiness["risk"])
-	]
-	var squad := Label.new()
-	squad.text = "Seu esquadrao: Lv %.1f | Vel %.1f - %s | Sorte %.0f%%" % [
-		float(readiness["average_level"]),
-		float(readiness["average_speed"]),
-		str(readiness["speed_label"]),
-		float(readiness["average_luck"]) * 100.0
-	]
-	var enemies := Label.new()
-	enemies.text = "Inimigos previstos: %s" % ", ".join(mission.get("enemies", []))
-	var rewards := Label.new()
-	var combat: Dictionary = mission.get("combat", {})
-	rewards.text = "Objetivo: %s | Duracao: %s | Recompensas: %d moedas | %d XP | %d Rep%s" % [
-		_format_objective(combat),
-		_format_duration(float(combat.get("duration_seconds", 180.0))),
-		int(mission["coin_reward"]),
-		int(mission["xp_reward"]),
-		int(mission.get("reputation_reward", 0)),
-		_format_material_rewards(mission.get("material_rewards", {}))
-	]
-	rewards.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_color_override("font_color", MedievalUI.GOLD if selected else Color("#f2dfb4"))
+	var details := Label.new()
+	details.text = _format_mission_details(mission, readiness)
+	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	details.clip_text = false
+	details.custom_minimum_size = Vector2(0, 126)
+	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	details.add_theme_color_override("font_color", Color("#f3dfb8"))
 	var warning := Label.new()
 	var warnings: Array = readiness["warnings"]
 	warning.text = "Aviso: %s" % " ".join(warnings)
 	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	warning.visible = not warnings.is_empty()
+	for label in [warning]:
+		MedievalUI.apply_body_label(label, false)
+		label.add_theme_color_override("font_color", Color("#ead8b2"))
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 8)
 	var select_button := Button.new()
 	select_button.text = "Selecionar"
+	select_button.custom_minimum_size = Vector2(128, 44)
 	select_button.disabled = selected or not bool(readiness["unlocked"])
+	MedievalUI.apply_button(select_button)
 	select_button.pressed.connect(_select_mission.bind(str(mission["id"])))
 	var start_button := Button.new()
 	start_button.text = "Iniciar"
+	start_button.custom_minimum_size = Vector2(128, 44)
 	start_button.disabled = not selected or not bool(readiness["can_start"])
+	MedievalUI.apply_button(start_button, MedievalUI.WINE if selected else MedievalUI.GOLD)
 	start_button.pressed.connect(_start_selected_mission)
 	actions.add_child(select_button)
 	actions.add_child(start_button)
 	row.add_child(title)
-	row.add_child(meta)
-	row.add_child(squad)
-	row.add_child(enemies)
-	row.add_child(rewards)
+	row.add_child(details)
 	row.add_child(warning)
 	row.add_child(actions)
-	list.add_child(row)
+	card.add_child(row)
+	list.add_child(card)
 
 func _select_mission(mission_id: String) -> void:
 	GameData.select_mission(mission_id)
@@ -127,13 +132,57 @@ func _format_objective(combat: Dictionary) -> String:
 		return "defender %d vida" % int(combat.get("target_defense_health", 1))
 	return "sobreviver ao timer"
 
+func _format_mission_details(mission: Dictionary, readiness: Dictionary) -> String:
+	var combat: Dictionary = mission.get("combat", {})
+	var lines := [
+		"Descricao: %s" % str(mission.get("description", mission.get("objective", "-"))),
+		"Regiao: %s | Level recomendado: %d | Risco: %s (%d%%)" % [
+			str(mission.get("zone_name", "-")),
+			int(mission.get("recommended_level", 1)),
+			str(readiness.get("risk", "Baixo")),
+			int(readiness.get("risk_percent", 100))
+		],
+		"Esquadrao: Lv %.1f | Vel %.1f - %s | Sorte %.0f%%" % [
+			float(readiness.get("average_level", 0.0)),
+			float(readiness.get("average_speed", 0.0)),
+			str(readiness.get("speed_label", "-")),
+			float(readiness.get("average_luck", 0.0)) * 100.0
+		],
+		"Objetivo: %s | Tempo: %s | Inimigos: %s" % [
+			_format_objective(combat),
+			_format_duration(float(combat.get("duration_seconds", 180.0))),
+			", ".join(mission.get("enemies", []))
+		],
+		"Pressao: hordas %+d | intervalo x%.2f | chefe a cada %s" % [
+			int(combat.get("spawn_amount_bonus", 0)),
+			float(combat.get("spawn_interval_multiplier", 1.0)),
+			_format_duration(float(combat.get("boss_interval", 150.0)))
+		],
+		"Recompensas: %d moedas | %d XP | %d Rep%s | Equip. %.0f%%%s" % [
+			int(mission.get("coin_reward", 0)),
+			int(mission.get("xp_reward", 0)),
+			int(mission.get("reputation_reward", 0)),
+			_format_material_rewards(mission.get("material_rewards", {})),
+			float(mission.get("equipment_reward_chance", 0.0)) * 100.0,
+			_format_unlock_reward(mission)
+		]
+	]
+	return "\n".join(lines)
+
 func _format_material_rewards(rewards: Dictionary) -> String:
 	if rewards.is_empty():
 		return ""
 	var parts := []
 	for material_id in rewards.keys():
 		parts.append("%s x%d" % [GameData.get_material_name(str(material_id)), int(rewards[material_id])])
-	return " | " + ", ".join(parts)
+	return " | Mat. " + ", ".join(parts)
+
+func _format_unlock_reward(mission: Dictionary) -> String:
+	if mission.has("completion_unlock_zone_name"):
+		return " | Desbloqueia: %s" % str(mission.get("completion_unlock_zone_name", ""))
+	if mission.has("campaign_completion_name"):
+		return " | Final da campanha"
+	return ""
 
 func _zone_name(zone_id: String) -> String:
 	for zone in GameData.get_travel_zones():

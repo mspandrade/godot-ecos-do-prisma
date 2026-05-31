@@ -536,14 +536,18 @@ func _test_mission_readiness_uses_squad_and_unlocks() -> void:
 	var initial: Dictionary = data.get_mission_readiness("initial_forest_survival")
 	_assert_true(initial["can_start"], "Initial mission can start with default squad")
 	_assert_eq(initial["risk"], "Baixo", "Initial mission starts with low risk")
+	_assert_true(int(initial["risk_percent"]) > 0, "Mission readiness exposes a numeric risk percentage")
+	_assert_true(int(initial["risk_percent"]) < 100, "Available low-risk mission has risk below certain failure")
 	_assert_true(float(initial["average_luck"]) > 0.0, "Mission readiness exposes squad luck")
 	var locked: Dictionary = data.get_mission_readiness("wolf_cave_scout")
 	_assert_true(not locked["unlocked"], "Locked mission reports locked state")
+	_assert_eq(locked["risk_percent"], 100, "Locked mission reports maximum risk percentage")
 	_assert_true(not data.select_mission("wolf_cave_scout"), "Cannot select locked mission")
 	data.guild["unlocked_zones"] = ["initial_forest", "wolf_cave"]
 	_assert_true(data.select_mission("wolf_cave_scout"), "Can select mission after unlocking zone")
 	var cave: Dictionary = data.get_mission_readiness("wolf_cave_scout")
 	_assert_true(cave["unlocked"], "Unlocked mission reports available")
+	_assert_true(int(cave["risk_percent"]) > int(initial["risk_percent"]), "Underleveled mission has higher numeric risk")
 	_assert_true(cave["warnings"].has("Esquadrao abaixo do level recomendado."), "Underleveled squad warns before mission")
 	data.free()
 

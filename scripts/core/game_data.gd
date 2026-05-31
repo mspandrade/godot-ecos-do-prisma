@@ -1385,6 +1385,7 @@ func get_mission_readiness(mission_id: String = "") -> Dictionary:
 	var level_delta := average_level - float(recommended_level)
 	var unlocked := _is_mission_unlocked(mission)
 	var risk := _mission_risk_label(level_delta, average_speed, str(mission.get("risk", "Baixo")))
+	var risk_percent := _mission_risk_percent(level_delta, average_speed, int(squad["size"]), str(mission.get("risk", "Baixo")), unlocked)
 	var warnings := _mission_warnings(level_delta, average_speed, int(squad["size"]), unlocked)
 	return {
 		"mission_id": resolved_id,
@@ -1396,6 +1397,7 @@ func get_mission_readiness(mission_id: String = "") -> Dictionary:
 		"average_luck": float(squad["average_luck"]),
 		"speed_label": str(squad["speed_label"]),
 		"risk": risk,
+		"risk_percent": risk_percent,
 		"warnings": warnings,
 		"can_start": unlocked and int(squad["size"]) > 0
 	}
@@ -2309,12 +2311,7 @@ func _zone_exists(zone_id: String) -> bool:
 	return false
 
 func _mission_risk_label(level_delta: float, average_speed: float, base_risk: String) -> String:
-	var score := 0
-	match base_risk:
-		"Medio":
-			score += 1
-		"Alto":
-			score += 2
+	var score := _base_risk_score(base_risk)
 	if level_delta < -2.0:
 		score += 2
 	elif level_delta < 0.0:
@@ -2322,6 +2319,40 @@ func _mission_risk_label(level_delta: float, average_speed: float, base_risk: St
 	if average_speed < 4.0:
 		score += 1
 	return ["Baixo", "Medio", "Alto", "Critico"][min(score, 3)]
+
+func _mission_risk_percent(level_delta: float, average_speed: float, squad_size: int, base_risk: String, unlocked: bool) -> int:
+	if not unlocked or squad_size <= 0:
+		return 100
+	var risk := 12 + _base_risk_score(base_risk) * 18
+	if level_delta < 0.0:
+		risk += int(ceil(absf(level_delta) * 11.0))
+	else:
+		risk -= int(floor(level_delta * 5.0))
+	if average_speed < 4.0:
+		risk += 14
+	elif average_speed < 6.0:
+		risk += 7
+	elif average_speed >= 8.0:
+		risk -= 6
+	if squad_size < 3:
+		risk += (3 - squad_size) * 12
+	elif squad_size >= 5:
+		risk -= 6
+	return clampi(risk, 5, 100)
+
+func _base_risk_score(base_risk: String) -> int:
+	match base_risk:
+		"Medio":
+			return 1
+		"Alto":
+			return 2
+		"Muito Alto":
+			return 3
+		"Extremo":
+			return 4
+		"Final":
+			return 5
+	return 0
 
 func _mission_warnings(level_delta: float, average_speed: float, squad_size: int, unlocked: bool) -> Array:
 	var warnings := []

@@ -1,9 +1,14 @@
 extends Control
 
+const MedievalUI := preload("res://scripts/ui/components/medieval_ui.gd")
+const CompanionCardScene := preload("res://scenes/ui/components/CompanionCard.tscn")
+
 @onready var list: VBoxContainer = %CharacterList
 @onready var coins_label: Label = %CoinsLabel
 
 func _ready() -> void:
+	MedievalUI.apply_tree(self)
+	MedievalUI.transition_in(self)
 	%BackButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GuildScene.tscn"))
 	GameData.coins_changed.connect(func(_c: int): _refresh())
 	GameData.companion_roster_changed.connect(_refresh)
@@ -11,12 +16,13 @@ func _ready() -> void:
 	_refresh()
 
 func _refresh() -> void:
-	coins_label.text = "Moedas: %d" % GameData.coins
+	coins_label.text = "Moedas: %d | Gerenciamento do esquadrao" % GameData.coins
 	for child in list.get_children():
 		child.queue_free()
 	_add_section_title("Esquadrao")
 	var summary := GameData.get_squad_summary()
 	var squad_label := Label.new()
+	MedievalUI.apply_body_label(squad_label)
 	squad_label.text = "%d/%d ativos | Level medio %.1f | Velocidade %.1f - %s | Sorte %.0f%%" % [
 		int(summary["size"]),
 		int(summary["max_size"]),
@@ -27,7 +33,9 @@ func _refresh() -> void:
 	]
 	list.add_child(squad_label)
 	var warning := Label.new()
+	MedievalUI.apply_body_label(warning)
 	warning.text = str(summary["mobility_warning"])
+	warning.visible = not warning.text.is_empty()
 	list.add_child(warning)
 	var roster := GameData.get_companion_roster()
 	for companion_id in roster.keys():
@@ -37,52 +45,18 @@ func _add_section_title(text: String) -> void:
 	var title := Label.new()
 	title.text = text
 	title.add_theme_font_size_override("font_size", 20)
+	MedievalUI.apply_title(title, 20)
 	list.add_child(title)
 
 func _add_companion_row(companion_id: String, data: Dictionary, summary: Dictionary) -> void:
 	var in_squad := GameData.is_companion_in_squad(companion_id)
-	var row := VBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 106)
-	var title := Label.new()
-	title.text = "%s%s" % [data["name"], "  No esquadrao" if in_squad else ""]
-	var details := Label.new()
-	details.text = "%s | %s | Lv %d | Estado: %s" % [
-		str(data.get("class_name", data.get("class", ""))),
-		str(data.get("rarity", "comum")).capitalize(),
-		int(data.get("level", 1)),
-		str(data.get("state", "disponivel")).capitalize()
-	]
 	var pending_upgrades := int(data.get("pending_upgrades", 0))
-	if pending_upgrades > 0:
-		details.text += " | Melhorias pendentes: %d" % pending_upgrades
-	var stats := Label.new()
-	stats.text = "Vida %.0f | Ataque %.1f | Defesa %.1f | Vel %.1f | Alcance %.0f | Crit %.0f%% | Sorte %.0f%%" % [
-		float(data.get("max_health", 0.0)),
-		float(data.get("attack", 0.0)),
-		float(data.get("defense", 0.0)),
-		float(data.get("speed_rating", 0.0)),
-		float(data.get("range", 0.0)),
-		float(data.get("crit", 0.0)) * 100.0,
-		float(data.get("luck", 0.0)) * 100.0
-	]
-	stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var trait_text := []
-	for trait_id in data.get("traits", []):
-		trait_text.append(GameData.get_trait_effect_text(str(trait_id)))
-	if not trait_text.is_empty():
-		stats.text += " | %s" % ", ".join(trait_text)
-	var button := Button.new()
-	button.text = "Remover do esquadrao" if in_squad else "Adicionar ao esquadrao"
-	var state := str(data.get("state", "disponivel"))
-	button.disabled = not in_squad and (int(summary["size"]) >= int(summary["max_size"]) or state in ["morto", "treinando"])
-	button.pressed.connect(_toggle_companion.bind(companion_id))
-	row.add_child(title)
-	row.add_child(details)
-	row.add_child(stats)
-	if pending_upgrades > 0:
-		_add_pending_upgrade_buttons(row, companion_id)
-	row.add_child(button)
-	list.add_child(row)
+	var choices := GameData.get_companion_upgrade_choices(companion_id) if pending_upgrades > 0 else []
+	var card := CompanionCardScene.instantiate()
+	card.toggle_requested.connect(_toggle_companion)
+	card.upgrade_requested.connect(_apply_companion_upgrade)
+	list.add_child(card)
+	card.setup(companion_id, data, summary, in_squad, choices)
 
 func _toggle_companion(companion_id: String) -> void:
 	GameData.toggle_companion_in_squad(companion_id)

@@ -1,5 +1,7 @@
 extends Control
 
+const MedievalUI := preload("res://scripts/ui/components/medieval_ui.gd")
+
 @onready var master_slider: HSlider = %MasterSlider
 @onready var music_slider: HSlider = %MusicSlider
 @onready var sfx_slider: HSlider = %SfxSlider
@@ -10,6 +12,8 @@ extends Control
 @onready var save_label: Label = %SaveLabel
 
 func _ready() -> void:
+	MedievalUI.apply_tree(self)
+	MedievalUI.transition_in(self)
 	%BackButton.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/GuildScene.tscn"))
 	master_slider.value_changed.connect(_set_volume.bind("master_volume", master_value))
 	music_slider.value_changed.connect(_set_volume.bind("music_volume", music_value))

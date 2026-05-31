@@ -42,13 +42,14 @@ color = Color(0.52, 0.82, 0.48, 0.28)
 
 [node name="MenuBox" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 72.0
-offset_top = -338.0
-offset_right = 760.0
-offset_bottom = 338.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 22.0
+offset_right = -24.0
+offset_bottom = -22.0
+grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
@@ -111,6 +112,7 @@ theme_override_font_sizes/font_size = 20
 text = "Instalacoes"
 
 [node name="FacilityGrid" type="GridContainer" parent="MenuBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10

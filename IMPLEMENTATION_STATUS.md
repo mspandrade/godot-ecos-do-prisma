@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-05-30, after first defense contract implementation
+Last updated: 2026-05-31, after gameplay HUD readability fix
 
 ## Current Goal
 
@@ -479,6 +479,30 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - HUD and mission board now display defense objective progress.
 - Added regression coverage for defense mission profile data and protected-objective damage/destruction behavior.
 
+### Medieval UI Component Pass
+
+- Added a reusable medieval UI kit under `scenes/ui/components` and `scripts/ui/components`.
+- New components include `MedievalButton`, `MenuPanel`, `ResourceBar`, `CompanionCard` and `UpgradeOptionCard`.
+- Main menu, guild, mission select, companion roster, recruitment, guild upgrades, settings, pause and HUD now share the same medieval palette and button feedback.
+- Roster and upgrade screens now render reusable card scenes instead of rebuilding all row structure inline.
+- Main menu, guild and the major panel screens now use full-screen responsive margins instead of fixed centered boxes.
+- Gameplay HUD now shows squad average level, average speed and live companion count alongside health, XP, timer, objective, coins and pause/flee actions.
+- Follow-up text-fit pass now applies automatic label wrapping, compact ellipsis behavior for command labels/buttons, shorter locked facility labels and grid-based companion upgrade buttons to reduce menu misalignment from long Portuguese text.
+- Fixed component setup order in the companion roster and guild upgrade screens so reusable card nodes are added to the scene tree before their `%Node` references are populated.
+- Companion management cards now use dark medieval panels, visible light body text, compact card height and unclipped stats/trait labels so roster details do not disappear on parchment-colored cards.
+- Recruitment candidate cards now use dark medieval panels, header/action layout and a visible multi-line details block for level, speed, ability, squad comparison and trait effects.
+- Gameplay HUD top row now has tighter fixed widths for health/XP blocks, shorter companion bars, clearer squad text and coins reparented into the top HUD so core run information no longer truncates off-screen.
+- Gameplay HUD now stacks XP under the player health block and uses compact labels (`M`, `Eq`, `Vel`, `C`) so timer, objective, pause and flee remain visible at 1228px-wide windows.
+- Gameplay HUD action buttons now live in a dedicated top-right `ActionBar` outside the information row, with reserved right margin and wider buttons so `Pausar`/`Fugir` do not force label truncation.
+
+### Mission Board Detail Expansion
+
+- Mission readiness now exposes `risk_percent` alongside the readable risk label.
+- Locked missions and empty squads report 100% risk, while available missions calculate risk from base danger, squad level delta, average speed and squad size.
+- Mission cards now show description, numeric risk percentage, squad comparison, expected enemies, horde pressure, enemy stat/drop multipliers, victory condition, timer, reputation, material rewards, equipment chance and unlock rewards.
+- Mission card details now render through a single wrapped multi-line label with explicit minimum height and no text trimming, avoiding the blank-card layout seen when many separate labels collapsed inside the card.
+- Added regression coverage for numeric mission risk on available, locked and underleveled missions.
+
 ## Current State
 
 - Default roster has six companions.
@@ -531,6 +555,13 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Mission selection now previews expected opposition before deployment.
 - Each campaign region now loads its own editable combat map scene.
 - The first specialized defense contract is playable in the initial zone.
+- Primary menu screens now share reusable medieval UI components and mobile-friendlier full-screen panel layouts.
+- HUD now includes squad level, average speed and live companion count.
+- HUD now keeps coins, squad stats, timer, objective, pause and flee visible in the top row with less truncation.
+- Long labels/buttons now have safer wrapping or ellipsis rules through the shared medieval UI helper.
+- Roster and guild-upgrade menus no longer call reusable card `setup()` before card `_ready()`, avoiding crashes when navigating into those screens.
+- Roster cards now show companion metadata, stats and traits with readable contrast in the squad management screen.
+- Recruitment cards now show candidate details with readable contrast instead of pale text on parchment.
 - Wounded persistent companions now enter combat with their saved partial health instead of being silently healed when placed in formation.
 - Dropped combat equipment is now rolled on orb collection and only committed after victory or successful flee extraction; defeat loses pending loot.
 - Material-gated heavy equipment is excluded from early mission and combat drop pools until the intended mission tier.
@@ -542,6 +573,8 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - Party editing now allows removing companions, including clearing the party completely.
 - Combat HUD now has a flee action. Flee takes 5 seconds to prepare, preserves companion run progress and applies a coin penalty based on squad mobility.
 - Mission board is functional for selecting an unlocked mission before starting combat. The selected mission is saved.
+- Mission board cards now include mission description, risk percentage and richer combat/reward details before deployment.
+- Mission board detail text is consolidated into a visible multi-line block so the cards no longer show only title/buttons.
 - Selected mission now affects combat pressure and enemy rewards.
 - Missions now end automatically when their timer reaches zero.
 - Timer victories now grant mission XP, unlock the next zone when configured and show the results in the popup.
@@ -554,10 +587,11 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 
 ## Validation Checklist
 
-- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 353 tests passed after defense contract implementation.
-- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after defense objective integration.
-- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after defense contract integration.
+- Done: `godot --headless --path . --script res://tests/test_runner.gd` -> 357 tests passed after mission board risk/detail update.
+- Done: `godot --headless --path . --scene res://scenes/Game.tscn --quit-after 8` -> combat scene booted cleanly after mission board risk/detail update.
+- Done: `godot --headless --path . --quit-after 2` -> configured entry scene (`GuildScene`) booted cleanly after mission board risk/detail update.
 - Done: `git diff --check` -> no whitespace errors reported.
+- Known issue reproduced: direct headless launch of `MissionSelect.tscn` still crashes with the existing Godot 4.6.2 UI-only scene signal-11 pattern after the script loads; use full project boot or GUI/editor verification for that view.
 - Note: concurrent Godot headless validations can reproduce the existing Godot 4.6.2 signal-11 crash on this machine; the isolated validations above complete cleanly.
 - Known issue reproduced: `--check-only --script` on the edited Control UI scripts also triggers the existing Godot 4.6.2 headless signal-11 crash on this machine; validation therefore relies on the stable unit-test and scene-boot paths above.
 - Known issue reproduced: direct headless launch of `BlacksmithScreen.tscn` crashes with the same Godot 4.6.2 UI-only scene crash pattern.
@@ -590,6 +624,11 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scenes/ui/CharactersScreen.tscn`
 - `scenes/ui/HUD.tscn`
 - `scenes/ui/CompanionChoices.tscn`
+- `scenes/ui/components/MedievalButton.tscn`
+- `scenes/ui/components/MenuPanel.tscn`
+- `scenes/ui/components/ResourceBar.tscn`
+- `scenes/ui/components/CompanionCard.tscn`
+- `scenes/ui/components/UpgradeOptionCard.tscn`
 - `scripts/core/game_data.gd`
 - `scripts/game/companion.gd`
 - `scripts/game/companion_manager.gd`
@@ -617,4 +656,10 @@ Start implementing `plano_desenvolvimento_jogo_godot_isometrico.md` while keepin
 - `scripts/ui/mission_select.gd`
 - `scripts/ui/recruitment_scene.gd`
 - `scripts/ui/upgrades_screen.gd`
+- `scripts/ui/components/medieval_ui.gd`
+- `scripts/ui/components/medieval_button.gd`
+- `scripts/ui/components/menu_panel.gd`
+- `scripts/ui/components/resource_bar.gd`
+- `scripts/ui/components/companion_card.gd`
+- `scripts/ui/components/upgrade_option_card.gd`
 - `tests/test_runner.gd`
